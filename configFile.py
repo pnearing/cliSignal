@@ -9,13 +9,13 @@
             Requires a file called common.py, with the variable SETTINGS to be defined.
             SETTINGS must also be JSON serializable.
 """
-from typing import Optional
+from typing import Optional, TextIO
 import os
 import json
 # Version:
-VERSION: float = 1.1
+VERSION: float = 1.2
 
-CAN_LOCK: bool = False
+CAN_LOCK: bool
 try:
     from fileLocks import LockFile, FileLockTimeoutError, FileLockError, FileUnlockError
     CAN_LOCK = True
@@ -24,7 +24,7 @@ except (ModuleNotFoundError, ImportError):
         from .fileLocks import LockFile, FileLockTimeoutError, FileLockError, FileUnlockError
         CAN_LOCK = True
     except (ModuleNotFoundError, ImportError):
-        pass
+        CAN_LOCK = False
 
 
 class ConfigFileError(Exception):
@@ -41,7 +41,7 @@ class ConfigFileError(Exception):
         2: "Module not found, you must create a module called common.py.",
         3: "Variable not found, you must create a variable of SETTINGS in common.py",
         4: "File not found, user specified config file doesn't exist",
-        5: "Permission denied while creating default config _directory.",
+        5: "Permission denied while creating default config directory.",
         6: "Permission denied while attempting to write to config file.",
         7: "Permission denied while attempting to read from config file.",
         8: "JSON Decode error_number.",
@@ -59,6 +59,7 @@ class ConfigFileError(Exception):
         20: "TypeError, enforce_permissions must be a bool.",
         21: "Permissions of config file are not as expected.",
         22: "ValueError, if enforce_permissions is true, set_permissions can not be None.",
+        23: "Failed to create user specified config file.",
     }
 
     def __init__(self,
@@ -101,6 +102,41 @@ except ImportError as e:
 
 class ConfigFile(object):
     """Class to store a config file."""
+    def __create_file__(self) -> None:
+        # Open file:
+        try:
+            if CAN_LOCK:
+                self._lock.lock(lock_type='WRITE', do_raise=True, timeout=5)
+            file_handle: TextIO = open(self.path, 'w')
+        except PermissionError as err:
+            raise ConfigFileError(error_number=6, str_args=str(err.args))
+        except FileNotFoundError as err:
+            raise ConfigFileError(error_number=1, str_args=str(err.args))
+        except OSError as err:
+            raise ConfigFileError(error_number=1, str_args=str(err.args))
+        except FileLockTimeoutError as err:
+            raise ConfigFileError(error_number=10, str_args=err.error_message)
+        except FileLockError as err:
+            raise ConfigFileError(error_number=12, str_args=err.error_message)
+        # Write JSON and close file:
+        try:
+            file_handle.write(json.dumps(common.SETTINGS, indent=4))
+            file_handle.close()
+            if CAN_LOCK:
+                self._lock.unlock(do_raise=True)
+        except OSError as err:
+            raise ConfigFileError(error_number=1, str_args=str(err.args))
+        except FileUnlockError as err:
+            raise ConfigFileError(error_number=11, str_args=err.error_message)
+        # Set the permissions of the file:
+        if set_permissions is not None:
+            try:
+                os.chmod(self.path, set_permissions)
+            except PermissionError as err:
+                raise ConfigFileError(error_number=18, str_args=str(err.args))
+            except OSError as err:
+                raise ConfigFileError(error_number=19, str_args=str(err.args))
+        return
 
     def __init__(
             self,
@@ -114,8 +150,9 @@ class ConfigFile(object):
         """
         Initialize the config file.
         :param config_name: str: The configuration name, used for default _directory and file names.
-        :param file_path: Optional[str]: The _path to a user specified config file.
-        :param create_default: bool: Create default _directory and config file.
+        :param file_path: Optional[str]: The path to a user specified config file.
+        :param create_default: bool: Create default directory and config file if file_path is not passed, if file_path
+            was passed, if the file doesn't exist, it will try to create it with the default settings.
         :param do_load: bool: Load the config immediately
         :param set_permissions: Optional[int]:
             If it is set, it will set the permissions of the file to given number,
@@ -147,24 +184,29 @@ class ConfigFile(object):
         self._lock_id: str = "<configFile.py>"
         self._permissions: Optional[int] = set_permissions
         self._enforce_permissions: bool = enforce_permissions
-        # User selected config file:
-        if file_path is not None:
-            if not os.path.exists(file_path):
-                raise ConfigFileError(error_number=4)
-            self._file_name = os.path.split(file_path)[-1]
-            self._directory = os.path.join(*os.path.split(file_path)[0:-1])
-            self._path = file_path
-            # Create lock file:
-            if CAN_LOCK:
-                self._lock = LockFile(file_path=self._path, lock_id=self._lock_id)
-        # Generated default config file:
-        else:
+
+        if file_path is None:
             self._file_name = config_name + '.config'
             self._directory = os.path.join(os.environ.get("HOME"), '.config', config_name)
             self._path = os.path.join(self._directory, self._file_name)
-            # Create lock file:
-            if CAN_LOCK:
-                self._lock = LockFile(file_path=self._path, lock_id="<configFile.py>")
+        else:
+            self._file_name = os.path.split(file_path)[-1]
+            self._directory = os.path.join(*os.path.split(file_path)[0:-1])
+            self._path = file_path
+        # Create Lock if we can:
+        if CAN_LOCK:
+            self._lock = LockFile(file_path=self._path, lock_id=self._lock_id, ignore_exists=True)
+
+        # User selected config file:
+        if file_path is not None:
+            if not os.path.exists(file_path):
+                if not create_default:
+                    raise ConfigFileError(error_number=4)
+                # Create the user-specified file because it doesn't exist and create_default is True:
+                self.__create_file__()
+
+        # Generated default config file:
+        else:
             if not os.path.exists(self._directory):
                 # If create_default is false, raise error_number:
                 if not create_default:
@@ -185,39 +227,7 @@ class ConfigFile(object):
                 if not create_default:
                     raise ConfigFileError(error_number=9)
                 # Create the config file with current settings if it doesn't exist.
-                # Open file:
-                try:
-                    if CAN_LOCK:
-                        self._lock.lock(do_raise=True, timeout=5)
-                    file_handle = open(self.path, 'w')
-                except PermissionError as err:
-                    raise ConfigFileError(error_number=6, str_args=str(err.args))
-                except FileNotFoundError as err:
-                    raise ConfigFileError(error_number=1, str_args=str(err.args))
-                except OSError as err:
-                    raise ConfigFileError(error_number=1, str_args=str(err.args))
-                except FileLockTimeoutError as err:
-                    raise ConfigFileError(error_number=10, str_args=err.error_message)
-                except FileLockError as err:
-                    raise ConfigFileError(error_number=12, str_args=err.error_message)
-                # Write JSON and close file:
-                try:
-                    file_handle.write(json.dumps(common.SETTINGS, indent=4))
-                    file_handle.close()
-                    if CAN_LOCK:
-                        self._lock.unlock(do_raise=True)
-                except OSError as err:
-                    raise ConfigFileError(error_number=1, str_args=str(err.args))
-                except FileUnlockError as err:
-                    raise ConfigFileError(error_number=11, str_args=err.error_message)
-                # Set the permissions of the file:
-                if set_permissions is not None:
-                    try:
-                        os.chmod(self.path, set_permissions)
-                    except PermissionError as err:
-                        raise ConfigFileError(error_number=18, str_args=str(err.args))
-                    except OSError as err:
-                        raise ConfigFileError(error_number=19, str_args=str(err.args))
+                self.__create_file__()
         # Load the config file
         if do_load:
             self.load()
