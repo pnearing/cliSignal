@@ -8,6 +8,19 @@ from configFile import ConfigFile, ConfigFileError
 import common
 from mainWindow import MainWindow
 
+_WORKING_DIR_NAME: str = '.cliSignal'
+"""Name of the working directory under $HOME."""
+_CONFIG_NAME: str = 'cliSignal'
+"""Name to give our config file configuration."""
+_CONFIG_FILE_NAME: str = 'cliSignal.config'
+"""Name of the cliSignal config file."""
+_SIGNAL_CONFIG_DIR_NAME: str = 'signal-cli'
+"""Name to give the signal-cli config directory. (where signal-cli stores it's files."""
+_SIGNAL_LOG_FILE_NAME: str = 'signal-cli.log'
+"""Name of the signal-cli log file."""
+_CLI_SIGNAL_LOG_FILE_NAME: str = 'cliSignal.log'
+"""Name of the cliSignal log file."""
+
 
 def main(std_screen: curses.window) -> None:
 
@@ -22,7 +35,7 @@ def main(std_screen: curses.window) -> None:
     except KeyboardInterrupt:
         pass
 
-    # _signal_cli: SignalCli = SignalCli(signal_config_path=common.SETTINGS['signalConfigDir'],
+    # signal_cli: SignalCli = SignalCli(signal_config_path=common.SETTINGS['signalConfigDir'],
     #                                    signal_exec_path=common.SETTINGS['signalExecPath'],
     #                                    log_file_path=common.SETTINGS['signalLogFile'],
     #                                    server_address=common.SETTINGS['signalSocketFile'],
@@ -33,12 +46,13 @@ def main(std_screen: curses.window) -> None:
 
 
 if __name__ == '__main__':
+
     # Setup command line arguments:
     parser = argparse.ArgumentParser(description="Command line Signal client.",
                                      epilog="Written by Peter Nearing."
                                      )
     parser.add_argument('--config',
-                        help="The full path to the config file, default is $HOME/.config/cliSignal.config",
+                        help="The full path to the config file, default is $HOME/.cliSignal/cliSignal.config",
                         type=str
                         )
     parser.add_argument('--store',
@@ -56,10 +70,6 @@ if __name__ == '__main__':
                              "socket file.",
                         type=str
                         )
-    parser.add_argument('--signalLogPath',
-                        help="The full path to the signal log file, by default logging is turned off.",
-                        type=str
-                        )
     parser.add_argument('--signalExecPath',
                         help="The full path to the signal-cli executable.",
                         type=str
@@ -72,10 +82,35 @@ if __name__ == '__main__':
     # Parse args:
     args: argparse.Namespace = parser.parse_args()
 
+    # Setup .cliSignal directory, and change to it:
+    home_dir: str = os.environ.get('HOME')
+    working_dir: str = os.path.join(home_dir, _WORKING_DIR_NAME)
+    if not os.path.exists(working_dir):
+        try:
+            os.mkdir(working_dir, 0o700)
+        except (OSError, PermissionError, FileNotFoundError):
+            print("ERROR: Failed to create '%s' directory." % working_dir)
+            exit(2)
+    os.chdir(working_dir)
+
+    # Make signal-cli config dir if required:
+    signal_config_dir: str = os.path.join(working_dir, _SIGNAL_CONFIG_DIR_NAME)
+    if not os.path.exists(signal_config_dir):
+        try:
+            os.mkdir(signal_config_dir, 0o700)
+        except (OSError, FileNotFoundError, PermissionError):
+            print("ERROR: Failed to create '%s' directory.")
+            exit(3)
+
+    # Parse --config option:
+    cli_signal_config_path: str = os.path.join(working_dir, _CONFIG_FILE_NAME)
+    if args.config is not None:
+        cli_signal_config_path: str = args.config
+
     # load config:
     try:
-        config_file: ConfigFile = ConfigFile("cliSignal",
-                                             file_path=args.config,
+        config_file: ConfigFile = ConfigFile(config_name=_CONFIG_NAME,
+                                             file_path=cli_signal_config_path,
                                              set_permissions=0o600,
                                              enforce_permissions=True
                                              )
@@ -84,7 +119,8 @@ if __name__ == '__main__':
             print("ERROR: Permissions of config file must be 600.")
         else:
             print("ERROR:", e.error_message)
-        exit(2)
+        exit(4)
+
     # Validate / act on arguments:
 
     # --noStartSignal:
@@ -98,7 +134,7 @@ if __name__ == '__main__':
     if common.SETTINGS['signalConfigDir'] is not None and (not os.path.exists(common.SETTINGS['signalConfigDir']) or
                                                            not os.path.isdir(common.SETTINGS['signalConfigDir'])):
         print("ERROR: --signalConfigPath must be an existing directory.")
-        exit(3)
+        exit(5)
 
     # --signalSocketPath:
     if args.signalSocketPath is not None:
@@ -107,19 +143,6 @@ if __name__ == '__main__':
         if (not os.path.exists(common.SETTINGS['signalSocketPath']) or
                 not os.path.isfile(common.SETTINGS['signalSocketPath'])):
             print("ERROR: --signalSocketPath must point to an existing socket file.")
-            exit(4)
-    if args.noStartSignal and common.SETTINGS['signalSocketPath'] is None:
-        print("ERROR: --signalSocketPath must point to an existing file if using --noStartSignal.")
-        exit(5)
-
-    # --signalLogPath:
-    if args.signalLogPath is not None:
-        common.SETTINGS['signalLogPath'] = args.signalLogPath
-    # Check that the log file containing directory exists:
-    if common.SETTINGS['signalLogPath'] is not None:
-        log_dir: str = os.path.join(*os.path.split(common.SETTINGS['signalLogPath'])[:-1])
-        if not os.path.exists(log_dir) or not os.path.isdir(log_dir):
-            print("ERROR: Directory containing the log file doesn't exist.")
             exit(6)
 
     # --signalExecPath:
@@ -129,6 +152,20 @@ if __name__ == '__main__':
                                                           not os.path.isfile(common.SETTINGS['signalExecPath'])):
         print("ERROR: --signalExecPath must point to an existing signal-cli executable file.")
         exit(7)
+
+    # Verify arguments; If --noStartSignal, --signalSocketPath must be defined:
+    if args.noStartSignal and common.SETTINGS['signalSocketPath'] is None:
+        print("ERROR: --signalSocketPath must point to an existing file if using --noStartSignal.")
+        exit(8)
+
+    # Parse: --store
+    if args.store:
+        try:
+            config_file.save()
+        except ConfigFileError as e:
+            print("ERROR:", e.error_message)
+            exit(9)
+
 
     curses.wrapper(main)
     exit(0)
