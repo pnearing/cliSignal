@@ -13,7 +13,7 @@ from typing import Optional, TextIO
 import os
 import json
 # Version:
-VERSION: float = 1.2
+VERSION: float = 1.3
 
 CAN_LOCK: bool
 try:
@@ -129,9 +129,9 @@ class ConfigFile(object):
         except FileUnlockError as err:
             raise ConfigFileError(error_number=11, str_args=err.error_message)
         # Set the permissions of the file:
-        if set_permissions is not None:
+        if self._permissions is not None:
             try:
-                os.chmod(self.path, set_permissions)
+                os.chmod(self.path, self._permissions)
             except PermissionError as err:
                 raise ConfigFileError(error_number=18, str_args=str(err.args))
             except OSError as err:
