@@ -6,9 +6,9 @@ import curses
 SETTINGS: dict[str, Optional[str | bool]] = {
     'signalExecPath': None,
     'signalConfigDir': None,
-    'signalLogPath': None,
     'signalSocketPath': None,
     'startSignal': True,
+    'workingDir': '',
 }
 
 
