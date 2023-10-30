@@ -6,116 +6,29 @@ import curses
 from SignalCliApi import SignalCli
 from configFile import ConfigFile, ConfigFileError
 import common
-
-
-def add_title_to_win(window: curses.window, title: str) -> None:
-    """
-    Add a provided title to a given window.
-    :param window: The curser window to draw on.
-    :param title: The title to add.
-    :return: None
-    """
-    # Add start and end chars to the title.
-    message: str = "\u2562 " + title + " \u255F"
-    num_rows, num_cols = window.getmaxyx()
-    col: int = int(num_cols / 2) - int(len(message) / 2)
-    window.addstr(0, col, message)
-    return
-
-
-def add_char(window: curses.window,
-             row: int,
-             col: int,
-             character: str,
-             attrs: Optional[int] = None
-             ) -> None:
-    """
-    Add a character to the screen, taking into account the exception that occurs when printing to the bottom right of
-    the window.
-    :param window: curses.window: The window to add to.
-    :param row: int: The row to add at.
-    :param col: int: The column to add at.
-    :param character: str: The character to add.
-    :param attrs: Optional[int]: The attributes to add.
-    :return: None
-    """
-    num_rows, num_cols = window.getmaxyx()
-    max_row = num_rows - 1
-    max_col = num_cols - 1
-    if row == max_row and col == max_col:
-        try:
-            if attrs is not None:
-                window.addch(row, col, character, attrs)
-            else:
-                window.addch(row, col, character)
-        except curses.error:
-            pass
-    else:
-        if attrs is not None:
-            window.addch(row, col, character, attrs)
-        else:
-            window.addch(row, col, character)
-    return
-
-
-def colour_border(window: curses.window,
-                  ls: str = "\u2502",
-                  rs: str = "\u2502",
-                  ts: str = "\u2500",
-                  bs: str = "\u2500",
-                  tl: str = "\u250C",
-                  tr: str = "\u2510",
-                  bl: str = "\u2514",
-                  br: str = "\u2518",
-                  attrs: Optional[int] = None
-                  ) -> None:
-    """
-    Draw a coloured border around a given window.
-    :param window: The window to draw on.
-    :param ls: str: The left side character, defaults to "│".
-    :param rs: str: The right side character, defaults to "│".
-    :param ts: str: The top side character, defaults to "─".
-    :param bs: str: The bottom side character, defaults to "─".
-    :param tl: str: The top left corner character, defaults to "┌".
-    :param tr: str: The top right corner character, defaults to "┐".
-    :param bl: str: The bottom left corner character, defaults to "└".
-    :param br: str: The bottom right corner character, defaults to "┘".
-    :param attrs: Optional[int]: The attributes to set for the border.
-    :return: None
-    """
-    num_rows, num_cols = window.getmaxyx()
-    max_row = num_rows - 1
-    max_col = num_cols - 1
-    # Draw top side:
-    for col in range(1, max_col - 1):
-        add_char(window=window, row=0, col=col, character=ts, attrs=attrs)
-    # Draw bottom side:
-    for col in range(1, max_col - 1):
-        add_char(window=window, row=0, col=col, character=bs, attrs=attrs)
-    # Draw left side:
-    for row in range(1, max_row - 1):
-        add_char(window=window, row=row, col=0, character=ls, attrs=attrs)
-    # Draw right side:
-    for row in range(1, max_row - 1):
-        add_char(window=window, row=row, col=0, character=rs, attrs=attrs)
-    return
+from mainWindow import MainWindow
 
 
 def main(std_screen: curses.window) -> None:
-    std_screen.attron(curses.A_BOLD)
-    # std_screen.border()
-    colour_border(std_screen, attrs=(curses.COLOR_BLUE | curses.A_BOLD))
-    # add_title_to_win(std_screen, "cliSignal")
-    std_screen.attroff(curses.A_BOLD)
-    std_screen.addch(10, 10, "X", 0)
-    std_screen.refresh()
+
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
+    main_window = MainWindow(std_screen)
+    main_window.redraw()
+    try:
+        while True:
+            char_code: int = std_screen.getch()
+            if char_code == curses.KEY_RESIZE:
+                main_window.redraw()
+    except KeyboardInterrupt:
+        pass
+
     # _signal_cli: SignalCli = SignalCli(signal_config_path=common.SETTINGS['signalConfigDir'],
     #                                    signal_exec_path=common.SETTINGS['signalExecPath'],
     #                                    log_file_path=common.SETTINGS['signalLogFile'],
     #                                    server_address=common.SETTINGS['signalSocketFile'],
     #                                    start_signal=common.SETTINGS['startSignal']
     #                                    )
-    curses.napms(3000)
+    # curses.napms(10000)
     return
 
 
@@ -143,7 +56,7 @@ if __name__ == '__main__':
                              "socket file.",
                         type=str
                         )
-    parser.add_argument('--signalLogFile',
+    parser.add_argument('--signalLogPath',
                         help="The full path to the signal log file, by default logging is turned off.",
                         type=str
                         )
@@ -188,7 +101,6 @@ if __name__ == '__main__':
         exit(3)
 
     # --signalSocketPath:
-    print("DEBUG:", str(common.SETTINGS.keys()))
     if args.signalSocketPath is not None:
         common.SETTINGS['signalSocketPath'] = args.signalSocketFile
     if common.SETTINGS['signalSocketPath'] is not None:
@@ -200,12 +112,12 @@ if __name__ == '__main__':
         print("ERROR: --signalSocketPath must point to an existing file if using --noStartSignal.")
         exit(5)
 
-    # --signalLogFilename:
-    if args.signalLogFile is not None:
-        common.SETTINGS['signalLogFile'] = args.signalLogFilename
+    # --signalLogPath:
+    if args.signalLogPath is not None:
+        common.SETTINGS['signalLogPath'] = args.signalLogPath
     # Check that the log file containing directory exists:
-    if common.SETTINGS['signalLogFile'] is not None:
-        log_dir: str = os.path.join(*os.path.split(common.SETTINGS['signalLogFile'])[:-1])
+    if common.SETTINGS['signalLogPath'] is not None:
+        log_dir: str = os.path.join(*os.path.split(common.SETTINGS['signalLogPath'])[:-1])
         if not os.path.exists(log_dir) or not os.path.isdir(log_dir):
             print("ERROR: Directory containing the log file doesn't exist.")
             exit(6)
