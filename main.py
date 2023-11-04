@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-from typing import Optional
+from typing import Optional, TextIO
 import argparse
 import os.path
 import curses
+import json
 from SignalCliApi import SignalCli
 from configFile import ConfigFile, ConfigFileError
 import common
+from themes import load_theme, init_colours
 from mainWindow import MainWindow
+from contactsWindow import ContactsWindow
 
 _WORKING_DIR_NAME: str = '.cliSignal'
 """Name of the working directory under $HOME."""
@@ -15,7 +18,7 @@ _CONFIG_NAME: str = 'cliSignal'
 _CONFIG_FILE_NAME: str = 'cliSignal.config'
 """Name of the cliSignal config file."""
 _SIGNAL_CONFIG_DIR_NAME: str = 'signal-cli'
-"""Name to give the signal-cli config directory. (where signal-cli stores it's files."""
+"""Name to give the signal-cli config directory. (where signal-cli stores it's files)."""
 _SIGNAL_LOG_FILE_NAME: str = 'signal-cli.log'
 """Name of the signal-cli log file."""
 _CLI_SIGNAL_LOG_FILE_NAME: str = 'cliSignal.log'
@@ -23,17 +26,20 @@ _CLI_SIGNAL_LOG_FILE_NAME: str = 'cliSignal.log'
 
 
 def main(std_screen: curses.window) -> None:
+    # Setup extended key codes, including mouse move events:
+    std_screen.keypad(True)
+    # Ask for mouse move events, and position change event:
+    # curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
 
-    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
-    main_window = MainWindow(std_screen)
+    # Setup colour pairs according to theme:
+    if not curses.has_extended_color_support():
+        raise RuntimeError("Terminal capable of 256 colours required.")
+    theme: dict[str, dict[str, int | bool | str]] = load_theme()
+    init_colours(theme)
+
+    # Create the windows:
+    main_window = MainWindow(std_screen, theme)
     main_window.redraw()
-    try:
-        while True:
-            char_code: int = std_screen.getch()
-            if char_code == curses.KEY_RESIZE:
-                main_window.redraw()
-    except KeyboardInterrupt:
-        pass
 
     # signal_cli: SignalCli = SignalCli(signal_config_path=common.SETTINGS['signalConfigDir'],
     #                                    signal_exec_path=common.SETTINGS['signalExecPath'],
@@ -41,7 +47,18 @@ def main(std_screen: curses.window) -> None:
     #                                    server_address=common.SETTINGS['signalSocketFile'],
     #                                    start_signal=common.SETTINGS['startSignal']
     #                                    )
-    # curses.napms(10000)
+
+    # Main loop:
+    try:
+        while True:
+            char_code: int = std_screen.getch()
+            if char_code == curses.KEY_RESIZE:
+                main_window.resize()
+                main_window.redraw()
+                pass
+    except KeyboardInterrupt:
+        pass
+
     return
 
 
@@ -51,6 +68,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Command line Signal client.",
                                      epilog="Written by Peter Nearing."
                                      )
+    # Config options:
     parser.add_argument('--config',
                         help="The full path to the config file, default is $HOME/.cliSignal/cliSignal.config",
                         type=str
@@ -60,6 +78,7 @@ if __name__ == '__main__':
                         action='store_true',
                         default=False
                         )
+    # Signal options:
     parser.add_argument('--signalConfigDir',
                         help="The full path to the signal config directory.",
                         type=str
@@ -78,6 +97,15 @@ if __name__ == '__main__':
                         help="Start the signal daemon.",
                         action='store_true',
                         default=False
+                        )
+    # Colour theme options:
+    parser.add_argument('--theme',
+                        help='The theme to use, either "light", "dark", or "custom".',
+                        type=str
+                        )
+    parser.add_argument('--themePath',
+                        help="The path to the custom theme json file, required if --theme=custom",
+                        type=str
                         )
     # Parse args:
     args: argparse.Namespace = parser.parse_args()
@@ -112,7 +140,9 @@ if __name__ == '__main__':
         config_file: ConfigFile = ConfigFile(config_name=_CONFIG_NAME,
                                              file_path=cli_signal_config_path,
                                              set_permissions=0o600,
-                                             enforce_permissions=True
+                                             enforce_permissions=True,
+                                             create_default=True,
+                                             do_load=True
                                              )
     except ConfigFileError as e:
         if e.error_number == 21:
@@ -158,6 +188,30 @@ if __name__ == '__main__':
         print("ERROR: --signalSocketPath must point to an existing file if using --noStartSignal.")
         exit(8)
 
+    # Verify theme:
+    if args.theme is not None:
+        if args.theme not in ('light', 'dark', 'custom'):
+            print("ERROR: --theme must be either: 'light', 'dark', or 'custom'.")
+            exit(9)
+        common.SETTINGS['theme'] = args.theme
+    # Verify theme is correct:
+    if common.SETTINGS['theme'] not in ('light', 'dark', 'custom'):
+        print("ERROR: 'theme' must be one of: 'light', 'dark', or 'custom'")
+        exit(10)
+    if common.SETTINGS['theme'] == 'custom':
+        # If there is no theme path, throw an error.
+        if args.themePath is None and common.SETTINGS['themePath'] is None:
+            print("ERROR: If --theme is 'custom', either --themePath must be supplied, or 'themePath' must be "
+                  "defined in your configuration file.")
+            exit(11)
+        # Override settings theme path with the args theme path:
+        elif args.themePath is not None:
+            common.SETTINGS['themePath'] = args.themePath
+        # Check that the theme path exists:
+        if not os.path.exists(common.SETTINGS['themePath']) or not os.path.isfile(common.SETTINGS['themePath']):
+            print("ERROR: 'themePath' must point to an existing file.")
+            exit(12)
+
     # Parse: --store
     if args.store:
         try:
@@ -165,7 +219,6 @@ if __name__ == '__main__':
         except ConfigFileError as e:
             print("ERROR:", e.error_message)
             exit(9)
-
 
     curses.wrapper(main)
     exit(0)
