@@ -19,7 +19,7 @@ class MainWindow(Window):
 
     def __init__(self,
                  window: curses.window,
-                 theme: dict[str, dict[str, int | bool]]
+                 theme: dict[str, dict[str, int | bool | str]]
                  ) -> None:
         """
         Initialize the MainWindow object.

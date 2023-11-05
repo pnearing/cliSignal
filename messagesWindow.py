@@ -17,7 +17,7 @@ class MessagesWindow(Window):
     def __init__(self,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
-                 theme: dict[str, dict[str, int | bool]]
+                 theme: dict[str, dict[str, int | bool | str]]
                  ) -> None:
         window_attrs: int = calc_attributes(ThemeColours.MESSAGES_WIN, theme['msgsWin'])
         border_attrs: int = calc_attributes(ThemeColours.MESSAGES_WIN_BORDER, theme['msgsWinBorder'])
