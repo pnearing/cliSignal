@@ -13,10 +13,12 @@ class ContactsWindow(Window):
     """
     Class to store the contacts' window.
     """
+    _CONTACTS: list[dict[str, str]] = []
+    """List of contacts to show."""
     def __init__(self,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
-                 theme: dict[str, dict[str, int | bool]]
+                 theme: dict[str, dict[str, int | bool| str]]
                  ) -> None:
         """
         Initialize the contacts' window.
