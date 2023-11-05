@@ -3,6 +3,7 @@
 File: contactsWindow.py
 Contacts window management.
 """
+from typing import Optional
 import curses
 from common import ROW, COL, calc_attributes
 from themes import ThemeColours
@@ -18,7 +19,7 @@ class ContactsWindow(Window):
     def __init__(self,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
-                 theme: dict[str, dict[str, int | bool| str]]
+                 theme: dict[str, dict[str, int | bool | Optional[str]]]
                  ) -> None:
         """
         Initialize the contacts' window.
@@ -34,6 +35,6 @@ class ContactsWindow(Window):
         # Make a curses window:
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
         # Super the window.
-        Window.__init__(self, window, "Contacts & Groups", top_left, window_attrs, border_attrs, title_attrs, theme)
+        Window.__init__(self, window, theme['titles']['contacts'], top_left, window_attrs, border_attrs, title_attrs,
+                        theme)
         return
-

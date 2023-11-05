@@ -3,6 +3,7 @@
 File: typingWindow.py
 Message typing area window.
 """
+from typing import Optional
 import curses
 from common import ROW, COL, calc_attributes
 from themes import ThemeColours
@@ -16,17 +17,18 @@ class TypingWindow(Window):
     def __init__(self,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
-                 theme: dict[str, dict[str, int | bool | str]]
+                 theme: dict[str, dict[str, int | bool | Optional[str]]]
                  ) -> None:
         """
-
-        :param size:
-        :param top_left:
-        :param theme:
+        Initialize the typing window.
+        :param size: tuple[int, int]: The size of the window.
+        :param top_left: tuple[int, int]: The top left corner of the window.
+        :param theme: dict[str, dict[str, int | bool | Optional[str]]]: The theme to use.
         """
         window_attrs: int = calc_attributes(ThemeColours.TYPING_WIN, theme['typeWin'])
         border_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder'])
         title_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle'])
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
-        Window.__init__(self, window, None, top_left, window_attrs, border_attrs, title_attrs, theme)
+        Window.__init__(self, window, theme['titles']['messages'], top_left, window_attrs, border_attrs, title_attrs,
+                        theme)
         return

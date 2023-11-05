@@ -3,6 +3,7 @@
 File: mainWindow.py
 Class to store and manipulate the main window.
 """
+from typing import Optional
 import curses
 from common import ROW, COL, calc_attributes
 from themes import ThemeColours
@@ -19,7 +20,7 @@ class MainWindow(Window):
 
     def __init__(self,
                  window: curses.window,
-                 theme: dict[str, dict[str, int | bool | str]]
+                 theme: dict[str, dict[str, int | bool | Optional[str]]]
                  ) -> None:
         """
         Initialize the MainWindow object.
@@ -32,7 +33,7 @@ class MainWindow(Window):
         # Run super.__init__:
         Window.__init__(self,
                         window,
-                        "cliSignal",
+                        theme['titles']['main'],
                         (0, 0),
                         window_attrs,
                         border_attrs,

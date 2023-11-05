@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import TextIO
+from typing import TextIO, Optional
 from enum import IntEnum
 import curses
 import json
@@ -25,8 +25,11 @@ class ThemeColours(IntEnum):
     CONTACT_NAME_SEL = 13
     CONTACT_NAME_UNSEL = 14
 
-_THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
+
+_THEMES: dict[str, dict[str, dict[str, int | bool | Optional[str]]]] = {
     'light': {
+        # Window titles:
+        'titles':        {'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None},
         # Border characters:
         'borderChars':   {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',    # Sides
                           'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},   # Corners
@@ -62,6 +65,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'typeWinTitle':  {'fg': 15, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
     },
     'dark': {
+        'titles': {'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None},
         'borderChars':   {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',
                           'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},
         'titleChars': {'start': '\u2561', 'end': '\u255E'},
@@ -81,12 +85,12 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'typeWinTitle':  {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
     }
 }
-
+"""Light and dark theme definitions."""
 _THEME_MAIN_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle', 'contWin', 'contWinBorder',
                                'contWinTitle', 'msgsWin', 'msgsWinBorder', 'msgsWinTitle', 'typeWin',
-                               'typeWinBorder', 'typeWinTitle', ]
+                               'typeWinBorder', 'typeWinTitle', 'contNameUnsel', 'contNameSel']
 """Main theme keys."""
-_THEME_CHAR_KEYS: list[str] = ['borderChars', 'titleChars']
+_THEME_CHAR_KEYS: list[str] = ['borderChars', 'titleChars', 'titles']
 """Theme character keys."""
 _THEME_ATTR_KEYS: list[str] = ['fg', 'bg', 'bold', 'underline', 'reverse']
 """Theme attribute keys."""
@@ -94,9 +98,10 @@ _THEME_BORDER_CHAR_KEYS: list[str] = ['ts', 'bs', 'ls', 'rs', 'tl', 'tr', 'bl', 
 """Theme border character keys."""
 _THEME_TITLE_CHAR_KEYS: list[str] = ['start', 'end']
 """Theme title character keys."""
+_THEME_TITLE_KEYS: list[str] = ['main', 'messages', 'contacts', 'typing']
 
 
-def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, str]:
+def verify_theme(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> tuple[bool, str]:
     """
     Verify a theme dict is correct, has the right keys, and values.
     :param theme: The theme to check.
@@ -119,18 +124,22 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
                 if border_key not in theme[char_key].keys():
                     return False, "Key '%s' missing from 'borderChars'." % border_key
         elif char_key == 'titleChars':
-            for title_key in _THEME_TITLE_CHAR_KEYS:
+            for title_char_key in _THEME_TITLE_CHAR_KEYS:
+                if title_char_key not in theme[char_key].keys():
+                    return False, "Key '%s' missing from 'titleChars'." % title_char_key
+        elif char_key == 'titles':
+            for title_key in _THEME_TITLE_KEYS:
                 if title_key not in theme[char_key].keys():
-                    return False, "Key '%s' missing from 'titleChars'." % title_key
+                    return False, "Key '%s' missing from 'titles'." % title_key
     return True, 'PASS'
 
 
-def load_theme() -> dict[str, dict[str, int | bool | str]]:
+def load_theme() -> dict[str, dict[str, int | bool | Optional[str]]]:
     """
     Load the current theme.
     :return: dict[str, dict[str, int | bool]]:
     """
-    theme: dict[str, dict[str, int | bool | str]]
+    theme: dict[str, dict[Optional[str], int | bool]]
     if common.SETTINGS['theme'] == 'light':
         theme = _THEMES['light']
     elif common.SETTINGS['theme'] == 'dark':
@@ -153,7 +162,7 @@ def load_theme() -> dict[str, dict[str, int | bool | str]]:
     raise RuntimeError("Invalid theme: %s." % message)
 
 
-def init_colours(theme: dict[str, dict[str, int]]) -> None:
+def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> None:
     """
     Initialize the colour pairs:
     :param theme: The colour theme dict.
@@ -171,4 +180,6 @@ def init_colours(theme: dict[str, dict[str, int]]) -> None:
     curses.init_pair(ThemeColours.TYPING_WIN, theme['typeWin']['fg'], theme['typeWin']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder']['fg'], theme['typeWinBorder']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle']['fg'], theme['typeWinTitle']['bg'])
+    curses.init_pair(ThemeColours.CONTACT_NAME_SEL, theme['contNameSel']['fg'], theme['contNameSel']['bg'])
+    curses.init_pair(ThemeColours.CONTACT_NAME_UNSEL, theme['contNameUnsel']['fg'], theme['contNameUnsel']['bg'])
     return
