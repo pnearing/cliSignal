@@ -29,6 +29,6 @@ class TypingWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder'])
         title_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle'])
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
-        Window.__init__(self, window, theme['titles']['messages'], top_left, window_attrs, border_attrs, title_attrs,
+        Window.__init__(self, window, theme['titles']['typing'], top_left, window_attrs, border_attrs, title_attrs,
                         theme)
         return
