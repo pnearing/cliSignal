@@ -22,7 +22,8 @@ class ThemeColours(IntEnum):
     TYPING_WIN = 10
     TYPING_WIN_BORDER = 11
     TYPING_WIN_TITLE = 12
-
+    CONTACT_NAME_SEL = 13
+    CONTACT_NAME_UNSEL = 14
 
 _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
     'light': {
@@ -44,9 +45,9 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Contacts window title:
         'contWinTitle':  {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': False},
         # Contacts window unselected name:
-        'contUnselName': {'fg': 0, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
+        'contNameUnsel': {'fg': 0, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
         # Contacts window selected name:
-        'contSelName':   {'fg': 0, 'bg': 19, 'bold': False, 'underline': True, 'reverse': True},
+        'contNameSel':   {'fg': 0, 'bg': 19, 'bold': False, 'underline': True, 'reverse': True},
         # Messages window centre:
         'msgsWin':       {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
         # Messages window border:
@@ -64,18 +65,20 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'borderChars':   {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',
                           'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},
         'titleChars': {'start': '\u2561', 'end': '\u255E'},
-        'mainWin':       {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
-        'mainWinBorder': {'fg': 0, 'bg': 18, 'bold': True, 'underline': False, 'reverse': False},
-        'mainWinTitle':  {'fg': 0, 'bg': 18, 'bold': True, 'underline': True, 'reverse': False},
-        'contWin':       {'fg': 7, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
-        'contWinBorder': {'fg': 0, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
-        'contWinTitle':  {'fg': 0, 'bg': 19, 'bold': True, 'underline': True, 'reverse': False},
-        'msgsWin':       {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinBorder': {'fg': 0, 'bg': 20, 'bold': True, 'underline': False, 'reverse': False},
-        'msgsWinTitle':  {'fg': 0, 'bg': 20, 'bold': True, 'underline': True, 'reverse': False},
-        'typeWin':       {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        'typeWinBorder': {'fg': 0, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
-        'typeWinTitle':  {'fg': 0, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
+        'mainWin':       {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
+        'mainWinBorder': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': False},
+        'mainWinTitle':  {'fg': 7, 'bg': 237, 'bold': True, 'underline': True, 'reverse': False},
+        'contWin':       {'fg': 7, 'bg': 238, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinBorder': {'fg': 7, 'bg': 238, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinTitle':  {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': False},
+        'contNameUnsel': {'fg': 7, 'bg': 238, 'bold': False, 'underline': False, 'reverse': False},
+        'contNameSel':   {'fg': 7, 'bg': 238, 'bold': False, 'underline': True, 'reverse': True},
+        'msgsWin':       {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
+        'msgsWinTitle':  {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
+        'typeWin':       {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'typeWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
+        'typeWinTitle':  {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
     }
 }
 
