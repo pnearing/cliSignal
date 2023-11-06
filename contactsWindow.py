@@ -31,10 +31,12 @@ class ContactsWindow(Window):
         # Set the theme attrs:
         window_attrs: int = calc_attributes(ThemeColours.CONTACTS_WIN, theme['contWin'])
         border_attrs: int = calc_attributes(ThemeColours.CONTACT_WIN_BORDER, theme['contWinBorder'])
+        border_focus_attrs: int = calc_attributes(ThemeColours.CONTACTS_WIN_FOCUS_BORDER, theme['contWinFBorder'])
         title_attrs: int = calc_attributes(ThemeColours.CONTACT_WIN_TITLE, theme['contWinTitle'])
+        title_focus_attrs: int = calc_attributes(ThemeColours.CONTACTS_WIN_FOCUS_TITLE, theme['contWinFTitle'])
         # Make a curses window:
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
         # Super the window.
-        Window.__init__(self, window, theme['titles']['contacts'], top_left, window_attrs, border_attrs, title_attrs,
-                        theme)
+        Window.__init__(self, window, theme['titles']['contacts'], top_left, window_attrs, border_attrs,
+                        border_focus_attrs, title_attrs, title_focus_attrs, theme)
         return

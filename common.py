@@ -3,6 +3,8 @@ from typing import Optional
 import curses
 from enum import IntEnum
 
+VERSION: str = '1.0.0'
+
 
 # Settings for configFile:
 SETTINGS: dict[str, Optional[str | bool]] = {

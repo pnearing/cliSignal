@@ -1,36 +1,65 @@
 #!/usr/bin/env python3
-from typing import Optional, TextIO
+from typing import Final
 import argparse
 import os.path
 import curses
-import json
+from enum import IntEnum
+# import json
 from SignalCliApi import SignalCli
 from configFile import ConfigFile, ConfigFileError
 import common
 from themes import load_theme, init_colours
 from mainWindow import MainWindow
 from contactsWindow import ContactsWindow
+from messagesWindow import MessagesWindow
+from typingWindow import TypingWindow
 
-_WORKING_DIR_NAME: str = '.cliSignal'
+
+#########################################
+# Enums:
+#########################################
+class Window(IntEnum):
+    """
+    Focused windows.
+    """
+    MAIN = 0
+    CONTACTS = 1
+    MESSAGES = 2
+    TYPING = 3
+    MENU = 4
+    STATUS = 5
+
+
+#########################################
+# Constants:
+#########################################
+_WORKING_DIR_NAME: Final[str] = '.cliSignal'
 """Name of the working directory under $HOME."""
-_CONFIG_NAME: str = 'cliSignal'
+_CONFIG_NAME: Final[str] = 'cliSignal'
 """Name to give our config file configuration."""
-_CONFIG_FILE_NAME: str = 'cliSignal.config'
+_CONFIG_FILE_NAME: Final[str] = 'cliSignal.config'
 """Name of the cliSignal config file."""
-_SIGNAL_CONFIG_DIR_NAME: str = 'signal-cli'
+_SIGNAL_CONFIG_DIR_NAME: Final[str] = 'signal-cli'
 """Name to give the signal-cli config directory. (where signal-cli stores it's files)."""
-_SIGNAL_LOG_FILE_NAME: str = 'signal-cli.log'
+_SIGNAL_LOG_FILE_NAME: Final[str] = 'signal-cli.log'
 """Name of the signal-cli log file."""
-_CLI_SIGNAL_LOG_FILE_NAME: str = 'cliSignal.log'
+_CLI_SIGNAL_LOG_FILE_NAME: Final[str] = 'cliSignal.log'
 """Name of the cliSignal log file."""
+
+#########################################
+# Vars:
+#########################################
+_CURRENT_FOCUS: int = Window.CONTACTS
 
 
 def main(std_screen: curses.window) -> None:
     # Setup extended key codes, including mouse move events:
+    global _CURRENT_FOCUS
     std_screen.keypad(True)
     # Ask for mouse move events, and position change event:
-    # curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
-
+    curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+    # Tell the terminal to report mouse movements:
+    print('\033[?1003h')
     # Setup colour pairs according to theme:
     if not curses.has_extended_color_support():
         raise RuntimeError("Terminal capable of 256 colours required.")
@@ -39,8 +68,14 @@ def main(std_screen: curses.window) -> None:
 
     # Create the windows:
     main_window = MainWindow(std_screen, theme)
-    main_window.redraw()
 
+    # Store references to the windows:
+    windows: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow] = (main_window,
+                                                                                main_window.contacts_window,
+                                                                                main_window.messages_window,
+                                                                                main_window.typing_window)
+
+    main_window.redraw()
     # signal_cli: SignalCli = SignalCli(signal_config_path=common.SETTINGS['signalConfigDir'],
     #                                    signal_exec_path=common.SETTINGS['signalExecPath'],
     #                                    log_file_path=common.SETTINGS['signalLogFile'],
@@ -50,12 +85,37 @@ def main(std_screen: curses.window) -> None:
 
     # Main loop:
     try:
+        std_screen.move(0, 0)
         while True:
             char_code: int = std_screen.getch()
-            if char_code == curses.KEY_RESIZE:
+            std_screen.addstr(10, 10, "    ")
+            std_screen.addstr(10, 10, str(char_code))
+            std_screen.refresh()
+            if char_code == 4:  # CTRL-D hit, exit.
+                return
+            elif char_code == curses.KEY_RESIZE:
+                # Resize the windows:
                 main_window.resize()
                 main_window.redraw()
+            elif char_code == curses.KEY_MOUSE:
+                _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+                # TODO: Process button state.
                 pass
+            # elif char_code == curses.KEY_F1:
+            #     # TODO: Show help
+            #     pass
+            elif char_code == ord('\t'):  # Tab hit switch focus.
+                windows[_CURRENT_FOCUS].is_focused = False
+                _CURRENT_FOCUS += 1
+                if _CURRENT_FOCUS > Window.TYPING:
+                    _CURRENT_FOCUS = Window.CONTACTS
+                windows[_CURRENT_FOCUS].is_focused = True
+            elif char_code == 353:  # Shift-Tab hit, switch focus backwards.
+                windows[_CURRENT_FOCUS].is_focused = False
+                _CURRENT_FOCUS -= 1
+                if _CURRENT_FOCUS < Window.CONTACTS:
+                    _CURRENT_FOCUS = Window.TYPING
+                windows[_CURRENT_FOCUS].is_focused = True
     except KeyboardInterrupt:
         pass
 

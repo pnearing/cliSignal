@@ -7,6 +7,8 @@ from typing import Optional
 import curses
 from common import add_title_to_win, draw_border_on_win
 from common import ROW, COL
+from typeError import __type_error__
+
 
 DEBUG: bool = True
 
@@ -19,9 +21,12 @@ class Window(object):
                  window,
                  title: Optional[str],
                  top_left: tuple[int, int],
-                 window_attrs: int,
+                 window_attrs: int,                # TODO: Process button state.
+
                  border_attrs: int,
+                 border_focus_attrs: int,
                  title_attrs: int,
+                 title_focus_attrs: int,
                  theme: dict[str, dict[str, int | bool | str]],
                  is_main_window: bool = False,
                  ) -> None:
@@ -32,7 +37,9 @@ class Window(object):
         :param top_left: tuple[int, int]: The top left row, col of this window.
         :param window_attrs: int: The colours and attributes for this centre of this window.
         :param border_attrs: int: The colours and attributes to use for the border of this window.
+        :param border_focus_attrs: int: The colours and attributes to use for the border when focused.
         :param title_attrs: int: The colours and attributes to use for the title of this window.
+        :param title_focus_attrs: int: The colours and attributes to use for the title when focused.
         """
         # Super init:
         object.__init__(self)
@@ -44,12 +51,18 @@ class Window(object):
         """The colour pair number and attributes for the centre of this window."""
         self._border_attrs: int = border_attrs
         """The colour pair number and attributes for the border of this window."""
+        self._border_focus_attrs: int = border_focus_attrs
+        """The colour pair number and attributes for the border when focused."""
         self._title_attrs: int = title_attrs
         """The colour pair number and attributes for the title of this window."""
+        self._title_focus_attrs: int = title_focus_attrs
+        """The colour pair number and attributes for the title when focused."""
         self._theme: dict[str, dict[str, int | bool | str]] = theme
         """Store a copy of theme for subclass use."""
         self._is_main_window: bool = is_main_window
         """True if this is the main window, means certain calls aren't made."""
+        self._is_focused: bool = False
+        """If this window is focused, this is private because we use getter / setters for it."""
 
         # Set external properties:
         self.title: str = title
@@ -68,21 +81,38 @@ class Window(object):
         self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[ROW],
                                               self.top_left[COL] + self.size[COL])
         """The drawable bottom right of the window, taking the border into account. (row, col)."""
+        self.is_visible: bool = True
+        """If this window should be drawn."""
         return
 
     def redraw(self) -> None:
-        # Erase the window:
-        self._window.clear()
+        """
+        Redraw the window, but only if _is_visible is True.
+        :return: None
+        """
+        if not self.is_visible:
+            return
+        # Clear the window without calling refresh.
+        self._window.erase()
         # Draw the border:
-
-        draw_border_on_win(window=self._window, border_attrs=self._border_attrs,
+        border_attrs: int
+        if self._is_focused:
+            border_attrs = self._border_focus_attrs
+        else:
+            border_attrs = self._border_attrs
+        draw_border_on_win(window=self._window, border_attrs=border_attrs,
                            ts=self._theme['borderChars']['ts'], bs=self._theme['borderChars']['bs'],
                            ls=self._theme['borderChars']['ls'], rs=self._theme['borderChars']['rs'],
                            tl=self._theme['borderChars']['tl'], tr=self._theme['borderChars']['tr'],
                            bl=self._theme['borderChars']['bl'], br=self._theme['borderChars']['br']
                            )
         # Add the title to the border:
-        add_title_to_win(self._window, self.title, self._border_attrs, self._title_attrs,
+        title_attrs: int
+        if self._is_focused:
+            title_attrs = self._title_focus_attrs
+        else:
+            title_attrs = self._title_attrs
+        add_title_to_win(self._window, self.title, border_attrs, title_attrs,
                          self._theme['titleChars']['start'], self._theme['titleChars']['end'])
         # Fill the centre with background colour:
         for row in range(1, self.size[ROW] + 1):
@@ -95,9 +125,7 @@ class Window(object):
                         raise RuntimeError(message)
                 else:
                     self._window.addch(row, col, ' ', self._window_attrs)
-
-        # Refresh the window:
-        self._window.refresh()
+        self._window.noutrefresh()
         return
 
     def resize(self, size: tuple[int, int], top_left: tuple[int, int]) -> None:
@@ -119,22 +147,43 @@ class Window(object):
         self.real_bottom_right = (self.real_top_left[ROW] + num_rows, self.real_top_left[COL] + num_cols)
         self.bottom_right = (self.real_bottom_right[ROW] - 1, self.real_bottom_right[COL] - 1)
         return
-    #
-    # def redraw(self) -> None:
-    #     """
-    #     Redraw this window.
-    #     :return: None
-    #     """
-    #     # Clear the window:
-    #     self._window.clear()
-    #     # Draw a blue and white border:
-    #     self._window.attron(curses.color_pair(1) | curses.A_BOLD)
-    #     self._window.border()
-    #     self._window.attroff(curses.color_pair(1) | curses.A_BOLD)
-    #     # Add the title:
-    #     add_title_to_win(self._window, self.title, (curses.color_pair(1) | curses.A_BOLD))
-    #     # Fill the rest of the screen with a blue background.
-    #     for row in range(self.min_row, self.max_row + 1):
-    #         for col in range(self.min_col, self.max_col + 1):
-    #             self._window.addch(row, col, ' ', curses.color_pair(1))
-    #     return
+
+    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+        """
+        Return True if the mouse position is over this window.
+        :param mouse_pos: tuple[int, int]: The mouse position.
+        :return: bool: True if the mouse is over this window, False if not.
+        """
+        in_row: bool = False
+        in_col: bool = False
+        if self.top_left[ROW] <= mouse_pos[ROW] <= (self.top_left[ROW] + self.size[ROW]):
+            in_row = True
+        if self.top_left[COL] <= mouse_pos[COL] <= (self.top_left[COL] + self.size[ROW]):
+            in_col = True
+        if in_row and in_col:
+            return True
+        return False
+
+    @property
+    def is_focused(self) -> bool:
+        """
+        True if the mouse is over this window. IE: Focused.
+        :return: bool: True if this window is focused, False if not.
+        """
+        return self._is_focused
+
+    @is_focused.setter
+    def is_focused(self, value) -> None:
+        """
+        is_focused setter.
+        :param value: bool: True if this is focused, False if not.
+        :return: None
+        """
+        if not isinstance(value, bool):
+            __type_error__("value", "bool", value)
+        old_value: bool = self._is_focused
+        self._is_focused = value
+        if value != old_value:
+            print("\a", end='')
+            self.redraw()
+        return
