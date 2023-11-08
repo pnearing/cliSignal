@@ -13,7 +13,7 @@ from typing import Optional, TextIO
 import os
 import json
 # Version:
-VERSION: float = 1.3
+VERSION: float = 1.4
 
 CAN_LOCK: bool
 try:
@@ -103,10 +103,17 @@ except ImportError as e:
 class ConfigFile(object):
     """Class to store a config file."""
     def __create_file__(self) -> None:
-        # Open file:
-        try:
-            if CAN_LOCK:
+        # Lock the file:
+        if CAN_LOCK:
+            try:
                 self._lock.lock(lock_type='WRITE', do_raise=True, timeout=5)
+            except FileLockTimeoutError as err:
+                raise ConfigFileError(error_number=10, str_args=err.error_message)
+            except FileLockError as err:
+                raise ConfigFileError(error_number=12, str_args=err.error_message)
+
+        # Open the file:
+        try:
             file_handle: TextIO = open(self.path, 'w')
         except PermissionError as err:
             raise ConfigFileError(error_number=6, str_args=str(err.args))
@@ -114,20 +121,13 @@ class ConfigFile(object):
             raise ConfigFileError(error_number=1, str_args=str(err.args))
         except OSError as err:
             raise ConfigFileError(error_number=1, str_args=str(err.args))
-        except FileLockTimeoutError as err:
-            raise ConfigFileError(error_number=10, str_args=err.error_message)
-        except FileLockError as err:
-            raise ConfigFileError(error_number=12, str_args=err.error_message)
+
         # Write JSON and close file:
         try:
             file_handle.write(json.dumps(common.SETTINGS, indent=4))
             file_handle.close()
-            if CAN_LOCK:
-                self._lock.unlock(do_raise=True)
         except OSError as err:
             raise ConfigFileError(error_number=1, str_args=str(err.args))
-        except FileUnlockError as err:
-            raise ConfigFileError(error_number=11, str_args=err.error_message)
         # Set the permissions of the file:
         if self._permissions is not None:
             try:
@@ -136,6 +136,12 @@ class ConfigFile(object):
                 raise ConfigFileError(error_number=18, str_args=str(err.args))
             except OSError as err:
                 raise ConfigFileError(error_number=19, str_args=str(err.args))
+        # Unlock the file:
+        if CAN_LOCK:
+            try:
+                self._lock.unlock(do_raise=True)
+            except FileUnlockError as err:
+                raise ConfigFileError(error_number=11, str_args=err.error_message)
         return
 
     def __init__(
@@ -270,10 +276,16 @@ class ConfigFile(object):
             if oct(st.st_mode)[-3:] != oct(self._permissions)[-3:]:
                 raise ConfigFileError(21)
         # Open the file for reading:
-        try:
-            # Lock the file if we can:
-            if CAN_LOCK:
+        # Lock the file if we can:
+        if CAN_LOCK:
+            try:
                 self._lock.lock(lock_type='READ', do_raise=True, timeout=5)
+            except FileLockTimeoutError as err:
+                raise ConfigFileError(error_number=10, str_args=str(err.args))
+            except FileLockError as err:
+                raise ConfigFileError(error_number=12, str_args=err.error_message)
+        # Open the file:
+        try:
             file_handle = open(self.path, 'r')
         except FileNotFoundError as err:
             raise ConfigFileError(error_number=4, str_args=str(err.args))
@@ -281,51 +293,53 @@ class ConfigFile(object):
             raise ConfigFileError(error_number=7, str_args=str(err.args))
         except OSError as err:
             raise ConfigFileError(error_number=1, str_args=str(err.args))
-        except FileLockTimeoutError as err:
-            raise ConfigFileError(error_number=10, str_args=str(err.args))
-        except FileLockError as err:
-            raise ConfigFileError(error_number=12, str_args=err.error_message)
 
         # Load the JSON and close the file:
         try:
             common.SETTINGS = json.loads(file_handle.read())
             file_handle.close()
             # Unlock the file if it was locked.
-            if CAN_LOCK:
-                self._lock.unlock(do_raise=True)
         except json.JSONDecodeError as err:
             raise ConfigFileError(error_number=8, str_args=err.msg)
         except IOError as err:
             raise ConfigFileError(error_number=1, str_args=str(err.args))
-        except FileUnlockError as err:
-            raise ConfigFileError(error_number=11, str_args=err.error_message)
+        # Unlock the file:
+        if CAN_LOCK:
+            try:
+                self._lock.unlock(do_raise=True)
+            except FileUnlockError as err:
+                raise ConfigFileError(error_number=11, str_args=err.error_message)
         return
 
     def save(self) -> None:
         """Save the configuration."""
         # Open the file for writing:
-        try:
-            # Lock the file if we can:
-            if CAN_LOCK:
+        # Lock the file if we can:
+        if CAN_LOCK:
+            try:
                 self._lock.lock(do_raise=True, timeout=5)
+            except FileLockTimeoutError as err:
+                raise ConfigFileError(error_number=10, str_args=err.error_message)
+            except FileLockError as err:
+                raise ConfigFileError(error_number=12, str_args=err.error_message)
+        # Open the file:
+        try:
             file_handle = open(self.path, 'w')
         except PermissionError as err:
             raise ConfigFileError(error_number=6, str_args=str(err.args))
         except OSError as err:
             raise ConfigFileError(error_number=1, str_args=str(err.args))
-        except FileLockTimeoutError as err:
-            raise ConfigFileError(error_number=10, str_args=err.error_message)
-        except FileLockError as err:
-            raise ConfigFileError(error_number=12, str_args=err.error_message)
         # Write the JSON, and close the file:
         try:
             file_handle.write(json.dumps(common.SETTINGS, indent=4))
             file_handle.close()
-            # Unlock the file if it was locked:
-            if CAN_LOCK:
-                self._lock.unlock(do_raise=True)
         except IOError as err:
             raise ConfigFileError(error_number=1, str_args=str(err.args))
-        except FileUnlockError as err:
-            raise ConfigFileError(error_number=11, str_args=err.error_message)
+
+        # Unlock the file if it was locked:
+        if CAN_LOCK:
+            try:
+                self._lock.unlock(do_raise=True)
+            except FileUnlockError as err:
+                raise ConfigFileError(error_number=11, str_args=err.error_message)
         return
