@@ -158,16 +158,17 @@ def main(std_screen: curses.window) -> None:
     # Setup extended key codes:
     std_screen.keypad(True)
     # Ask for mouse move events, and position change event:
-    # if _HAVE_MOUSE:
-    #     response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
-    #     if response != 0:  # Complete failure returns 0, no mask to reset to.
-    #         reset_mouse_mask = None
-    #         _HAVE_MOUSE = False
-    #     else:  # Response is a tuple (avail_mask, old_mask)
-    #         reset_mouse_mask = response[1]
+    if _HAVE_MOUSE:
+        # Tell the terminal to report mouse movements:
+        print('\033[?1003h')
+        # Set the curses mouse mask:
+        response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+        if response != 0:  # Complete failure returns 0, no mask to reset to.
+            reset_mouse_mask = None
+            _HAVE_MOUSE = False
+        else:  # Response is a tuple (avail_mask, old_mask)
+            reset_mouse_mask = response[1]
 
-    # Tell the terminal to report mouse movements:
-    # print('\033[?1003h')
     # Setup colour pairs according to theme:
     if not curses.has_extended_color_support():
         raise RuntimeError("Terminal capable of 256 colours required.")
@@ -270,8 +271,11 @@ def main(std_screen: curses.window) -> None:
         pass  # TODO: Are you sure message.
 
     # Fix mouse mask:
-    # if _HAVE_MOUSE:
-    #     curses.mousemask(reset_mouse_mask)
+    if _HAVE_MOUSE:
+        curses.mousemask(reset_mouse_mask)
+        # Tell the terminal to not report mouse movements:
+        print('\033[?1003l')
+
     return
 
 
