@@ -270,8 +270,8 @@ def main(std_screen: curses.window) -> None:
         pass  # TODO: Are you sure message.
 
     # Fix mouse mask:
-    # if _HAVE_MOUSE:
-    #     curses.mousemask(reset_mouse_mask)
+    if _HAVE_MOUSE:
+        curses.mousemask(0)
     return
 
 
