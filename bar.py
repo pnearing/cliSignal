@@ -75,3 +75,13 @@ class Bar(object):
         self.width = width
         return
 
+    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+        """
+        Is the mouse over this bar?
+        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :return: bool: True if the mouse is over this bar, False if not.
+        """
+        if mouse_pos[ROW] == self.top_left[ROW]:
+            if self.top_left[COL] <= mouse_pos[COL] <= (self.top_left[COL] + self.width):
+                return True
+        return False
