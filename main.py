@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 from typing import Final, Optional, Callable
 import argparse
 import os.path
@@ -143,18 +144,10 @@ def help_menu_version_cb() -> None:
     """
     return
 
+
 #########################################
 # Functions:
 #########################################
-def set_term_title(title: str) -> None:
-    """
-    Set the terminal title.
-    :param title: The new title to set.
-    :return: None
-    """
-    print("\[0330;%s", end='', flush=True)
-    return
-
 
 #########################################
 # Main:
@@ -220,9 +213,8 @@ def main(std_screen: curses.window) -> None:
             std_screen.addstr(10, 10, "    ")
             std_screen.addstr(10, 10, str(char_code))
             std_screen.refresh()
-            if char_code == 4:  # CTRL-D hit, exit.
-                break
-            elif char_code == curses.KEY_RESIZE:
+
+            if char_code == curses.KEY_RESIZE:
                 # Resize the windows:
                 main_window.resize()
                 main_window.redraw()
@@ -256,8 +248,10 @@ def main(std_screen: curses.window) -> None:
                 focus_windows[_CURRENT_FOCUS].is_focused = True
                 curses.doupdate()
     except KeyboardInterrupt:
-        pass
+        pass  # TODO: Are you sure message.
 
+    # Fix mouse mask:
+    curses.mousemask(curses.ALL_MOUSE_EVENTS)
     return
 
 
@@ -265,8 +259,8 @@ def main(std_screen: curses.window) -> None:
 # Start:
 #########################################
 if __name__ == '__main__':
-    # Set the terminal title:
-    set_term_title('cliSignal')
+    sys.stdout.write("\x1b]2;%s\x07" % "cliSignal")
+
     # Setup command line arguments:
     parser = argparse.ArgumentParser(description="Command line Signal client.",
                                      epilog="Written by Peter Nearing."
