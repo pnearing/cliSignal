@@ -159,8 +159,6 @@ def main(std_screen: curses.window) -> None:
     std_screen.keypad(True)
     # Ask for mouse move events, and position change event:
     if _HAVE_MOUSE:
-        # Tell the terminal to report mouse movements:
-        print('\033[?1003h')
         # Set the curses mouse mask:
         response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
         if response != 0:  # Complete failure returns 0, no mask to reset to.
@@ -283,7 +281,9 @@ def main(std_screen: curses.window) -> None:
 # Start:
 #########################################
 if __name__ == '__main__':
-    sys.stdout.write("\x1b]2;%s\x07" % "cliSignal")
+    # Tell the terminal to report mouse movements:
+    if _HAVE_MOUSE:
+        print('\033[?1003h', end='', flush=True)
 
     # Setup command line arguments:
     parser = argparse.ArgumentParser(description="Command line Signal client.",
@@ -442,4 +442,8 @@ if __name__ == '__main__':
             exit(9)
 
     curses.wrapper(main)
+    # Tell the terminal to not report mouse movements:
+    if _HAVE_MOUSE:
+        print('\033[?1003l', end='', flush=True)
+
     exit(0)
