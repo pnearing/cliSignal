@@ -1,10 +1,25 @@
 #!/usr/bin/env python3
 from typing import Optional
 import curses
-from enum import IntEnum
+# from enum import IntEnum
 
 VERSION: str = '1.0.0'
 
+
+STRINGS: dict[str, dict[str, Optional[str]]] = {
+    'background': {'main': ' ', 'contacts': ' ', 'messages': ' ', 'typing': ' ', 'menu': ' ', 'menuBar': ' ',
+                   'statusBar': ' '},
+    # Window titles:
+    'titles': {'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None},
+    # Main menu items:
+    'mainMenuNames': {'file': 'File _F1_', 'accounts': 'Accounts _F2_', 'help': 'Help _F3_'},
+    # File menu items:
+    'fileMenuNames': {'settings': '_S_ettings', 'quit': '_Q_uit'},
+    # Accounts menu items:
+    'acctMenuNames': {'switch': '_S_witch account', 'link': '_L_ink account', 'register': '_R_egister account'},
+    # Help menu items:
+    'helpMenuNames': {'shortcuts': '_S_hortcut Keys', 'about': '_A_bout', 'version': '_V_ersion'},
+}
 
 # Settings for configFile:
 SETTINGS: dict[str, Optional[str | bool]] = {
@@ -49,7 +64,7 @@ def draw_border_on_win(window: curses.window,
     """
     Draw a border around a window.
     :param window: curses.window: The window to draw on.
-    :param border_attrs: int: The border attributes, ie colour, bold, etc.
+    :param border_attrs: int: The border attributes, i.e. colour, bold, etc.
     :param ts: str: Top side character.
     :param bs: str: Bottom side character.
     :param ls: str: Left side character.
@@ -74,7 +89,10 @@ def draw_border_on_win(window: curses.window,
     # Top left corner:
     window.addstr(0, 0, tl, border_attrs)
     # Top right corner:
-    window.addstr(0, max_col, tr, border_attrs)
+    try:
+        window.addstr(0, max_col, tr, border_attrs)
+    except curses.error:
+        pass
     # Bottom left corner:
     window.addstr(max_row, 0, bl, border_attrs)
     # Bottom right corner, causes exception:

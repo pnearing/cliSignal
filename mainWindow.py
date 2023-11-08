@@ -3,9 +3,9 @@
 File: mainWindow.py
 Class to store and manipulate the main window.
 """
-from typing import Optional
+from typing import Optional, Callable
 import curses
-from common import ROW, COL, calc_attributes
+from common import ROW, COL, calc_attributes, STRINGS
 from themes import ThemeColours
 from window import Window
 from contactsWindow import ContactsWindow
@@ -22,11 +22,14 @@ class MainWindow(Window):
 
     def __init__(self,
                  window: curses.window,
-                 theme: dict[str, dict[str, int | bool | Optional[str]]]
+                 theme: dict[str, dict[str, int | bool | str]],
+                 callbacks: dict[str, dict[str, Optional[Callable]]],
                  ) -> None:
         """
         Initialize the MainWindow object.
         :param window: curses.window: The curses window object.
+        :param theme: dict[str, dict[str, int | bool | str]]: The current theme.
+        :param callbacks: dict[str, dict[str, Optional[Callable]]: The callbacks to call for activations.
         """
         # Define window attrs for the main window:
         window_attrs: int = calc_attributes(ThemeColours.MAIN_WIN, theme['mainWin'])
@@ -36,16 +39,18 @@ class MainWindow(Window):
         title_focus_attr: int = calc_attributes(ThemeColours.MAIN_WIN_FOCUS_TITLE, theme['mainWinFTitle'])
         # Run super.__init__:
         Window.__init__(self,
-                        window,
-                        theme['titles']['main'],
-                        (0, 0),
-                        window_attrs,
-                        border_attrs,
-                        border_focus_attrs,
-                        title_attrs,
-                        title_focus_attr,
-                        theme,
-                        True)
+                        window=window,
+                        title=STRINGS['titles']['main'],
+                        top_left=(0, 0),
+                        window_attrs=window_attrs,
+                        border_attrs=border_attrs,
+                        border_focus_attrs=border_focus_attrs,
+                        title_attrs=title_attrs,
+                        title_focus_attrs=title_focus_attr,
+                        theme=theme,
+                        bg_char=STRINGS['background']['main'],
+                        is_main_window=True
+                        )
         # Set the sub window vars:
         self.contacts_size: tuple[int, int] = (-1, -1)
         """The size of the contacts window."""
@@ -75,7 +80,7 @@ class MainWindow(Window):
         """The messages Window object."""
         self.typing_window: TypingWindow = TypingWindow(self.typing_size, self.typing_top_left, theme)
         """The typing area Window object."""
-        self.menu_bar: MenuBar = MenuBar(self._window, self.menu_width, self.menu_top_left, theme)
+        self.menu_bar: MenuBar = MenuBar(self._window, self.menu_width, self.menu_top_left, theme, callbacks)
         """The menu bar Bar object."""
         self.status_bar: StatusBar = StatusBar(self._window, self.status_width, self.status_top_left, theme)
         """The status bar Bar object."""
@@ -101,7 +106,7 @@ class MainWindow(Window):
         self.messages_window.redraw()
         self.typing_window.redraw()
         self.menu_bar.redraw()
-        self.status_bar.redraw()
+        # self.status_bar.redraw()
         curses.doupdate()
         return
 

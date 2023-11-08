@@ -5,7 +5,7 @@ Message typing area window.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, calc_attributes
+from common import ROW, COL, calc_attributes, STRINGS
 from themes import ThemeColours
 from window import Window
 
@@ -31,6 +31,6 @@ class TypingWindow(Window):
         title_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle'])
         title_focus_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_FOCUS_TITLE, theme['typeWinFTitle'])
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
-        Window.__init__(self, window, theme['titles']['typing'], top_left, window_attrs, border_attrs,
-                        border_focus_attrs, title_attrs, title_focus_attrs, theme)
+        Window.__init__(self, window, STRINGS['titles']['typing'], top_left, window_attrs, border_attrs,
+                        border_focus_attrs, title_attrs, title_focus_attrs, theme, STRINGS['background']['typing'])
         return

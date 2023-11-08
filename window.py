@@ -17,17 +17,21 @@ class Window(object):
     """
     Base window class.
     """
+
+#########################################
+# Initialize:
+#########################################
     def __init__(self,
                  window,
                  title: Optional[str],
                  top_left: tuple[int, int],
-                 window_attrs: int,                # TODO: Process button state.
-
+                 window_attrs: int,
                  border_attrs: int,
                  border_focus_attrs: int,
                  title_attrs: int,
                  title_focus_attrs: int,
                  theme: dict[str, dict[str, int | bool | str]],
+                 bg_char: str,
                  is_main_window: bool = False,
                  ) -> None:
         """
@@ -40,6 +44,8 @@ class Window(object):
         :param border_focus_attrs: int: The colours and attributes to use for the border when focused.
         :param title_attrs: int: The colours and attributes to use for the title of this window.
         :param title_focus_attrs: int: The colours and attributes to use for the title when focused.
+        :param bg_char: str: The background character.
+        :param is_main_window: bool: Is the main window, i.e. std_screen, and not a sub-window.
         """
         # Super init:
         object.__init__(self)
@@ -63,7 +69,8 @@ class Window(object):
         """True if this is the main window, means certain calls aren't made."""
         self._is_focused: bool = False
         """If this window is focused, this is private because we use getter / setters for it."""
-
+        self._bg_char: str = bg_char
+        """The character to use for drawing the center of the screen."""
         # Set external properties:
         self.title: str = title
         """The title of this window."""
@@ -85,6 +92,9 @@ class Window(object):
         """If this window should be drawn."""
         return
 
+#########################################
+# Methods:
+#########################################
     def redraw(self) -> None:
         """
         Redraw the window, but only if _is_visible is True.
@@ -114,17 +124,17 @@ class Window(object):
             title_attrs = self._title_attrs
         add_title_to_win(self._window, self.title, border_attrs, title_attrs,
                          self._theme['titleChars']['start'], self._theme['titleChars']['end'])
-        # Fill the centre with background colour:
+        # Fill the centre with background colour, and character:
         for row in range(1, self.size[ROW] + 1):
             for col in range(1, self.size[COL] + 1):
                 if DEBUG:
                     try:
-                        self._window.addch(row, col, ' ', self._window_attrs)
+                        self._window.addch(row, col, self._bg_char, self._window_attrs)
                     except curses.error:
                         message = "R: %i, C: %i, size: %s" % (row, col, self.size)
                         raise RuntimeError(message)
                 else:
-                    self._window.addch(row, col, ' ', self._window_attrs)
+                    self._window.addch(row, col, self._bg_char, self._window_attrs)
         self._window.noutrefresh()
         return
 
@@ -164,6 +174,9 @@ class Window(object):
             return True
         return False
 
+#########################################
+# Properties:
+#########################################
     @property
     def is_focused(self) -> bool:
         """

@@ -5,7 +5,7 @@ Contacts window management.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, calc_attributes
+from common import ROW, COL, calc_attributes, STRINGS
 from themes import ThemeColours
 from window import Window
 
@@ -37,6 +37,6 @@ class ContactsWindow(Window):
         # Make a curses window:
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
         # Super the window.
-        Window.__init__(self, window, theme['titles']['contacts'], top_left, window_attrs, border_attrs,
-                        border_focus_attrs, title_attrs, title_focus_attrs, theme)
+        Window.__init__(self, window, STRINGS['titles']['contacts'], top_left, window_attrs, border_attrs,
+                        border_focus_attrs, title_attrs, title_focus_attrs, theme, STRINGS['background']['contacts'])
         return

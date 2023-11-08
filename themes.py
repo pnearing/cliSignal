@@ -40,27 +40,15 @@ class ThemeColours(IntEnum):
     MENU_SEL_ACCEL = 28
 
 
-# Window titles:
-_STRINGS: dict[str, dict[str, Optional[str]]] = {
-    'titles': {'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None},
-    # Main menu items:
-    'mainMenuNames': {'file': 'File _F1_', 'accounts': 'Accounts _F2_', 'help': 'Help _F3_'},
-    # File menu items:
-    'fileMenuNames': {'settings': '_Settings', 'quit': '_Quit'},
-    # Accounts menu items:
-    'acctMenuNames': {'switch': '_S_witch account', 'link': '_L_ink account', 'register': '_R_egister account'},
-    # Help menu items:
-    'helpMenuNames': {'keyboard': '_S_hortcut Keys', 'about': '_A_bout', 'version': '_V_ersion'},
-}
-
-
-_THEMES: dict[str, dict[str, dict[str, int | bool | Optional[str]]]] = {
+_THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
     'light': {
         # Border characters:
         'borderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                         'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Title start and end characters:
         'titleChars': {'start': '\u2561', 'end': '\u255E'},
+        # Menu selection indicator characters:
+        'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         # Main window centre:
         'mainWin': {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
         # Main window border:
@@ -95,7 +83,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | Optional[str]]]] = {
         'msgsWinTitle': {'fg': 15, 'bg': 20, 'bold': True, 'underline': True, 'reverse': False},
         # Messages window focused title:
         'msgsWinFTitle': {'fg': 15, 'bg': 20, 'bold': True, 'underline': True, 'reverse': True},
-        # Typing window centre:
+        # The typing window centre:
         'typeWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
         # The Typing window border:
         'typeWinBorder': {'fg': 15, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
@@ -123,10 +111,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | Optional[str]]]] = {
         'borderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',
                         'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},
         'titleChars': {'start': '\u2561', 'end': '\u255E'},
-        'mainMenuNames': {'file': ' File ', 'accounts': ' Accounts ', 'help': ' Help '},
-        'fileMenuNames': {'settings': 'Settings', 'quit': 'Quit'},
-        'acctMenuNames': {'switch': 'Switch account', 'link': 'Link account', 'register': 'Register account'},
-        'helpMenuNames': {'keyboard': 'Shortcut keys', 'about': 'About', 'version': 'Version'},
+        'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'mainWin': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
         'mainWinBorder': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': False},
         'mainWinFBorder': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': True},
@@ -149,7 +134,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | Optional[str]]]] = {
         'typeWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'typeWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'typeWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
-        'menuEmpty': {'fg': 7, 'bg': 0, 'bold': False, 'underline': False, 'reverse': False},
+        'menuEmpty': {'fg': 7, 'bg': 236, 'bold': False, 'underline': False, 'reverse': False},
         'menuSel': {'fg': 7, 'bg': 0, 'bold': True, 'underline': False, 'reverse': True},
         'menuSelAccel': {'fg': 7, 'bg': 0, 'bold': True, 'underline': True, 'reverse': True},
         'menuUnsel': {'fg': 7, 'bg': 0, 'bold': False, 'underline': False, 'reverse': False},
@@ -165,7 +150,7 @@ _ATTRIBUTE_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle', 'contW
                               'mainWinFTitle', 'contWinFTitle', 'msgsWinFTitle', 'typeWinFTitle',
                               'menuEmpty', 'statusEmpty', 'menuSel', 'menuSelAccel', 'menuUnsel', 'menuUnselAccel',]
 """Main theme keys."""
-_CHAR_KEYS: list[str] = ['borderChars', 'titleChars']
+_CHAR_KEYS: list[str] = ['borderChars', 'titleChars', 'menuSelChars']
 """Keys with strings."""
 _ATTR_KEYS: list[str] = ['fg', 'bg', 'bold', 'underline', 'reverse']
 """Attribute keys."""
@@ -173,18 +158,11 @@ _BORDER_CHAR_KEYS: list[str] = ['ts', 'bs', 'ls', 'rs', 'tl', 'tr', 'bl', 'br']
 """Border character keys."""
 _TITLE_CHAR_KEYS: list[str] = ['start', 'end']
 """Title character keys."""
-_TITLE_KEYS: list[str] = ['main', 'messages', 'contacts', 'typing']
-"""Window title keys."""
-_MAIN_MENU_KEYS: list[str] = ['file', 'accounts', 'help']
-"""Main menu keys."""
-_FILE_MENU_KEYS: list[str] = ['settings', 'quit']
-"""File menu keys."""
-_ACCOUNTS_MENU_KEYS: list[str] = ['switch', 'link', 'register']
-"""Accounts menu keys."""
-_HELP_MENU_KEYS: list[str] = ['keyboard', 'about', 'version']
+_MENU_SEL_CHAR_KEYS: list[str] = ['leadSel', 'leadUnsel', 'tailSel', 'tailUnsel']
+"""Menu selection indicator character keys."""
 
 
-def verify_theme(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> tuple[bool, str]:
+def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, str]:
     """
     Verify a theme dict is correct, has the right keys, and values.
     :param theme: The theme to check.
@@ -210,15 +188,21 @@ def verify_theme(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> tup
             for title_char_key in _TITLE_CHAR_KEYS:
                 if title_char_key not in theme[char_key].keys():
                     return False, "Key '%s' missing from 'titleChars'." % title_char_key
+
+        elif char_key == 'menuSelChars':
+            for menu_key in _MENU_SEL_CHAR_KEYS:
+                if menu_key not in theme[char_key].keys():
+                    return False, "Key '%s' missing from 'menuSelChars'." % menu_key
+
     return True, 'PASS'
 
 
-def load_theme() -> dict[str, dict[str, int | bool | Optional[str]]]:
+def load_theme() -> dict[str, dict[str, int | bool | str]]:
     """
     Load the current theme.
     :return: dict[str, dict[str, int | bool]]:
     """
-    theme: dict[str, dict[Optional[str], int | bool]]
+    theme: dict[str, dict[str, int | bool | str]]
     if common.SETTINGS['theme'] == 'light':
         theme = _THEMES['light']
     elif common.SETTINGS['theme'] == 'dark':

@@ -4,21 +4,24 @@ File: bar.py
 Base functions of the menu / status bar.
 """
 from typing import Optional
+from enum import IntEnum
 import curses
 from themes import ThemeColours
-from common import ROW, COL
+from common import ROW, COL, STRINGS
 
 
 class Bar(object):
     """
     Base class for the status and menu bars.
     """
+
     def __init__(self,
                  window: curses.window,
                  width: int,
                  top_left: tuple[int, int],
                  empty_attrs: int,
-                 theme: dict[str, dict[str, int | bool | Optional[str]]]
+                 theme: dict[str, dict[str, int | bool | Optional[str]]],
+                 bg_char: str,
                  ) -> None:
         """
         Initialize the status bar.
@@ -27,6 +30,7 @@ class Bar(object):
         :param top_left: tuple[int, int]: The top left corner of the status bar.
         :param empty_attrs: int: The attributes to use for empty spaces on the status bar.
         :param theme: dict[str, dict[str, int | bool | Optional[str]]]: The theme to use.
+        :param bg_char: str: The character to use for the background.
         """
         # Set internal vars:
         self._window: curses.window = window
@@ -35,6 +39,8 @@ class Bar(object):
         """Store a copy of theme for the bar."""
         self._empty_attrs: int = empty_attrs
         """The attributes to use for empty spaces on the bar."""
+        self._bg_char: str = bg_char
+        """The character to use for drawing the background. Usually space."""
 
         # Set external properties:
         self.top_left: tuple[int, int] = top_left
@@ -52,11 +58,7 @@ class Bar(object):
         """
         # Draw a background:
         for col in range(self.top_left[COL], (self.top_left[COL] + self.width)):
-            self._window.addstr(self.top_left[ROW], col, 'X', self._empty_attrs)
-        # try:
-        #     self._window.addstr(self.top_left[ROW], self.width, ' ', self._empty_attrs)
-        # except curses.error:
-        #     pass  # Always get an error at the end of the window.
+            self._window.addstr(self.top_left[ROW], col, self._bg_char, self._empty_attrs)
         return
 
     def resize(self,
@@ -69,8 +71,7 @@ class Bar(object):
         :param top_left: The new top_left corner.
         :return: None
         """
-        self._window.resize(1, width)
-        self._window.mvwin(top_left[ROW], top_left[COL])
         self.top_left = top_left
         self.width = width
         return
+

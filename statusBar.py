@@ -6,7 +6,7 @@ Maintain and control the status bar.
 from typing import Optional
 import curses
 from themes import ThemeColours
-from common import ROW, COL, calc_attributes
+from common import ROW, COL, calc_attributes, STRINGS
 from bar import Bar
 
 
@@ -28,7 +28,7 @@ class StatusBar(Bar):
         :param theme: dict[str, dict[str, int | bool | Optional[str]]]: The theme to use.
         """
         empty_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_EMPTY, theme['statusEmpty'])
-        Bar.__init__(self, window, width, top_left, empty_attrs, theme)
+        Bar.__init__(self, window, width, top_left, empty_attrs, theme, STRINGS['background']['statusBar'])
         return
 
     def redraw(self) -> None:

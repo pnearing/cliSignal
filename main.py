@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from typing import Final
+from typing import Final, Optional, Callable
 import argparse
 import os.path
 import curses
 from enum import IntEnum
 # import json
-from SignalCliApi import SignalCli
+# from SignalCliApi import SignalCli
 from configFile import ConfigFile, ConfigFileError
 import common
 from themes import load_theme, init_colours
@@ -13,21 +13,22 @@ from mainWindow import MainWindow
 from contactsWindow import ContactsWindow
 from messagesWindow import MessagesWindow
 from typingWindow import TypingWindow
+from menuBar import MenuBar
+from statusBar import StatusBar
 
 
 #########################################
 # Enums:
 #########################################
-class Window(IntEnum):
+class Focus(IntEnum):
     """
-    Focused windows.
+    Focused windows / elements. Indexes focus_windows list.
     """
     MAIN = 0
     CONTACTS = 1
     MESSAGES = 2
     TYPING = 3
-    MENU = 4
-    STATUS = 5
+    MENU_BAR = 4
 
 
 #########################################
@@ -49,9 +50,115 @@ _CLI_SIGNAL_LOG_FILE_NAME: Final[str] = 'cliSignal.log'
 #########################################
 # Vars:
 #########################################
-_CURRENT_FOCUS: int = Window.CONTACTS
+_CURRENT_FOCUS: int = Focus.MENU_BAR
 
 
+#########################################
+# Callbacks:
+#########################################
+def main_menu_file_cb() -> None:
+    """
+    Main menu file callback.
+    :return: None
+    """
+    return
+
+
+def main_menu_accounts_cb() -> None:
+    """
+    Main menu accounts callback.
+    :return: None
+    """
+    return
+
+
+def main_menu_help_cb() -> None:
+    """
+    Main menu help callback.
+    :return:
+    """
+    return
+
+
+def file_menu_settings_cb() -> None:
+    """
+    File menu settings callback.
+    :return: None
+    """
+    return
+
+
+def file_menu_quit_cb() -> None:
+    """
+    File menu quit callback.
+    :return: None
+    """
+    raise KeyboardInterrupt
+
+
+def accounts_menu_switch_cb() -> None:
+    """
+    Accounts menu, switch callback.
+    :return: None
+    """
+    return
+
+
+def accounts_menu_link_cb() -> None:
+    """
+    Accounts menu, link callback.
+    :return: None
+    """
+    return
+
+
+def accounts_menu_register_cb() -> None:
+    """
+    Accounts menu, register callback.
+    :return: None
+    """
+    return
+
+
+def help_menu_shortcuts_cb() -> None:
+    """
+    The help menu, Keyboard shortcuts callback.
+    :return: None
+    """
+    return
+
+
+def help_menu_about_cb() -> None:
+    """
+    The help menu, about callback.
+    :return: None
+    """
+    return
+
+
+def help_menu_version_cb() -> None:
+    """
+    The help menu, version callback.
+    :return: None
+    """
+    return
+
+#########################################
+# Functions:
+#########################################
+def set_term_title(title: str) -> None:
+    """
+    Set the terminal title.
+    :param title: The new title to set.
+    :return: None
+    """
+    print("\[0330;%s", end='', flush=True)
+    return
+
+
+#########################################
+# Main:
+#########################################
 def main(std_screen: curses.window) -> None:
     # Setup extended key codes, including mouse move events:
     global _CURRENT_FOCUS
@@ -65,16 +172,38 @@ def main(std_screen: curses.window) -> None:
         raise RuntimeError("Terminal capable of 256 colours required.")
     theme: dict[str, dict[str, int | bool | str]] = load_theme()
     init_colours(theme)
-
+    # Create the callback dict:
+    callbacks: dict[str, dict[str, Optional[Callable]]] = {
+        'main': {
+            'file': main_menu_file_cb,
+            'accounts': main_menu_accounts_cb,
+            'help': main_menu_help_cb,
+        },
+        'file': {
+            'settings': file_menu_settings_cb,
+            'quit': file_menu_quit_cb,
+        },
+        'accounts': {
+            'switch': accounts_menu_switch_cb,
+            'link': accounts_menu_link_cb,
+            'register': accounts_menu_register_cb,
+        },
+        'help': {
+            'shortcuts': help_menu_shortcuts_cb,
+            'about': help_menu_about_cb,
+            'version': help_menu_version_cb,
+        },
+    }
     # Create the windows:
-    main_window = MainWindow(std_screen, theme)
+    main_window = MainWindow(std_screen, theme, callbacks)
 
-    # Store references to the windows:
-    windows: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow] = (main_window,
-                                                                                main_window.contacts_window,
-                                                                                main_window.messages_window,
-                                                                                main_window.typing_window)
-
+    # Store references to the windows for focus:
+    focus_windows: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow, MenuBar] = (
+        main_window, main_window.contacts_window, main_window.messages_window, main_window.typing_window,
+        main_window.menu_bar
+    )
+    # Set initial focus
+    focus_windows[_CURRENT_FOCUS].is_focused = True
     main_window.redraw()
     # signal_cli: SignalCli = SignalCli(signal_config_path=common.SETTINGS['signalConfigDir'],
     #                                    signal_exec_path=common.SETTINGS['signalExecPath'],
@@ -92,38 +221,52 @@ def main(std_screen: curses.window) -> None:
             std_screen.addstr(10, 10, str(char_code))
             std_screen.refresh()
             if char_code == 4:  # CTRL-D hit, exit.
-                return
+                break
             elif char_code == curses.KEY_RESIZE:
                 # Resize the windows:
                 main_window.resize()
                 main_window.redraw()
+                continue
             elif char_code == curses.KEY_MOUSE:
                 _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+
                 # TODO: Process button state.
-                pass
-            # elif char_code == curses.KEY_F1:
-            #     # TODO: Show help
-            #     pass
-            elif char_code == ord('\t'):  # Tab hit switch focus.
-                windows[_CURRENT_FOCUS].is_focused = False
+                continue
+
+            char_handled: bool
+            if _CURRENT_FOCUS == Focus.MENU_BAR:
+                char_handled = focus_windows[Focus.MENU_BAR].process_key(char_code)
+                curses.doupdate()
+                if char_handled:
+                    continue
+
+            if char_code == ord('\t'):  # Tab hit switch focus.
+                focus_windows[_CURRENT_FOCUS].is_focused = False
                 _CURRENT_FOCUS += 1
-                if _CURRENT_FOCUS > Window.TYPING:
-                    _CURRENT_FOCUS = Window.CONTACTS
-                windows[_CURRENT_FOCUS].is_focused = True
+                if _CURRENT_FOCUS > Focus.MENU_BAR:
+                    _CURRENT_FOCUS = Focus.CONTACTS
+                focus_windows[_CURRENT_FOCUS].is_focused = True
+                curses.doupdate()
+                continue
             elif char_code == 353:  # Shift-Tab hit, switch focus backwards.
-                windows[_CURRENT_FOCUS].is_focused = False
+                focus_windows[_CURRENT_FOCUS].is_focused = False
                 _CURRENT_FOCUS -= 1
-                if _CURRENT_FOCUS < Window.CONTACTS:
-                    _CURRENT_FOCUS = Window.TYPING
-                windows[_CURRENT_FOCUS].is_focused = True
+                if _CURRENT_FOCUS < Focus.CONTACTS:
+                    _CURRENT_FOCUS = Focus.MENU_BAR
+                focus_windows[_CURRENT_FOCUS].is_focused = True
+                curses.doupdate()
     except KeyboardInterrupt:
         pass
 
     return
 
 
+#########################################
+# Start:
+#########################################
 if __name__ == '__main__':
-
+    # Set the terminal title:
+    set_term_title('cliSignal')
     # Setup command line arguments:
     parser = argparse.ArgumentParser(description="Command line Signal client.",
                                      epilog="Written by Peter Nearing."
