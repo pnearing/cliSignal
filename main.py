@@ -159,7 +159,7 @@ def main(std_screen: curses.window) -> None:
     std_screen.keypad(True)
     # Ask for mouse move events, and position change event:
     if _HAVE_MOUSE:
-        response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+        response = curses.mousemask(curses.ALL_MOUSE_EVENTS)
         if response != 0:  # Complete failure returns 0, no mask to reset to.
             reset_mouse_mask = None
             _HAVE_MOUSE = False
