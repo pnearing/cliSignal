@@ -52,6 +52,7 @@ _CLI_SIGNAL_LOG_FILE_NAME: Final[str] = 'cliSignal.log'
 # Vars:
 #########################################
 _CURRENT_FOCUS: int = Focus.MENU_BAR
+_HAVE_MOUSE: bool = True
 
 
 #########################################
@@ -153,11 +154,18 @@ def help_menu_version_cb() -> None:
 # Main:
 #########################################
 def main(std_screen: curses.window) -> None:
-    # Setup extended key codes, including mouse move events:
-    global _CURRENT_FOCUS
+    global _CURRENT_FOCUS, _HAVE_MOUSE
+    # Setup extended key codes:
     std_screen.keypad(True)
     # Ask for mouse move events, and position change event:
-    curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+    if _HAVE_MOUSE:
+        response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+        if response != 0:  # Complete failure returns 0, no mask to reset to.
+            reset_mouse_mask = None
+            _HAVE_MOUSE = False
+        else:  # Response is a tuple (avail_mask, old_mask)
+            reset_mouse_mask = response[1]
+
     # Tell the terminal to report mouse movements:
     print('\033[?1003h')
     # Setup colour pairs according to theme:
@@ -221,7 +229,18 @@ def main(std_screen: curses.window) -> None:
                 continue
             elif char_code == curses.KEY_MOUSE:
                 _, mouse_col, mouse_row, _, button_state = curses.getmouse()
-
+                mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
+                # Set the window focus:
+                focus_windows[_CURRENT_FOCUS].is_focused = False
+                if focus_windows[Focus.CONTACTS].is_mouse_over(mouse_pos):
+                    _CURRENT_FOCUS = Focus.CONTACTS
+                elif focus_windows[Focus.MESSAGES].is_mouse_over(mouse_pos):
+                    _CURRENT_FOCUS = Focus.MESSAGES
+                elif focus_windows[Focus.TYPING].is_mouse_over(mouse_pos):
+                    _CURRENT_FOCUS = Focus.TYPING
+                elif focus_windows[Focus.MENU_BAR].is_mouse_over(mouse_pos):
+                    _CURRENT_FOCUS = Focus.MENU_BAR
+                focus_windows[_CURRENT_FOCUS].is_focused = True
                 # TODO: Process button state.
                 continue
 
@@ -251,7 +270,8 @@ def main(std_screen: curses.window) -> None:
         pass  # TODO: Are you sure message.
 
     # Fix mouse mask:
-    curses.mousemask(curses.ALL_MOUSE_EVENTS)
+    if _HAVE_MOUSE:
+        curses.mousemask(reset_mouse_mask)
     return
 
 
