@@ -28,9 +28,10 @@ class Window(object):
                  window_attrs: int,
                  border_attrs: int,
                  border_focus_attrs: int,
+                 border_chars: dict[str, str],
                  title_attrs: int,
                  title_focus_attrs: int,
-                 theme: dict[str, dict[str, int | bool | str]],
+                 title_chars: dict[str, str],
                  bg_char: str,
                  is_main_window: bool = False,
                  ) -> None:
@@ -42,8 +43,10 @@ class Window(object):
         :param window_attrs: int: The colours and attributes for this centre of this window.
         :param border_attrs: int: The colours and attributes to use for the border of this window.
         :param border_focus_attrs: int: The colours and attributes to use for the border when focused.
+        :param border_chars: dict[str, str]: The characters to use for the border of the window.
         :param title_attrs: int: The colours and attributes to use for the title of this window.
         :param title_focus_attrs: int: The colours and attributes to use for the title when focused.
+        :param title_chars: dict[str, str]: The dict of title start and end chars.
         :param bg_char: str: The background character.
         :param is_main_window: bool: Is the main window, i.e. std_screen, and not a sub-window.
         """
@@ -59,18 +62,20 @@ class Window(object):
         """The colour pair number and attributes for the border of this window."""
         self._border_focus_attrs: int = border_focus_attrs
         """The colour pair number and attributes for the border when focused."""
+        self._border_chars: dict[str, str] = border_chars
+        """The characters to use for the border of the window."""
         self._title_attrs: int = title_attrs
         """The colour pair number and attributes for the title of this window."""
         self._title_focus_attrs: int = title_focus_attrs
         """The colour pair number and attributes for the title when focused."""
-        self._theme: dict[str, dict[str, int | bool | str]] = theme
-        """Store a copy of theme for subclass use."""
         self._is_main_window: bool = is_main_window
         """True if this is the main window, means certain calls aren't made."""
         self._is_focused: bool = False
         """If this window is focused, this is private because we use getter / setters for it."""
         self._bg_char: str = bg_char
         """The character to use for drawing the center of the screen."""
+        self._title_chars: dict[str, str] = title_chars
+        """The characters to use to start and end the title."""
         # Set external properties:
         self.title: str = title
         """The title of this window."""
@@ -111,10 +116,10 @@ class Window(object):
         else:
             border_attrs = self._border_attrs
         draw_border_on_win(window=self._window, border_attrs=border_attrs,
-                           ts=self._theme['borderChars']['ts'], bs=self._theme['borderChars']['bs'],
-                           ls=self._theme['borderChars']['ls'], rs=self._theme['borderChars']['rs'],
-                           tl=self._theme['borderChars']['tl'], tr=self._theme['borderChars']['tr'],
-                           bl=self._theme['borderChars']['bl'], br=self._theme['borderChars']['br']
+                           ts=self._border_chars['ts'], bs=self._border_chars['bs'],
+                           ls=self._border_chars['ls'], rs=self._border_chars['rs'],
+                           tl=self._border_chars['tl'], tr=self._border_chars['tr'],
+                           bl=self._border_chars['bl'], br=self._border_chars['br']
                            )
         # Add the title to the border:
         title_attrs: int
@@ -123,7 +128,7 @@ class Window(object):
         else:
             title_attrs = self._title_attrs
         add_title_to_win(self._window, self.title, border_attrs, title_attrs,
-                         self._theme['titleChars']['start'], self._theme['titleChars']['end'])
+                         self._title_chars['start'], self._title_chars['end'])
         # Fill the centre with background colour, and character:
         for row in range(1, self.size[ROW] + 1):
             for col in range(1, self.size[COL] + 1):

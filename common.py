@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Optional
+from typing import Optional, Final
 import curses
 # from enum import IntEnum
 
@@ -30,13 +30,18 @@ SETTINGS: dict[str, Optional[str | bool]] = {
     'workingDir': '',
     'theme': 'light',
     'themePath': None,
+    'useMouse': False,
 }
 """The settings for cliSignal."""
 
-ROW: int = 0
-"""The tuple index for row / rows."""
-COL: int = 1
-"""The tuple index for col / cols."""
+ROW: Final[int] = 0
+"""The tuple index for row.."""
+ROWS: Final[int] = 0
+"""The tuple index for rows."""
+COL: Final[int] = 1
+"""The tuple index for col."""
+COLS: Final[int] = 1
+"""The tuple index for cols."""
 
 
 def calc_attributes(colour_pair: int, attrs: dict[str, int | bool]) -> int:
@@ -60,6 +65,8 @@ def draw_border_on_win(window: curses.window,
                        border_attrs: int,
                        ts: str, bs: str, ls: str, rs: str,
                        tl: str, tr: str, bl: str, br: str,
+                       size: Optional[tuple[int,int]] = None,
+                       top_left: Optional[tuple[int, int]] = None,
                        ) -> None:
     """
     Draw a border around a window.
@@ -73,31 +80,56 @@ def draw_border_on_win(window: curses.window,
     :param tr: str: Top right character.
     :param bl: str: Bottom left character.
     :param br: str: Bottom right character.
+    :param size: Optional[tuple[int, int]]: The Optional size of the border, if None uses the max size of the window.
+    :param top_left: Optional[tuple[int, int]]: The Optional top left corner of the border, if None uses (0, 0).
     :return: None
     """
-    num_rows, num_cols = window.getmaxyx()
-    max_row = num_rows - 1
-    max_col = num_cols - 1
+    # Determine the size of the box:
+    if size is None:
+        max_xy: tuple[int, int] = window.getmaxyx()
+        num_rows: int = max_xy[ROWS]
+        num_cols: int = max_xy[COLS]
+    else:
+        num_rows: int = size[ROWS]
+        num_cols: int = size[COLS]
+
+    # Determine the top left corner of the box:
+    if top_left is None:
+        start_row: int = 0
+        start_col: int = 0
+    else:
+        start_row: int = top_left[ROW]
+        start_col: int = top_left[COL]
+
+    # Determine the bottom right of the box:
+    end_row: int = start_row + num_rows - 1
+    end_col: int = start_col + num_cols - 1
+
     # Top and bottom sides:
-    for col in range(1, num_cols - 1):
-        window.addstr(0, col, ts, border_attrs)
-        window.addstr(max_row, col, bs, border_attrs)
+    for col in range(start_col + 1, end_col):
+        window.addstr(start_row, col, ts, border_attrs)
+        window.addstr(end_row, col, bs, border_attrs)
+
     # Left and right sides:
-    for row in range(1, num_rows - 1):
-        window.addstr(row, 0, ls, border_attrs)
-        window.addstr(row, max_col, rs, border_attrs)
+    for row in range(start_col + 1, end_row):
+        window.addstr(row, start_col, ls, border_attrs)
+        window.addstr(row, end_col, rs, border_attrs)
+
     # Top left corner:
-    window.addstr(0, 0, tl, border_attrs)
+    window.addstr(start_row, start_col, tl, border_attrs)
+
     # Top right corner:
     try:
-        window.addstr(0, max_col, tr, border_attrs)
+        window.addstr(start_row, end_col, tr, border_attrs)
     except curses.error:
         pass
+
     # Bottom left corner:
-    window.addstr(max_row, 0, bl, border_attrs)
+    window.addstr(end_row, start_col, bl, border_attrs)
+
     # Bottom right corner, causes exception:
     try:
-        window.addstr(max_row, max_col, br, border_attrs)
+        window.addstr(end_row, end_col, br, border_attrs)
     except curses.error:
         pass
     return

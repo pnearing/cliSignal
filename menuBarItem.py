@@ -14,6 +14,9 @@ class MenuBarItem(object):
     Class to hold a single menu item.
     """
 
+#################################
+# Initialize:
+#################################
     def __init__(self,
                  window: curses.window,
                  top_left: tuple[int, int],
@@ -26,7 +29,7 @@ class MenuBarItem(object):
                  unsel_accel_attrs: int,
                  unsel_lead_indicator: str,
                  unsel_tail_indicator: str,
-                 menu: Optional[FileMenu | AccountsMenu | HelpMenu],
+                 menu: FileMenu | AccountsMenu | HelpMenu,
                  callback: Optional[Callable] = None,
                  ) -> None:
         """
@@ -42,7 +45,7 @@ class MenuBarItem(object):
         :param unsel_accel_attrs: int: The attributes to use for the unselected accelerator
         :param unsel_lead_indicator: str: The string to append to the beginning of the label when unselected.
         :param unsel_tail_indicator: str The string to append to the end of the label when unselected.
-        :param menu: [FileMenu | AccountsMenu | HelpMenu]: The menu this item holds.
+        :param menu: FileMenu | AccountsMenu | HelpMenu: The menu this item holds.
         :param callback: Optional[Callable]: The call back to call when activated.
         """
         # Super:
@@ -68,7 +71,7 @@ class MenuBarItem(object):
         """The string to append to the end of the label when unselected."""
         self._callback: Optional[Callable] = callback
         """The callback to call when activated."""
-        self._menu: [FileMenu | AccountsMenu | HelpMenu] = menu
+        self.menu: FileMenu | AccountsMenu | HelpMenu = menu
         """The menu object this holds."""
         self._is_selected: bool = False
         """If this item is selected."""
@@ -84,6 +87,9 @@ class MenuBarItem(object):
         """The label to display."""
         return
 
+#################################
+# Methods:
+#################################
     def redraw(self) -> None:
         """
         Redraw this menu item.
@@ -118,26 +124,31 @@ class MenuBarItem(object):
             self._window.addstr(self._sel_tail_indicator, self._sel_attrs)
         else:
             self._window.addstr(self._unsel_tail_indicator, self._unsel_attrs)
+
+        # If the menu is active, redraw it:
+        if self.is_activated:
+            self.menu.redraw()
         return
 
     def activate(self, *args: list[Any]) -> Optional[Any]:
         """
-        Activate this menu bar item.
+        Activate this menu bar item, show the menu and pass the keys to it.
         :param args: Any arguments to pass to the call back.
         :return: Optional[Any]: The return value of the callback
         """
         self.is_selected = False
         self._is_activated = True
+        if self.menu is not None:
+            self.menu.is_activated = True
+
         if self._callback is not None:
             try:
                 return self._callback(*args)
-            except TypeError as e:
+            except TypeError:
                 warn("Callback is not callable.", RuntimeWarning)
             except Exception as e:
                 warn("Callback caused exception.", RuntimeWarning)
                 raise e
-        if self._menu is not None:
-            self._menu.is_visible = True
         return None
 
     def deactivate(self) -> None:
@@ -145,6 +156,9 @@ class MenuBarItem(object):
         self._is_activated = False
         return
 
+#################################
+# Properties:
+#################################
     @property
     def is_selected(self) -> bool:
         """
@@ -168,4 +182,29 @@ class MenuBarItem(object):
         self._is_selected = value
         if value != old_value:
             self.redraw()
+        return
+
+    @property
+    def is_activated(self) -> bool:
+        """
+        Is this menu bar item activated?
+        :return: bool: True, this menu bar is activated, False, it is not.
+        """
+        return self._is_activated
+
+    @is_activated.setter
+    def is_activated(self, value: bool) -> None:
+        """
+        Is this menu bar item activated?
+        Setter.
+        :param value: bool: True, this menu bar item is activated, False, it is not.
+        :return: None
+        :raises TypeError: If value is not a bool.
+        """
+        if not isinstance(value, bool):
+            __type_error__('value', 'bool', value)
+        old_value = self._is_activated
+        self._is_activated = value
+        if old_value != value:
+            self.menu.is_activated = value
         return

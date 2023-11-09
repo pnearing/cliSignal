@@ -2,13 +2,15 @@
 from typing import Optional, Callable
 import curses
 from common import ROW, COL, STRINGS
-
+from typeError import __type_error__
 
 class MenuItem(object):
     """
     Store an handle a single menu item.
     """
-
+#######################################
+# Initialize:
+#######################################
     def __init__(self,
                  window: curses.window,
                  width: int,
@@ -22,7 +24,7 @@ class MenuItem(object):
                  unsel_accel_attrs: int,
                  unsel_lead_indicator: str,
                  unsel_tail_indicator: str,
-                 callback: Optional[Callable] = None,
+                 callback: Callable,
                  ) -> None:
         """
         Initialize a single menu item.
@@ -38,7 +40,7 @@ class MenuItem(object):
         :param unsel_accel_attrs: int: The attributes to use for the accelerator when unselected.
         :param unsel_lead_indicator: str: The character to add before the label when unselected.
         :param unsel_tail_indicator: str: The character to add after the label when unselected.
-        :param callback: Optional[Callable]: The callback to call for this menu item.
+        :param callback: Callable: The callback to call for this menu item.
         """
         # Internal properties:
         self._window: curses.window = window
@@ -65,6 +67,7 @@ class MenuItem(object):
         """The label with accel indicators."""
         self._is_selected: bool = False
         """If this menu item is selected."""
+
         # External properties:
         self.top_left: tuple[int, int] = top_left
         """Top left corner of this menu item."""
@@ -72,6 +75,9 @@ class MenuItem(object):
         """Width of this menu item."""
         return
 
+#######################################
+# Methods:
+#######################################
     def redraw(self) -> None:
         """
         Redraw this menu item.
@@ -81,7 +87,7 @@ class MenuItem(object):
         bg_char = STRINGS['background']['menu']
         self._window.move(self.top_left[ROW], self.top_left[COL])
         bg_attrs: int
-        if self._is_selected:
+        if self.is_selected:
             bg_attrs = self._sel_attrs
         else:
             bg_attrs = self._unsel_attrs
@@ -93,14 +99,14 @@ class MenuItem(object):
 
         # Determine indicator attributes:
         indicator_attrs: int
-        if self._is_selected:
+        if self.is_selected:
             indicator_attrs = self._sel_attrs
         else:
             indicator_attrs = self._unsel_attrs
 
         # Put start selection indicator:
         indicator: str
-        if self._is_selected:
+        if self.is_selected:
             self._window.addstr(self._sel_lead_indicator, indicator_attrs)
         else:
             self._window.addstr(self._unsel_lead_indicator, indicator_attrs)
@@ -113,19 +119,47 @@ class MenuItem(object):
             else:
                 # Determine attributes:
                 attrs: int
-                if self._is_selected and is_accel:
+                if self.is_selected and is_accel:
                     attrs = self._sel_accel_attrs
-                elif self._is_selected and not is_accel:
+                elif self.is_selected and not is_accel:
                     attrs = self._sel_attrs
-                elif not self._is_selected and is_accel:
+                elif not self.is_selected and is_accel:
                     attrs = self._unsel_accel_attrs
                 else:  # Not self._is_selected and not is_accel:
                     attrs = self._unsel_attrs
                 self._window.addstr(char, attrs)
 
         # Put the trailing selection indicator:
-        if self._is_selected:
+        if self.is_selected:
             self._window.addstr(self._sel_tail_indicator, indicator_attrs)
         else:
             self._window.addstr(self._unsel_tail_indicator, indicator_attrs)
+        return
+
+#######################################
+# Properties:
+#######################################
+    @property
+    def is_selected(self) -> bool:
+        """
+        Is this menu item selected?
+        :return: bool: True, this menu item is selected, False, it is not.
+        """
+        return self._is_selected
+
+    @is_selected.setter
+    def is_selected(self, value: bool) -> None:
+        """
+        Is this menu item selected?
+        Setter.
+        :param value: bool: True if this item is selected, False if not.
+        :return: None
+        :raises TypeError: If value is not a bool.
+        """
+        if not isinstance(value, bool):
+            __type_error__('value', 'bool', value)
+        old_value = self._is_selected
+        self._is_selected = value
+        if old_value != value:
+            self.redraw()
         return

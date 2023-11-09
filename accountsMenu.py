@@ -5,8 +5,9 @@ Handle the account menu.
 """
 import curses
 from typing import Optional, Callable, Any
-from common import ROW, COL, STRINGS
-from menu import Menu
+from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes
+from menu import Menu, calc_size
+from themes import ThemeColours
 from menuItem import MenuItem
 
 
@@ -18,11 +19,77 @@ class AccountsMenu(Menu):
                  window: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
+                 callbacks: dict[str, Optional[Callable]],
                  ) -> None:
         """
         Initialize the account menu.
         :param window: curses.window: The window to draw on.
-        :param top_left: The top left corner of the menu.
-        :param theme: The theme currently in use.
+        :param top_left: tuple[int, int]: The top left corner of the menu.
+        :param theme: dict[str, dict[str, int | bool | str]]: The theme currently in use.
         """
+
+        # Determine size:
+        size = calc_size(STRINGS['acctMenuNames'].values())
+
+        # Determine border attrs and chars:
+        border_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder'])
+        border_chars: dict[str, str] = theme['acctMenuBorderChars']
+
+        # Determine attributes from the theme:
+        sel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel'])
+        sel_accel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_SEL_ACCEL, theme['acctMenuSelAccel'])
+        sel_lead_indicator: str = theme['acctMenuSelChars']['leadSel']
+        sel_tail_indicator: str = theme['acctMenuSelChars']['tailSel']
+        unsel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel'])
+        unsel_accel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_UNSEL_ACCEL, theme['acctMenuUnselAccel'])
+        unsel_lead_indicator: str = theme['acctMenuSelChars']['leadUnsel']
+        unsel_tail_indicator: str = theme['acctMenuSelChars']['tailUnsel']
+
+        # Create switch account menu item:
+        switch_menu_item: MenuItem = MenuItem(window=window,
+                                              width=size[COLS] - 2,
+                                              top_left=(top_left[ROW] + 1, top_left[COL] + 1),
+                                              label=STRINGS['acctMenuNames']['switch'],
+                                              sel_attrs=sel_attrs,
+                                              sel_accel_attrs=sel_accel_attrs,
+                                              sel_lead_indicator=sel_lead_indicator,
+                                              sel_tail_indicator=sel_tail_indicator,
+                                              unsel_attrs=unsel_attrs,
+                                              unsel_accel_attrs=unsel_accel_attrs,
+                                              unsel_lead_indicator=unsel_lead_indicator,
+                                              unsel_tail_indicator=unsel_tail_indicator,
+                                              callback=callbacks['switch']
+                                              )
+        link_menu_item: MenuItem = MenuItem(window=window,
+                                            width=size[COLS] - 2,
+                                            top_left=(top_left[ROW] + 2, top_left[COL] + 1),
+                                            label=STRINGS['acctMenuNames']['link'],
+                                            sel_attrs=sel_attrs,
+                                            sel_accel_attrs=sel_accel_attrs,
+                                            sel_lead_indicator=sel_lead_indicator,
+                                            sel_tail_indicator=sel_tail_indicator,
+                                            unsel_attrs=unsel_attrs,
+                                            unsel_accel_attrs=unsel_accel_attrs,
+                                            unsel_lead_indicator=unsel_lead_indicator,
+                                            unsel_tail_indicator=unsel_tail_indicator,
+                                            callback=callbacks['link']
+                                            )
+        register_menu_item: MenuItem = MenuItem(window=window,
+                                                width=size[COLS] - 2,
+                                                top_left=(top_left[ROW] + 3, top_left[COL] + 1),
+                                                label=STRINGS['acctMenuNames']['register'],
+                                                sel_attrs=sel_attrs,
+                                                sel_accel_attrs=sel_accel_attrs,
+                                                sel_lead_indicator=sel_lead_indicator,
+                                                sel_tail_indicator=sel_tail_indicator,
+                                                unsel_attrs=unsel_attrs,
+                                                unsel_accel_attrs=unsel_accel_attrs,
+                                                unsel_lead_indicator=unsel_lead_indicator,
+                                                unsel_tail_indicator=unsel_tail_indicator,
+                                                callback=callbacks['register']
+                                                )
+        menu_items: list[MenuItem] = [switch_menu_item, link_menu_item, register_menu_item]
+
+        # Call super:
+        Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
         return

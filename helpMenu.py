@@ -17,6 +17,7 @@ class HelpMenu(Menu):
                  window: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
+                 callbacks: dict[str, Optional[Callable]],
                  ) -> None:
         """
         Initialize the help menu.

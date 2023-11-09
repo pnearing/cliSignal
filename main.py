@@ -52,7 +52,6 @@ _CLI_SIGNAL_LOG_FILE_NAME: Final[str] = 'cliSignal.log'
 # Vars:
 #########################################
 _CURRENT_FOCUS: int = Focus.MENU_BAR
-_HAVE_MOUSE: bool = True
 
 
 #########################################
@@ -154,11 +153,11 @@ def help_menu_version_cb() -> None:
 # Main:
 #########################################
 def main(std_screen: curses.window) -> None:
-    global _CURRENT_FOCUS, _HAVE_MOUSE
+    global _CURRENT_FOCUS
     # Setup extended key codes:
     std_screen.keypad(True)
     # Ask for mouse move events, and position change event:
-    if _HAVE_MOUSE:
+    if common.SETTINGS['useMouse']:
         # Set the curses mouse mask:
         response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
         if response != 0:  # Complete failure returns 0, no mask to reset to.
@@ -213,66 +212,84 @@ def main(std_screen: curses.window) -> None:
     #                                    )
 
     # Main loop:
-    try:
-        std_screen.move(0, 0)
-        while True:
-            char_code: int = std_screen.getch()
-            std_screen.addstr(10, 10, "    ")
-            std_screen.addstr(10, 10, str(char_code))
-            std_screen.refresh()
+    while True:
+        try:
+            std_screen.move(0, 0)
+            while True:
+                char_code: int = std_screen.getch()
+                std_screen.addstr(10, 10, "    ")
+                std_screen.addstr(10, 10, str(char_code))
+                std_screen.refresh()
 
-            if char_code == curses.KEY_RESIZE:
-                # Resize the windows:
-                main_window.resize()
-                main_window.redraw()
-                continue
-            # elif char_code == curses.KEY_MOUSE:
-            #     _, mouse_col, mouse_row, _, button_state = curses.getmouse()
-            #     mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
-            #     # Set the window focus:
-            #     focus_windows[_CURRENT_FOCUS].is_focused = False
-            #     if focus_windows[Focus.CONTACTS].is_mouse_over(mouse_pos):
-            #         _CURRENT_FOCUS = Focus.CONTACTS
-            #     elif focus_windows[Focus.MESSAGES].is_mouse_over(mouse_pos):
-            #         _CURRENT_FOCUS = Focus.MESSAGES
-            #     elif focus_windows[Focus.TYPING].is_mouse_over(mouse_pos):
-            #         _CURRENT_FOCUS = Focus.TYPING
-            #     elif focus_windows[Focus.MENU_BAR].is_mouse_over(mouse_pos):
-            #         _CURRENT_FOCUS = Focus.MENU_BAR
-            #     focus_windows[_CURRENT_FOCUS].is_focused = True
-            #     # TODO: Process button state.
-            #     continue
-
-            char_handled: bool
-            if _CURRENT_FOCUS == Focus.MENU_BAR:
-                char_handled = focus_windows[Focus.MENU_BAR].process_key(char_code)
-                curses.doupdate()
-                if char_handled:
+                # Pre-process char code:
+                if char_code == curses.KEY_RESIZE:  # Resize the windows:
+                    main_window.resize()
+                    main_window.redraw()
+                    continue
+                elif char_code == curses.KEY_MOUSE:  # Mouse move / button hit:
+                    _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+                    mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
+                    # Set the window focus:
+                    focus_windows[_CURRENT_FOCUS].is_focused = False
+                    if focus_windows[Focus.CONTACTS].is_mouse_over(mouse_pos):
+                        _CURRENT_FOCUS = Focus.CONTACTS
+                    elif focus_windows[Focus.MESSAGES].is_mouse_over(mouse_pos):
+                        _CURRENT_FOCUS = Focus.MESSAGES
+                    elif focus_windows[Focus.TYPING].is_mouse_over(mouse_pos):
+                        _CURRENT_FOCUS = Focus.TYPING
+                    elif focus_windows[Focus.MENU_BAR].is_mouse_over(mouse_pos):
+                        _CURRENT_FOCUS = Focus.MENU_BAR
+                    focus_windows[_CURRENT_FOCUS].is_focused = True
+                    # TODO: Process button state.
                     continue
 
-            if char_code == ord('\t'):  # Tab hit switch focus.
-                focus_windows[_CURRENT_FOCUS].is_focused = False
-                _CURRENT_FOCUS += 1
-                if _CURRENT_FOCUS > Focus.MENU_BAR:
-                    _CURRENT_FOCUS = Focus.CONTACTS
-                focus_windows[_CURRENT_FOCUS].is_focused = True
-                curses.doupdate()
-                continue
-            elif char_code == 353:  # Shift-Tab hit, switch focus backwards.
-                focus_windows[_CURRENT_FOCUS].is_focused = False
-                _CURRENT_FOCUS -= 1
-                if _CURRENT_FOCUS < Focus.CONTACTS:
-                    _CURRENT_FOCUS = Focus.MENU_BAR
-                focus_windows[_CURRENT_FOCUS].is_focused = True
-                curses.doupdate()
-    except KeyboardInterrupt:
-        pass  # TODO: Are you sure message.
+                # Hand the char code to the appropriate window for handling.
+                char_handled: bool
+                if _CURRENT_FOCUS == Focus.MENU_BAR:
+                    char_handled = focus_windows[Focus.MENU_BAR].process_key(char_code)
+                    if char_handled:
+                        main_window.redraw()
+                        # curses.beep()
+                        curses.doupdate()
+                        continue
+                elif _CURRENT_FOCUS == Focus.CONTACTS:
+                    char_handled = focus_windows[Focus.CONTACTS].process_key(char_code)
+                    if char_handled:
+                        curses.doupdate()
+                        continue
+                elif _CURRENT_FOCUS == Focus.MESSAGES:
+                    char_handled = focus_windows[Focus.MESSAGES].process_key(char_code)
+                    if char_handled:
+                        main_window.redraw()
+                        continue
+                elif _CURRENT_FOCUS == Focus.TYPING:
+                    char_handled = focus_windows[Focus.TYPING].process_key(char_code)
+                    if char_handled:
+                        main_window.redraw()
+                        continue
+
+                # If the character wasn't handled by the window, we want to handle it:
+                if char_code == ord('\t'):  # Tab hit switch focus.
+                    focus_windows[_CURRENT_FOCUS].is_focused = False
+                    _CURRENT_FOCUS += 1
+                    if _CURRENT_FOCUS > Focus.MENU_BAR:
+                        _CURRENT_FOCUS = Focus.CONTACTS
+                    focus_windows[_CURRENT_FOCUS].is_focused = True
+                    curses.doupdate()
+                    continue
+                elif char_code == 353:  # Shift-Tab hit, switch focus backwards.
+                    focus_windows[_CURRENT_FOCUS].is_focused = False
+                    _CURRENT_FOCUS -= 1
+                    if _CURRENT_FOCUS < Focus.CONTACTS:
+                        _CURRENT_FOCUS = Focus.MENU_BAR
+                    focus_windows[_CURRENT_FOCUS].is_focused = True
+                    curses.doupdate()
+        except KeyboardInterrupt:
+            break  # TODO: Are you sure message.
 
     # Fix mouse mask:
-    if _HAVE_MOUSE:
+    if common.SETTINGS['useMouse']:
         curses.mousemask(reset_mouse_mask)
-        # Tell the terminal to not report mouse movements:
-        print('\033[?1003l')
 
     return
 
@@ -281,9 +298,6 @@ def main(std_screen: curses.window) -> None:
 # Start:
 #########################################
 if __name__ == '__main__':
-    # Tell the terminal to report mouse movements:
-    if _HAVE_MOUSE:
-        print('\033[?1003h', end='', flush=True)
 
     # Setup command line arguments:
     parser = argparse.ArgumentParser(description="Command line Signal client.",
@@ -327,6 +341,19 @@ if __name__ == '__main__':
     parser.add_argument('--themePath',
                         help="The path to the custom theme json file, required if --theme=custom",
                         type=str
+                        )
+    # Settings:
+    # Use mouse:
+    use_mouse = parser.add_mutually_exclusive_group()
+    use_mouse.add_argument('--useMouse',
+                        help="Try and use the mouse, NOTE: Sometimes this leaves the terminal in an unstable stage.",
+                        action='store_true',
+                        default=False
+                        )
+    use_mouse.add_argument('--noUseMouse',
+                        help="Turn the mouse off.",
+                        action='store_false',
+                        dest='useMouse'
                         )
     # Parse args:
     args: argparse.Namespace = parser.parse_args()
@@ -373,7 +400,7 @@ if __name__ == '__main__':
         exit(4)
 
     # Validate / act on arguments:
-
+    # Signal arguments:
     # --noStartSignal:
     if args.noStartSignal:
         common.SETTINGS['startSignal'] = False
@@ -409,7 +436,8 @@ if __name__ == '__main__':
         print("ERROR: --signalSocketPath must point to an existing file if using --noStartSignal.")
         exit(8)
 
-    # Verify theme:
+    # Theme arguments:
+    # --theme:
     if args.theme is not None:
         if args.theme not in ('light', 'dark', 'custom'):
             print("ERROR: --theme must be either: 'light', 'dark', or 'custom'.")
@@ -433,6 +461,10 @@ if __name__ == '__main__':
             print("ERROR: 'themePath' must point to an existing file.")
             exit(12)
 
+    # Settings arguments:
+    # Use mouse:
+    common.SETTINGS['useMouse'] = args.useMouse
+
     # Parse: --store
     if args.store:
         try:
@@ -441,9 +473,15 @@ if __name__ == '__main__':
             print("ERROR:", e.error_message)
             exit(9)
 
+    # Tell the terminal to report mouse movements:
+    if common.SETTINGS['useMouse']:
+        print('\033[?1003h', end='', flush=True)
+
+    # Run main:
     curses.wrapper(main)
+
     # Tell the terminal to not report mouse movements:
-    if _HAVE_MOUSE:
+    if common.SETTINGS['useMouse']:
         print('\033[?1003l', end='', flush=True)
 
     exit(0)

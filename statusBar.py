@@ -27,8 +27,9 @@ class StatusBar(Bar):
         :param top_left: tuple[int, int]: The top left corner of the status bar.
         :param theme: dict[str, dict[str, int | bool | Optional[str]]]: The theme to use.
         """
-        empty_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_EMPTY, theme['statusEmpty'])
-        Bar.__init__(self, window, width, top_left, empty_attrs, theme, STRINGS['background']['statusBar'])
+        empty_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG'])
+        bg_char: str = STRINGS['background']['statusBar']
+        Bar.__init__(self, window, width, top_left, empty_attrs, bg_char)
         return
 
     def redraw(self) -> None:
