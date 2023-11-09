@@ -13,7 +13,7 @@ from typing import Optional, TextIO
 import os
 import json
 # Version:
-VERSION: float = 1.4
+VERSION: float = 1.5
 
 CAN_LOCK: bool
 try:
