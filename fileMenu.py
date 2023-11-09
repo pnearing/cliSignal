@@ -36,8 +36,10 @@ class FileMenu(Menu):
         :param callbacks: dict[str, Optional[Callable]]: A dict with the callbacks for the file menu items.
         """
 
-        # Determine size:
+        # Determine size and window attrs:
         size: tuple[int, int] = calc_size(STRINGS['fileMenuNames'].values())
+        border_attrs: int = calc_attributes(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder'])
+        border_chars: dict[str, str] = theme['fileMenuBorderChars']
 
         # Determine attributes from theme:
         sel_attrs: int = calc_attributes(ThemeColours.FILE_MENU_SEL, theme['fileMenuSel'])
@@ -48,8 +50,6 @@ class FileMenu(Menu):
         unsel_accel_attrs: int = calc_attributes(ThemeColours.FILE_MENU_UNSEL_ACCEL, theme['fileMenuUnselAccel'])
         unsel_lead_indicator: str = theme['fileMenuSelChars']['leadUnsel']
         unsel_tail_indicator: str = theme['fileMenuSelChars']['tailUnsel']
-        border_attrs: int = calc_attributes(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder'])
-        border_chars: dict[str, str] = theme['fileMenuBorderChars']
 
         # Create menu Items:
         settings_menu_item: MenuItem = MenuItem(window=window,

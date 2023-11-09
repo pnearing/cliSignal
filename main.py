@@ -51,7 +51,8 @@ _CLI_SIGNAL_LOG_FILE_NAME: Final[str] = 'cliSignal.log'
 #########################################
 # Vars:
 #########################################
-_CURRENT_FOCUS: int = Focus.MENU_BAR
+# _CURRENT_FOCUS: Focus = Focus.MAIN
+_CURRENT_FOCUS: Focus = Focus.MENU_BAR
 
 
 #########################################
@@ -249,7 +250,6 @@ def main(std_screen: curses.window) -> None:
                     char_handled = focus_windows[Focus.MENU_BAR].process_key(char_code)
                     if char_handled:
                         main_window.redraw()
-                        # curses.beep()
                         curses.doupdate()
                         continue
                 elif _CURRENT_FOCUS == Focus.CONTACTS:
@@ -268,7 +268,7 @@ def main(std_screen: curses.window) -> None:
                         main_window.redraw()
                         continue
 
-                # If the character wasn't handled by the window, we want to handle it:
+                # If the window didn't handle the character, we want to handle it:
                 if char_code == ord('\t'):  # Tab hit switch focus.
                     focus_windows[_CURRENT_FOCUS].is_focused = False
                     _CURRENT_FOCUS += 1

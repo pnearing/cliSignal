@@ -111,7 +111,7 @@ def draw_border_on_win(window: curses.window,
         window.addstr(end_row, col, bs, border_attrs)
 
     # Left and right sides:
-    for row in range(start_col + 1, end_row):
+    for row in range(start_row + 1, end_row):
         window.addstr(row, start_col, ls, border_attrs)
         window.addstr(row, end_col, rs, border_attrs)
 

@@ -62,10 +62,10 @@ class MenuBar(Bar):
         # Set internal properties:
         self._is_focused: bool = False
         """If this menu bar is focused."""
-        self._is_menu_activated: bool = False
-        """If a menu has been activated."""
-        self._selection: MenuSelections = MenuSelections.FILE
+        self._selection: Optional[MenuSelections] = MenuSelections.FILE
         """What menu item is selected."""
+        self._last_selection: Optional[MenuSelections] = None
+        """What was last selected."""
         self._active_menu: Optional[FileMenu | AccountsMenu | HelpMenu] = None
         """What menu is active, None if not active."""
 
@@ -194,26 +194,42 @@ class MenuBar(Bar):
         self._window.addstr(11, 10, str(char_code))
         self._window.refresh()
         # time.sleep(1)
-        if char_code == curses.KEY_LEFT:
-            if self._is_menu_activated:
-                self.menu_bar_items[self.selection].deactivate()
+
+        if char_code == 10 or char_code == 77:  # ENTER key / keypad ENTER key.
+            if self.selection is not None:
+                if self.menu_bar_items[self.selection].is_activated:
+                    self.menu_bar_items[self.selection].is_activated = False
+                    self._active_menu = None
+                else:
+                    self.menu_bar_items[self.selection].is_activated = True
+                    self._active_menu = self.menus[self.selection]
+                    self.selection = None
+            elif self.is_menu_activated:
+                return self._active_menu.process_key(char_code)
+
+            return True
+        elif char_code == 27:  # Escape key.
+            if self.selection is not None and self.is_menu_activated:
+                self.menu_bar_items[self.selection].is_activated = False
+                self._active_menu = None
+                return True
+        elif char_code == curses.KEY_LEFT:
+            if self.is_menu_activated:
+                self.menu_bar_items[self.selection].is_activated = False
             self.dec_selection()
-            if self._is_menu_activated:
-                self.menu_bar_items[self.selection].activate()
+            if self.is_menu_activated:
+                self.menu_bar_items[self.selection].is_activated = True
+                self._active_menu = self.menus[self.selection]
             return True
         elif char_code == curses.KEY_RIGHT:
-            if self._is_menu_activated:
-                self.menu_bar_items[self.selection].deactivate()
+            if self.is_menu_activated:
+                self.menu_bar_items[self.selection].is_activated = False
             self.inc_selection()
-            if self._is_menu_activated:
-                self.menu_bar_items[self.selection].activate()
+            if self.is_menu_activated:
+                self.menu_bar_items[self.selection].is_activated = True
+                self._active_menu = self.menus[self.selection]
             return True
-        elif char_code == 10 or char_code == 77:  # ENTER key / keypad ENTER key.
-            self._active_menu = self.menu_bar_items[self.selection].menu
-            self.menu_bar_items[self.selection].is_activated = not self.menu_bar_items[self.selection].is_activated
-
-            return True
-
+        # Character wasn't handled:
         return False
 
     def activate(self) -> None:
@@ -226,15 +242,23 @@ class MenuBar(Bar):
     # Properties:
     ###################################
     @property
-    def selection(self) -> MenuSelections:
+    def last_selection(self) -> Optional[MenuSelections]:
         """
-        What menu item is selected; Will be one of Selection enum.
-        :return: int: The current selection.
+        What was the last item selected?; Will be None or one of MenuSelection enum.
+        :return: Optional[MenuSelections]: The last selection.
+        """
+        return self._last_selection
+
+    @property
+    def selection(self) -> Optional[MenuSelections]:
+        """
+        What menu item is selected?; Will be one of MenuSelection enum or None.
+        :return: Optional[MenuSelections]: The current selection.
         """
         return self._selection
 
     @selection.setter
-    def selection(self, value: MenuSelections | int) -> None:
+    def selection(self, value: Optional[MenuSelections | int]) -> None:
         """
         What menu item is selected; Will be one of Selection Enum.
         :param value: MenuSelections | int: The value to set the selection to.
@@ -242,15 +266,28 @@ class MenuBar(Bar):
         :raises ValueError: If value is out of range.
         :return: None
         """
-        if not isinstance(value, (MenuSelections, int)):
-            __type_error__("value", "Selections | int", value)
-        if value < MenuSelections.FILE or value > MenuSelections.HELP:
-            raise ValueError("value out of range. See MenuSelections enum for range.")
-        old_value = self._selection
-        self._selection = MenuSelections(value)
-        if old_value != value:
-            self.menu_bar_items[old_value].is_selected = False
-            self.menu_bar_items[value].is_selected = True
+        # Value and type check:
+        if value is not None:
+            if not isinstance(value, (MenuSelections, int)):
+                __type_error__("value", "Optional[Selections | int]", value)
+            elif value < MenuSelections.FILE or value > MenuSelections.HELP:
+                raise ValueError("value out of range. See MenuSelections enum for range.")
+        # Store the last selection:
+        self._last_selection = self._selection
+        # Set the value:
+        if value is not None:
+            self._selection = MenuSelections(value)
+        else:
+            self._selection = None
+        # Set / Clear the selection:
+        if self._selection != self.last_selection:
+            if self._selection is None and self.last_selection is not None:
+                self.menu_bar_items[self.last_selection].is_selected = False
+            elif self.selection is not None and self.last_selection is None:
+                self.menu_bar_items[self.selection].is_selected = True
+            elif self.selection is not None and self.last_selection is not None:
+                self.menu_bar_items[self.last_selection].is_selected = False
+                self.menu_bar_items[self.selection].is_selected = True
         return
 
     @property
@@ -285,14 +322,7 @@ class MenuBar(Bar):
     def is_menu_activated(self) -> bool:
         """
         Is a menu activated?; IE: Supposed to be showing.
-        :return: bool: True a menu is actvated, False if not.
+        :return: bool: True a menu is activated, False if not.
         """
-        return self._is_menu_activated
+        return self._active_menu is not None
 
-    @is_menu_activated.setter
-    def is_menu_activated(self, value: bool) -> None:
-        if not isinstance(value, bool):
-            __type_error__('value', 'bool', value)
-        old_value = self._is_menu_activated
-        self._is_menu_activated = value
-        return

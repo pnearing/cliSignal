@@ -217,11 +217,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'typeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         'fileMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2504', 'br': '\u2508'},  # Corners
+                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
         'acctMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2504', 'br': '\u2508'},  # Corners
+                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
         'helpMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2504', 'br': '\u2508'},  # Corners
+                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
         'mainWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'contWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'msgsWinTitleChars': {'start': '\u2561', 'end': '\u255E'},

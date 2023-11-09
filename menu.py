@@ -20,7 +20,7 @@ def calc_size(menu_labels) -> tuple[int, int]:
     for label in menu_labels:
         width = max(width, len(label))
     height: int = len(menu_labels)
-    return height + 2, width + 2  # Add 2 for border.
+    return height + 2, width + 2  # Add 2 for a border.
 
 
 class Menu(object):
@@ -46,7 +46,6 @@ class Menu(object):
         :param menu_items: list[MenuItem]: The items in this menu.
         :param border_chars: dict[str, str]: The border character dict from the theme.
         :param border_attrs: int: The attributes to use for the border of this menu.
-        :param theme: dict[str, dict[str, int | bool | str]]: The theme in use.
         """
         # Run super:
         object.__init__(self)
@@ -93,6 +92,14 @@ class Menu(object):
             menu_item.redraw()
         self._window.refresh()
         return
+
+    def process_key(self, char_code: int) -> bool:
+        """
+        Process a key press.
+        :param char_code: The character code.
+        :return: bool: True, character handled, False, it was not handled.
+        """
+        return False
 
 ########################################
 # Properties:

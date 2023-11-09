@@ -30,7 +30,7 @@ class MenuBarItem(object):
                  unsel_lead_indicator: str,
                  unsel_tail_indicator: str,
                  menu: FileMenu | AccountsMenu | HelpMenu,
-                 callback: Optional[Callable] = None,
+                 callback: Callable = None,
                  ) -> None:
         """
         Initialize a menu item.
@@ -98,7 +98,7 @@ class MenuBarItem(object):
         # Move the cursor to the top left corner:
         self._window.move(self.top_left[ROW], self.top_left[COL])
         # Write the leading indicator character:
-        if self._is_selected:
+        if self.is_selected:
             self._window.addstr(self._sel_lead_indicator, self._sel_attrs)
         else:
             self._window.addstr(self._unsel_lead_indicator, self._unsel_attrs)
@@ -110,17 +110,17 @@ class MenuBarItem(object):
             else:
                 # Select attributes for this character:
                 attrs: int
-                if self._is_selected and is_accel:
+                if self.is_selected and is_accel:
                     attrs = self._sel_accel_attrs
-                elif self._is_selected and not is_accel:
+                elif self.is_selected and not is_accel:
                     attrs = self._sel_attrs
-                elif not self._is_selected and is_accel:
+                elif not self.is_selected and is_accel:
                     attrs = self._unsel_accel_attrs
                 else:  # Not self._is_selected and not is_accel:
                     attrs = self._unsel_attrs
                 self._window.addstr(char, attrs)
         # Add the trailing selection indicator:
-        if self._is_selected:
+        if self.is_selected:
             self._window.addstr(self._sel_tail_indicator, self._sel_attrs)
         else:
             self._window.addstr(self._unsel_tail_indicator, self._unsel_attrs)
@@ -130,30 +130,18 @@ class MenuBarItem(object):
             self.menu.redraw()
         return
 
-    def activate(self, *args: list[Any]) -> Optional[Any]:
+    def activate(self) -> Optional[Any]:
         """
         Activate this menu bar item, show the menu and pass the keys to it.
-        :param args: Any arguments to pass to the call back.
         :return: Optional[Any]: The return value of the callback
         """
         self.is_selected = False
-        self._is_activated = True
-        if self.menu is not None:
-            self.menu.is_activated = True
-
-        if self._callback is not None:
-            try:
-                return self._callback(*args)
-            except TypeError:
-                warn("Callback is not callable.", RuntimeWarning)
-            except Exception as e:
-                warn("Callback caused exception.", RuntimeWarning)
-                raise e
+        self.is_activated = True
         return None
 
     def deactivate(self) -> None:
-        self.is_selected = False
-        self._is_activated = False
+        self.is_selected = True
+        self.is_activated = False
         return
 
 #################################
@@ -178,10 +166,10 @@ class MenuBarItem(object):
         """
         if not isinstance(value, bool):
             __type_error__('value', 'bool', value)
-        old_value = self._is_selected
+        # old_value = self._is_selected
         self._is_selected = value
-        if value != old_value:
-            self.redraw()
+        # if value != old_value:
+        #     self.redraw()
         return
 
     @property
@@ -205,6 +193,5 @@ class MenuBarItem(object):
             __type_error__('value', 'bool', value)
         old_value = self._is_activated
         self._is_activated = value
-        if old_value != value:
-            self.menu.is_activated = value
+        self.menu.is_activated = value
         return
