@@ -5,11 +5,11 @@ Handle the account menu.
 """
 import curses
 from typing import Optional, Callable, Any
-from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes
+from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes, AccountsMenuSelection
 from menu import Menu, calc_size
 from themes import ThemeColours
 from menuItem import MenuItem
-
+from typeError import __type_error__
 
 class AccountsMenu(Menu):
     """
@@ -19,7 +19,7 @@ class AccountsMenu(Menu):
                  window: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
-                 callbacks: dict[str, Optional[Callable]],
+                 callbacks: dict[str, tuple[Optional[Callable], Optional[Any]]],
                  ) -> None:
         """
         Initialize the account menu.
@@ -46,10 +46,13 @@ class AccountsMenu(Menu):
         unsel_tail_indicator: str = theme['acctMenuSelChars']['tailUnsel']
 
         # Create switch account menu item:
+        switch_label: str = STRINGS['acctMenuNames']['switch']
+        switch_bg_char: str = STRINGS['background']['switchMenu']
         switch_menu_item: MenuItem = MenuItem(window=window,
                                               width=size[COLS] - 2,
                                               top_left=(top_left[ROW] + 1, top_left[COL] + 1),
-                                              label=STRINGS['acctMenuNames']['switch'],
+                                              label=switch_label,
+                                              bg_char=switch_bg_char,
                                               sel_attrs=sel_attrs,
                                               sel_accel_attrs=sel_accel_attrs,
                                               sel_lead_indicator=sel_lead_indicator,
@@ -60,10 +63,13 @@ class AccountsMenu(Menu):
                                               unsel_tail_indicator=unsel_tail_indicator,
                                               callback=callbacks['switch']
                                               )
+        link_label: str = STRINGS['acctMenuNames']['link']
+        link_bg_char: str = STRINGS['background']['linkMenu']
         link_menu_item: MenuItem = MenuItem(window=window,
                                             width=size[COLS] - 2,
                                             top_left=(top_left[ROW] + 2, top_left[COL] + 1),
-                                            label=STRINGS['acctMenuNames']['link'],
+                                            label=link_label,
+                                            bg_char=link_bg_char,
                                             sel_attrs=sel_attrs,
                                             sel_accel_attrs=sel_accel_attrs,
                                             sel_lead_indicator=sel_lead_indicator,
@@ -74,10 +80,13 @@ class AccountsMenu(Menu):
                                             unsel_tail_indicator=unsel_tail_indicator,
                                             callback=callbacks['link']
                                             )
+        register_label: str = STRINGS['acctMenuNames']['register']
+        register_bg_char: str = STRINGS['background']['registerMenu']
         register_menu_item: MenuItem = MenuItem(window=window,
                                                 width=size[COLS] - 2,
                                                 top_left=(top_left[ROW] + 3, top_left[COL] + 1),
-                                                label=STRINGS['acctMenuNames']['register'],
+                                                label=register_label,
+                                                bg_char=register_bg_char,
                                                 sel_attrs=sel_attrs,
                                                 sel_accel_attrs=sel_accel_attrs,
                                                 sel_lead_indicator=sel_lead_indicator,
@@ -92,4 +101,13 @@ class AccountsMenu(Menu):
 
         # Call super:
         Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
+
+        # Internal Properties:
+        self._selection = AccountsMenuSelection.SWITCH
+        self._last_selection = None
+        self._min_selection = AccountsMenuSelection.SWITCH
+        self._max_selection = AccountsMenuSelection.REGISTER
+
+        # Set initial selection:
+        self._menu_items[AccountsMenuSelection.SWITCH].is_selected = True
         return

@@ -19,7 +19,7 @@ class ContactsWindow(Window):
     def __init__(self,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
-                 theme: dict[str, dict[str, int | bool | Optional[str]]]
+                 theme: dict[str, dict[str, int | bool | str]]
                  ) -> None:
         """
         Initialize the contacts' window.
@@ -30,7 +30,7 @@ class ContactsWindow(Window):
         """
         # Set title and background:
         title: str = STRINGS['titles']['contacts']
-        bg_char: str = STRINGS['background']['contacts']
+        bg_char: str = STRINGS['background']['contactsWin']
 
         # Set the theme attrs:
         window_attrs: int = calc_attributes(ThemeColours.CONTACTS_WIN, theme['contWin'])

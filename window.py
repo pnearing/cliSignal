@@ -6,7 +6,7 @@
 from typing import Optional
 import curses
 from common import add_title_to_win, draw_border_on_win
-from common import ROW, COL
+from common import ROW, COL, ROWS, COLS
 from typeError import __type_error__
 
 
@@ -34,6 +34,7 @@ class Window(object):
                  title_chars: dict[str, str],
                  bg_char: str,
                  is_main_window: bool = False,
+                 is_static_size: bool = False,
                  ) -> None:
         """
         Initialize the window.
@@ -76,22 +77,25 @@ class Window(object):
         """The character to use for drawing the center of the screen."""
         self._title_chars: dict[str, str] = title_chars
         """The characters to use to start and end the title."""
+        self._is_static_size: bool = is_static_size
+        """This window is of static size, so when resize is called, we don't change the size."""
+
         # Set external properties:
         self.title: str = title
         """The title of this window."""
         self.real_size: tuple[int, int] = window.getmaxyx()
         """The real size of the window, not taking the border into account. (rows, cols)."""
-        self.size: tuple[int, int] = (self.real_size[ROW] - 2, self.real_size[COL] - 2)
+        self.size: tuple[int, int] = (self.real_size[ROWS] - 2, self.real_size[COLS] - 2)
         """The drawable size of the window, taking the border into account. (rows, cols)."""
         self.real_top_left: tuple[int, int] = top_left
         """The real top left of this window, not taking the border into account. (row, col)."""
         self.top_left: tuple[int, int] = (self.real_top_left[ROW] + 1, self.real_top_left[COL] + 1)
         """The drawable top left of this window, taking the border into account. (row, col)."""
-        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[ROW],
-                                                   self.real_top_left[COL] + self.real_size[COL])
+        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[ROWS],
+                                                   self.real_top_left[COL] + self.real_size[COLS])
         """The real bottom right of the window, not taking the border into account. (row, col)."""
-        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[ROW],
-                                              self.top_left[COL] + self.size[COL])
+        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[ROWS],
+                                              self.top_left[COL] + self.size[COLS])
         """The drawable bottom right of the window, taking the border into account. (row, col)."""
         self.is_visible: bool = True
         """If this window should be drawn."""
@@ -130,8 +134,8 @@ class Window(object):
         add_title_to_win(self._window, self.title, border_attrs, title_attrs,
                          self._title_chars['start'], self._title_chars['end'])
         # Fill the centre with background colour, and character:
-        for row in range(1, self.size[ROW] + 1):
-            for col in range(1, self.size[COL] + 1):
+        for row in range(1, self.size[ROWS] + 1):
+            for col in range(1, self.size[COLS] + 1):
                 if DEBUG:
                     try:
                         self._window.addch(row, col, self._bg_char, self._window_attrs)
@@ -151,7 +155,8 @@ class Window(object):
         # Set Vars:
 
         if not self._is_main_window:
-            self._window.resize(size[ROW], size[COL])
+            if not self._is_static_size:
+                self._window.resize(size[ROWS], size[COLS])
             self._window.mvwin(top_left[ROW], top_left[COL])
 
         num_rows, num_cols = self._window.getmaxyx()
@@ -171,12 +176,20 @@ class Window(object):
         """
         in_row: bool = False
         in_col: bool = False
-        if self.top_left[ROW] <= mouse_pos[ROW] <= (self.top_left[ROW] + self.size[ROW]):
+        if self.top_left[ROW] <= mouse_pos[ROW] <= (self.top_left[ROW] + self.size[ROWS]):
             in_row = True
-        if self.top_left[COL] <= mouse_pos[COL] <= (self.top_left[COL] + self.size[ROW]):
+        if self.top_left[COL] <= mouse_pos[COL] <= (self.top_left[COL] + self.size[COLS]):
             in_col = True
         if in_row and in_col:
             return True
+        return False
+
+    def process_key(self, char_code: int) -> bool:
+        """
+        Stub for process key.
+        :param char_code: int: The character code of the key pressed.
+        :return: bool: True key was processed, False, it was not.
+        """
         return False
 
 #########################################
@@ -202,6 +215,13 @@ class Window(object):
         old_value: bool = self._is_focused
         self._is_focused = value
         if value != old_value:
-            print("\a", end='')
             self.redraw()
         return
+
+    @property
+    def is_static_size(self) -> bool:
+        """
+        Is this window of static size?
+        :return: bool: True if static, False if dynamic.
+        """
+        return self._is_static_size

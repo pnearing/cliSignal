@@ -27,7 +27,7 @@ class MessagesWindow(Window):
         """
         # Set title and background character:
         title: str = STRINGS['titles']['messages']
-        bg_char: str = STRINGS['background']['messages']
+        bg_char: str = STRINGS['background']['messagesWin']
 
         # Set theme attrs and strings:
         window_attrs: int = calc_attributes(ThemeColours.MESSAGES_WIN, theme['msgsWin'])

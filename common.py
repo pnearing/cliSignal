@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 from typing import Optional, Final
 import curses
-# from enum import IntEnum
+from enum import IntEnum, Enum
 
-VERSION: str = '1.0.0'
+_VERSION: Final[str] = '1.0.0'
 
-
-STRINGS: dict[str, dict[str, Optional[str]]] = {
-    'background': {'main': ' ', 'contacts': ' ', 'messages': ' ', 'typing': ' ', 'menu': ' ', 'menuBar': ' ',
-                   'statusBar': ' '},
+#####################################
+# Strings:
+#####################################
+STRINGS: Final[dict[str, dict[str, Optional[str]]]] = {
+    # Background characters:
+    'background': {
+        'mainWin': ' ', 'contactsWin': ' ', 'messagesWin': ' ', 'typingWin': ' ', 'settingsMenu': ' ', 'quitMenu': ' ',
+        'switchMenu': ' ', 'linkMenu': ' ', 'registerMenu': ' ', 'shortcutsMenu': ' ', 'aboutMenu': ' ',
+        'versionMenu': ' ', 'menuBar': ' ', 'statusBar': ' ', 'quitWin': ' ', 'linkWin': ' ',
+    },
     # Window titles:
-    'titles': {'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None},
+    'titles': {
+        'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None,
+        'settings': 'Settings', 'quit': 'Quit', 'switch': 'Switch Account', 'link': 'Link Account',
+        'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Version'
+    },
     # Main menu items:
     'mainMenuNames': {'file': 'File _F1_', 'accounts': 'Accounts _F2_', 'help': 'Help _F3_'},
     # File menu items:
@@ -19,21 +29,48 @@ STRINGS: dict[str, dict[str, Optional[str]]] = {
     'acctMenuNames': {'switch': '_S_witch account', 'link': '_L_ink account', 'register': '_R_egister account'},
     # Help menu items:
     'helpMenuNames': {'shortcuts': '_S_hortcut Keys', 'about': '_A_bout', 'version': '_V_ersion'},
+    # Messages:
+    'messages': {
+        'quit': 'Are you sure you want to quit?',
+    },
+    # Other:
+    'other': {
+        'yesOrNo': '[ _Y_es / _N_ o ]',
+    },
 }
 
+#####################################
+# Settings:
+#####################################
 # Settings for configFile:
 SETTINGS: dict[str, Optional[str | bool]] = {
     'signalExecPath': None,
     'signalConfigDir': None,
     'signalSocketPath': None,
     'startSignal': True,
-    'workingDir': '',
+    'workingDir': None,
     'theme': 'light',
     'themePath': None,
     'useMouse': False,
 }
 """The settings for cliSignal."""
+#####################################
+# Key character code constants:
+#####################################
+KEY_ESC: int = 27
+"""Escape key code."""
+KEYS_ENTER: tuple[int, int] = (10, 77)
+"""Main enter and keypad enter key codes."""
+KEY_TAB: int = ord('\t')
+"""TAB key code."""
+KEY_SHIFT_TAB: int = 353
+"""Shift TAB key code."""
+KEY_BACKSPACE: int = 263
+"""Backspace key code."""
 
+#####################################
+# Index Constants:
+#####################################
 ROW: Final[int] = 0
 """The tuple index for row.."""
 ROWS: Final[int] = 0
@@ -42,6 +79,46 @@ COL: Final[int] = 1
 """The tuple index for col."""
 COLS: Final[int] = 1
 """The tuple index for cols."""
+CB_CALLABLE: Final[int] = 0
+"""The callback index for the callback tuple."""
+CB_PARAM: Final[int] = 1
+"""The callback parameter index for the callback tuple."""
+
+
+###################################
+# Enumerations:
+###################################
+class CallbackStates(Enum):
+    """Strings to pass for the different call back states."""
+    ACTIVATED = 'activated'
+    DEACTIVATED = 'deactivated'
+
+
+class MenuBarSelections(IntEnum):
+    """Available menu selections, indexes self.menu_bar_items, and self.menus in MenuBar."""
+    FILE = 0
+    ACCOUNTS = 1
+    HELP = 2
+
+
+class FileMenuSelection(IntEnum):
+    """Available file menu selections, indexes self._menu_items in FileMenu."""
+    SETTINGS = 0
+    QUIT = 1
+
+
+class AccountsMenuSelection(IntEnum):
+    """Available account menu selections, indexes self._menu_items in AccountsMenu."""
+    SWITCH = 0
+    LINK = 1
+    REGISTER = 2
+
+
+class HelpMenuSelection(IntEnum):
+    """Available help menu selections, indexes self._menu_items in HelpMenu."""
+    KEYS = 0
+    ABOUT = 1
+    VERSION = 2
 
 
 def calc_attributes(colour_pair: int, attrs: dict[str, int | bool]) -> int:

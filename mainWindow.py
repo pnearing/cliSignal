@@ -3,7 +3,7 @@
 File: mainWindow.py
 Class to store and manipulate the main window.
 """
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 import curses
 from common import ROW, COL, calc_attributes, STRINGS
 from themes import ThemeColours
@@ -23,7 +23,7 @@ class MainWindow(Window):
     def __init__(self,
                  window: curses.window,
                  theme: dict[str, dict[str, int | bool | str]],
-                 callbacks: dict[str, dict[str, Optional[Callable]]],
+                 callbacks: dict[str, dict[str, tuple[Optional[Callable], Optional[list[Any]]]]],
                  ) -> None:
         """
         Initialize the MainWindow object.
@@ -33,7 +33,7 @@ class MainWindow(Window):
         """
         # Set title and background character:
         title: str = STRINGS['titles']['main']
-        bg_char: str = STRINGS['background']['main']
+        bg_char: str = STRINGS['background']['mainWin']
 
         # Define window attrs for the main window:
         window_attrs: int = calc_attributes(ThemeColours.MAIN_WIN, theme['mainWin'])

@@ -3,11 +3,12 @@
 File: menu.py
 Handle basic menu display and control.
 """
-from typing import Any
+from typing import Any, Optional
 import curses
-from common import ROW, COL, ROWS, COLS, draw_border_on_win
+from common import ROW, COL, ROWS, COLS, draw_border_on_win, KEY_ESC, KEYS_ENTER, KEY_BACKSPACE
 from menuItem import MenuItem
 from typeError import __type_error__
+
 
 def calc_size(menu_labels) -> tuple[int, int]:
     """
@@ -61,6 +62,13 @@ class Menu(object):
         """The characters to use for the border."""
         self._border_attrs: int = border_attrs
         """The attributes to use for the border of this menu."""
+        self._selection: Optional[int] = None
+        """The current selection."""
+        self._last_selection: Optional[int] = None
+        """The previous selection."""
+        self._min_selection: Optional[int] = None
+        """The minimum selection."""
+        self._max_selection: Optional[int] = None
 
         # External properties:
         self.size: tuple[int, int] = size
@@ -93,17 +101,108 @@ class Menu(object):
         self._window.refresh()
         return
 
-    def process_key(self, char_code: int) -> bool:
+    def inc_selection(self) -> None:
+        """
+        Increment the selection wrapping if necessary.
+        :return: None
+        """
+        next_selection = self.selection + 1
+        if next_selection > self._max_selection:
+            next_selection = self._min_selection
+        self.selection = next_selection
+        return
+
+    def dec_selection(self) -> None:
+        """
+        Decrement the selection, wrapping if necessary.
+        :return: None
+        """
+        next_selection: int = self.selection - 1
+        if next_selection < self._min_selection:
+            next_selection = self._max_selection
+        self.selection = next_selection
+        return
+
+    def process_key(self, char_code: int) -> Optional[bool]:
         """
         Process a key press.
-        :param char_code: The character code.
-        :return: bool: True, character handled, False, it was not handled.
+        :param char_code: int: The character code.
+        :return: bool: True, character handled, False, it was not handled and menuBar shouldn't process it, None it was
+            not handled and menuBar should handle it.
         """
-        return False
+        if char_code in KEYS_ENTER:
+            self.is_activated = False
+            self._menu_items[self.selection].activate()
+        elif char_code == curses.KEY_UP:
+            self.dec_selection()
+        elif char_code == curses.KEY_DOWN:
+            self.inc_selection()
+        elif char_code in (KEY_ESC, KEY_BACKSPACE):
+            return None
+        elif char_code in (curses.KEY_LEFT, curses.KEY_RIGHT):
+            return None
+        return None
 
 ########################################
 # Properties:
 ########################################
+    @property
+    def last_selection(self) -> Optional[int]:
+        """
+        The previous selection.
+        :return: Optional[int]: The previous selection or None if None.
+        """
+        return self._last_selection
+
+    @last_selection.setter
+    def last_selection(self, value: Optional[int]) -> None:
+        """
+        The previous selection.
+        Setter.
+        :param value: Optional[int]: The value to set the last selection to.
+        :return: None
+        """
+        if value is not None and not isinstance(value, int):
+            __type_error__('value', 'Optional[int]', value)
+        elif value is not None and (value < self._min_selection or value > self._max_selection):
+            raise ValueError("'value' out of range: %i->%i" % (self._min_selection, self._max_selection))
+        self._last_selection = value
+        return
+
+    @property
+    def selection(self) -> Optional[int]:
+        """
+        The current selection.
+        :return: Optional[int]: The current selection or None if nothing selected.
+        """
+        return self._selection
+
+    @selection.setter
+    def selection(self, value: Optional[int]) -> None:
+        """
+        The current selection.
+        Setter.
+        :param value: Optional[int]: The current selection, None for nothing selected.
+        :raises TypeError: If value is not an int or None.
+        :raises ValueError: If value is out of range defined by self._max_selection and self._min_selection.
+        :return: None
+        """
+        # Value type and value checks:
+        if value is not None and not isinstance(value, int):
+            __type_error__('value', 'Optional[int]', value)
+        elif value is not None and (value < self._min_selection or value > self._max_selection):
+            raise ValueError("'value' out of range: %i->%i." % (self._min_selection, self._max_selection))
+        # Update last selection:
+        self.last_selection = self._selection
+        # Update selection:
+        self._selection = value
+        # Act on selection change:
+        if self.last_selection is not None:
+            self._menu_items[self.last_selection].is_selected = False
+        if self._selection is not None:
+            self._menu_items[self._selection].is_selected = True
+        return
+
     @property
     def is_activated(self) -> bool:
         """

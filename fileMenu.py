@@ -6,27 +6,25 @@ Handle the file menu.
 from typing import Optional, Callable, Any
 import curses
 from enum import IntEnum
-from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes
+from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes, FileMenuSelection
+from typeError import __type_error__
 from themes import ThemeColours
 from menu import Menu, calc_size
 from menuItem import MenuItem
-
-
-class FileMenuSelection(IntEnum):
-    SETTINGS = 0
-    QUIT = 1
 
 
 class FileMenu(Menu):
     """
     Handle the file menu.
     """
-
+###############################################
+# Initialize:
+###############################################
     def __init__(self,
                  window: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
-                 callbacks: dict[str, Optional[Callable]],
+                 callbacks: dict[str, tuple[Optional[Callable], Optional[list[Any]]]],
                  ) -> None:
         """
         Initialize the file menu.
@@ -52,10 +50,13 @@ class FileMenu(Menu):
         unsel_tail_indicator: str = theme['fileMenuSelChars']['tailUnsel']
 
         # Create menu Items:
+        settings_label: str = STRINGS['fileMenuNames']['settings']
+        settings_bg_char: str = STRINGS['background']['settingsMenu']
         settings_menu_item: MenuItem = MenuItem(window=window,
                                                 width=size[COLS] - 2,
                                                 top_left=(top_left[ROW] + 1, top_left[COL] + 1),
-                                                label=STRINGS['fileMenuNames']['settings'],
+                                                label=settings_label,
+                                                bg_char=settings_bg_char,
                                                 sel_attrs=sel_attrs,
                                                 sel_accel_attrs=sel_accel_attrs,
                                                 sel_lead_indicator=sel_lead_indicator,
@@ -66,10 +67,13 @@ class FileMenu(Menu):
                                                 unsel_tail_indicator=unsel_tail_indicator,
                                                 callback=callbacks['settings']
                                                 )
-        help_menu_item: MenuItem = MenuItem(window=window,
+        quit_label: str = STRINGS['fileMenuNames']['quit']
+        quit_bg_char: str = STRINGS['background']['quitMenu']
+        quit_menu_item: MenuItem = MenuItem(window=window,
                                             width=size[COLS] - 2,
                                             top_left=(top_left[ROW] + 2, top_left[COL] + 1),
-                                            label=STRINGS['fileMenuNames']['quit'],
+                                            label=quit_label,
+                                            bg_char=quit_bg_char,
                                             sel_attrs=sel_attrs,
                                             sel_accel_attrs=sel_accel_attrs,
                                             sel_lead_indicator=sel_lead_indicator,
@@ -80,8 +84,17 @@ class FileMenu(Menu):
                                             unsel_tail_indicator=unsel_tail_indicator,
                                             callback=callbacks['quit'],
                                             )
-        menu_items: list[MenuItem] = [settings_menu_item, help_menu_item]
+        menu_items: list[MenuItem] = [settings_menu_item, quit_menu_item]
 
         # Call super:
         Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
+
+        # Private properties:
+        self._selection = FileMenuSelection.SETTINGS
+        self._last_selection = None
+        self._min_selection = FileMenuSelection.SETTINGS
+        self._max_selection = FileMenuSelection.QUIT
+
+        # Set the initial selection:
+        self._menu_items[FileMenuSelection.SETTINGS].is_selected = True
         return

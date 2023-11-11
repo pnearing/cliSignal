@@ -5,10 +5,11 @@ Handle the help menu.
 """
 import curses
 from typing import Optional, Callable, Any
-from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes
+from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes, HelpMenuSelection
 from themes import ThemeColours
 from menu import Menu, calc_size
 from menuItem import MenuItem
+from typeError import __type_error__
 
 
 class HelpMenu(Menu):
@@ -19,7 +20,7 @@ class HelpMenu(Menu):
                  window: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
-                 callbacks: dict[str, Optional[Callable]],
+                 callbacks: dict[str, tuple[Optional[Callable], Optional[list[Any]]]],
                  ) -> None:
         """
         Initialize the help menu.
@@ -43,10 +44,13 @@ class HelpMenu(Menu):
         unsel_tail_indicator: str = theme['helpMenuSelChars']['tailUnsel']
 
         # Build the menu items:
+        shortcut_label: str = STRINGS['helpMenuNames']['shortcuts']
+        shortcut_bg_char: str = STRINGS['background']['shortcutsMenu']
         shortcut_menu_item: MenuItem = MenuItem(window=window,
                                                 width=size[COLS] - 2,
                                                 top_left=(top_left[ROW] + 1, top_left[COL] + 1),
-                                                label=STRINGS['helpMenuNames']['shortcuts'],
+                                                label=shortcut_label,
+                                                bg_char=shortcut_bg_char,
                                                 sel_attrs=sel_attrs,
                                                 sel_accel_attrs=sel_accel_attrs,
                                                 sel_lead_indicator=sel_lead_indicator,
@@ -57,10 +61,13 @@ class HelpMenu(Menu):
                                                 unsel_tail_indicator=unsel_tail_indicator,
                                                 callback=callbacks['shortcuts']
                                                 )
+        about_label: str = STRINGS['helpMenuNames']['about']
+        about_bg_char: str = STRINGS['background']['aboutMenu']
         about_menu_item: MenuItem = MenuItem(window=window,
                                              width=size[COLS] - 2,
                                              top_left=(top_left[ROW] + 2, top_left[COL] + 1),
-                                             label=STRINGS['helpMenuNames']['about'],
+                                             label=about_label,
+                                             bg_char=about_bg_char,
                                              sel_attrs=sel_attrs,
                                              sel_accel_attrs=sel_accel_attrs,
                                              sel_lead_indicator=sel_lead_indicator,
@@ -71,10 +78,13 @@ class HelpMenu(Menu):
                                              unsel_tail_indicator=unsel_tail_indicator,
                                              callback=callbacks['about']
                                              )
+        version_label: str = STRINGS['helpMenuNames']['version']
+        version_bg_char: str = STRINGS['background']['versionMenu']
         version_menu_item: MenuItem = MenuItem(window=window,
                                                width=size[COLS] - 2,
                                                top_left=(top_left[ROW] + 3, top_left[COL] + 1),
-                                               label=STRINGS['helpMenuNames']['version'],
+                                               label=version_label,
+                                               bg_char=version_bg_char,
                                                sel_attrs=sel_attrs,
                                                sel_accel_attrs=sel_accel_attrs,
                                                sel_lead_indicator=sel_lead_indicator,
@@ -91,4 +101,12 @@ class HelpMenu(Menu):
         # Call super:
         Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
 
+        # Set internal properties:
+        self._selection = HelpMenuSelection.KEYS
+        self._last_selection = None
+        self._min_selection = HelpMenuSelection.KEYS
+        self._max_selection = HelpMenuSelection.VERSION
+
+        # Set the initial selection.
+        self._menu_items[self._selection].is_selected = True
         return

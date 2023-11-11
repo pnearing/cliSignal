@@ -27,7 +27,7 @@ class TypingWindow(Window):
         """
         # Set title and background char:
         title: str = STRINGS['titles']['typing']
-        bg_char: str = STRINGS['background']['typing']
+        bg_char: str = STRINGS['background']['typingWin']
 
         # Set window attributes:
         window_attrs: int = calc_attributes(ThemeColours.TYPING_WIN, theme['typeWin'])

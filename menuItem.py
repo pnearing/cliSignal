@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
+from warnings import warn
 import curses
-from common import ROW, COL, STRINGS
+from common import ROW, COL, STRINGS, CB_PARAM, CB_CALLABLE, CallbackStates
 from typeError import __type_error__
+
 
 class MenuItem(object):
     """
@@ -16,6 +18,7 @@ class MenuItem(object):
                  width: int,
                  top_left: tuple[int, int],
                  label: str,
+                 bg_char: str,
                  sel_attrs: int,
                  sel_accel_attrs: int,
                  sel_lead_indicator: str,
@@ -24,7 +27,7 @@ class MenuItem(object):
                  unsel_accel_attrs: int,
                  unsel_lead_indicator: str,
                  unsel_tail_indicator: str,
-                 callback: Callable,
+                 callback: tuple[Optional[Callable], Optional[list[Any]]],
                  ) -> None:
         """
         Initialize a single menu item.
@@ -32,6 +35,7 @@ class MenuItem(object):
         :param width: int: The width of the menu item.
         :param top_left: tuple[int, int]: The top left corner of this item.
         :param label: str: The label to apply to this item.
+        :param bg_char: str: The background character.
         :param sel_attrs: int: The attributes to use when selected.
         :param sel_accel_attrs: int: The attributes to use for the accelerator when selected.
         :param sel_lead_indicator: str: The character to add before the label when selected.
@@ -45,6 +49,8 @@ class MenuItem(object):
         # Internal properties:
         self._window: curses.window = window
         """The curses window to draw on."""
+        self._bg_char: str = bg_char
+        """The character to use for drawing the background."""
         self._sel_attrs: int = sel_attrs
         """Attributes to use when selected."""
         self._sel_accel_attrs: int = sel_accel_attrs
@@ -61,7 +67,7 @@ class MenuItem(object):
         """Unselected lead indicator character, added to the beginning of the label when unselected."""
         self._unsel_tail_indicator: str = unsel_tail_indicator
         """Unselected tail indicator character, added to the end of the label when unselected."""
-        self._callback: Optional[Callable] = callback
+        self._callback: tuple[Optional[Callable], Optional[list[Any]]] = callback
         """The call back to call when activated."""
         self._label: str = label
         """The label with accel indicators."""
@@ -76,6 +82,27 @@ class MenuItem(object):
         return
 
 #######################################
+# Internal methods:
+#######################################
+    def _run_callback(self, state: str) -> None:
+        """
+        Run the callback.
+        :param state: str: The status string.
+        :return: None
+        """
+        try:
+            if self._callback is not None and self._callback[CB_PARAM] is not None:
+                self._callback[CB_CALLABLE](state, self._window, *self._callback[CB_PARAM])
+            elif self._callback is not None and self._callback[CB_PARAM] is None:
+                self._callback[CB_CALLABLE](state, self._window)
+        except TypeError:
+            warn("Callback is not callable.", RuntimeWarning)
+        except Exception as e:
+            warn("Callback caused exception: %s" % str(type(e)), RuntimeWarning)
+            raise e
+        return
+
+#######################################
 # Methods:
 #######################################
     def redraw(self) -> None:
@@ -84,7 +111,6 @@ class MenuItem(object):
         :return: None
         """
         # draw background.
-        bg_char = STRINGS['background']['menu']
         self._window.move(self.top_left[ROW], self.top_left[COL])
         bg_attrs: int
         if self.is_selected:
@@ -92,7 +118,7 @@ class MenuItem(object):
         else:
             bg_attrs = self._unsel_attrs
         for col in range(self.top_left[COL], self.top_left[COL] + self.width):
-            self._window.addstr(bg_char, bg_attrs)
+            self._window.addstr(self._bg_char, bg_attrs)
 
         # Draw label, start by moving the cursor to start:
         self._window.move(self.top_left[ROW], self.top_left[COL])
@@ -134,6 +160,14 @@ class MenuItem(object):
             self._window.addstr(self._sel_tail_indicator, indicator_attrs)
         else:
             self._window.addstr(self._unsel_tail_indicator, indicator_attrs)
+        return
+
+    def activate(self) -> None:
+        """
+        Activate this menu item.
+        :return: None
+        """
+        self._run_callback(CallbackStates.ACTIVATED.value)
         return
 
 #######################################

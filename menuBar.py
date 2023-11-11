@@ -4,24 +4,18 @@ File: menuBar.py
 Maintain and handle a curses menu bar.
 """
 import time
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 from enum import IntEnum
 import curses
 from bar import Bar
 from themes import ThemeColours
-from common import ROW, COL, calc_attributes, STRINGS
+from common import ROW, COL, STRINGS, KEY_ESC, KEYS_ENTER, MenuBarSelections, KEY_TAB, KEY_SHIFT_TAB, KEY_BACKSPACE
+from common import calc_attributes
 from typeError import __type_error__
 from menuBarItem import MenuBarItem
 from fileMenu import FileMenu
 from accountsMenu import AccountsMenu
 from helpMenu import HelpMenu
-
-
-class MenuSelections(IntEnum):
-    """Available menu selections, indexes self.menu_items, and self.menu."""
-    FILE = 0
-    ACCOUNTS = 1
-    HELP = 2
 
 
 class MenuBar(Bar):
@@ -34,7 +28,7 @@ class MenuBar(Bar):
                  width: int,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
-                 callbacks: dict[str, dict[str, Optional[Callable]]],
+                 callbacks: dict[str, dict[str, tuple[Optional[Callable], Optional[list[Any]]]]],
                  ) -> None:
         """
         Initialize the menu bar.
@@ -62,9 +56,9 @@ class MenuBar(Bar):
         # Set internal properties:
         self._is_focused: bool = False
         """If this menu bar is focused."""
-        self._selection: Optional[MenuSelections] = MenuSelections.FILE
+        self._selection: Optional[MenuBarSelections] = MenuBarSelections.FILE
         """What menu item is selected."""
-        self._last_selection: Optional[MenuSelections] = None
+        self._last_selection: Optional[MenuBarSelections] = None
         """What was last selected."""
         self._active_menu: Optional[FileMenu | AccountsMenu | HelpMenu] = None
         """What menu is active, None if not active."""
@@ -168,10 +162,10 @@ class MenuBar(Bar):
         :return: None
         """
         next_selection = int(self.selection) + 1
-        if next_selection > MenuSelections.HELP:
-            next_selection = MenuSelections.FILE
+        if next_selection > MenuBarSelections.HELP:
+            next_selection = MenuBarSelections.FILE
 
-        self.selection = MenuSelections(next_selection)
+        self.selection = MenuBarSelections(next_selection)
         return
 
     def dec_selection(self) -> None:
@@ -180,9 +174,9 @@ class MenuBar(Bar):
         :return: None
         """
         next_selection = int(self.selection) - 1
-        if next_selection < MenuSelections.FILE:
-            next_selection = MenuSelections.HELP
-        self.selection = MenuSelections(next_selection)
+        if next_selection < MenuBarSelections.FILE:
+            next_selection = MenuBarSelections.HELP
+        self.selection = MenuBarSelections(next_selection)
         return
 
     def process_key(self, char_code: int) -> bool:
@@ -191,58 +185,53 @@ class MenuBar(Bar):
         :param char_code: int: The character code of the key pressed.
         :return: bool: True if this character has been handled.
         """
+        # Pass the key code to the active menu before parsing:
+        if self.is_menu_activated:
+            handled: Optional[bool] = self._active_menu.process_key(char_code)
+            self._window.addstr(12,10, str(handled))
+            self._window.refresh()
+            if isinstance(handled, bool):
+                return handled
+
         self._window.addstr(11, 10, str(char_code))
         self._window.refresh()
-        # time.sleep(1)
 
-        if char_code == 10 or char_code == 77:  # ENTER key / keypad ENTER key.
+        if char_code in KEYS_ENTER:  # ENTER key / keypad ENTER key.
             if self.selection is not None:
-                if self.menu_bar_items[self.selection].is_activated:
-                    self.menu_bar_items[self.selection].is_activated = False
-                    self._active_menu = None
-                else:
-                    self.menu_bar_items[self.selection].is_activated = True
-                    self._active_menu = self.menus[self.selection]
-                    self.selection = None
-            elif self.is_menu_activated:
-                return self._active_menu.process_key(char_code)
-
-            return True
-        elif char_code == 27:  # Escape key.
-            if self.selection is not None and self.is_menu_activated:
-                self.menu_bar_items[self.selection].is_activated = False
+                self.menu_bar_items[self.selection].activate()
+                self._active_menu = self.menus[self.selection]
+                return True
+        elif char_code in (KEY_ESC, KEY_TAB, KEY_SHIFT_TAB, KEY_BACKSPACE):  # Escape key.
+            if self.is_menu_activated:
+                self.menu_bar_items[self.selection].deactivate()
                 self._active_menu = None
+                if char_code in (KEY_TAB, KEY_SHIFT_TAB):
+                    return False
                 return True
         elif char_code == curses.KEY_LEFT:
-            if self.is_menu_activated:
-                self.menu_bar_items[self.selection].is_activated = False
+            if self.is_menu_activated and self.selection is not None:
+                self.menu_bar_items[self.selection].deactivate()
             self.dec_selection()
             if self.is_menu_activated:
-                self.menu_bar_items[self.selection].is_activated = True
+                self.menu_bar_items[self.selection].activate()
                 self._active_menu = self.menus[self.selection]
             return True
         elif char_code == curses.KEY_RIGHT:
-            if self.is_menu_activated:
-                self.menu_bar_items[self.selection].is_activated = False
+            if self.is_menu_activated and self.selection is not None:
+                self.menu_bar_items[self.selection].deactivate()
             self.inc_selection()
             if self.is_menu_activated:
-                self.menu_bar_items[self.selection].is_activated = True
+                self.menu_bar_items[self.selection].activate()
                 self._active_menu = self.menus[self.selection]
             return True
         # Character wasn't handled:
         return False
 
-    def activate(self) -> None:
-        return
-
-    def deactivate(self) -> None:
-        return
-
     ###################################
     # Properties:
     ###################################
     @property
-    def last_selection(self) -> Optional[MenuSelections]:
+    def last_selection(self) -> Optional[MenuBarSelections]:
         """
         What was the last item selected?; Will be None or one of MenuSelection enum.
         :return: Optional[MenuSelections]: The last selection.
@@ -250,7 +239,7 @@ class MenuBar(Bar):
         return self._last_selection
 
     @property
-    def selection(self) -> Optional[MenuSelections]:
+    def selection(self) -> Optional[MenuBarSelections]:
         """
         What menu item is selected?; Will be one of MenuSelection enum or None.
         :return: Optional[MenuSelections]: The current selection.
@@ -258,7 +247,7 @@ class MenuBar(Bar):
         return self._selection
 
     @selection.setter
-    def selection(self, value: Optional[MenuSelections | int]) -> None:
+    def selection(self, value: Optional[MenuBarSelections | int]) -> None:
         """
         What menu item is selected; Will be one of Selection Enum.
         :param value: MenuSelections | int: The value to set the selection to.
@@ -268,26 +257,23 @@ class MenuBar(Bar):
         """
         # Value and type check:
         if value is not None:
-            if not isinstance(value, (MenuSelections, int)):
+            if not isinstance(value, (MenuBarSelections, int)):
                 __type_error__("value", "Optional[Selections | int]", value)
-            elif value < MenuSelections.FILE or value > MenuSelections.HELP:
+            elif value < MenuBarSelections.FILE or value > MenuBarSelections.HELP:
                 raise ValueError("value out of range. See MenuSelections enum for range.")
         # Store the last selection:
         self._last_selection = self._selection
         # Set the value:
         if value is not None:
-            self._selection = MenuSelections(value)
+            self._selection = MenuBarSelections(value)
         else:
             self._selection = None
         # Set / Clear the selection:
         if self._selection != self.last_selection:
-            if self._selection is None and self.last_selection is not None:
-                self.menu_bar_items[self.last_selection].is_selected = False
-            elif self.selection is not None and self.last_selection is None:
+            if self._selection is not None:
                 self.menu_bar_items[self.selection].is_selected = True
-            elif self.selection is not None and self.last_selection is not None:
-                self.menu_bar_items[self.last_selection].is_selected = False
-                self.menu_bar_items[self.selection].is_selected = True
+            if self._last_selection is not None:
+                self.menu_bar_items[self._last_selection].is_selected = False
         return
 
     @property
