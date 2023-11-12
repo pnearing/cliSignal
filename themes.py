@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from typing import TextIO, Optional
-from enum import IntEnum
+from enum import IntEnum, auto
 import curses
 import json
 import common
@@ -10,103 +10,110 @@ class ThemeColours(IntEnum):
     """
     Theme colour pair numbers.
     """
-    MAIN_WIN = 1
-    MAIN_WIN_BORDER = 2
-    MAIN_WIN_FOCUS_BORDER = 3
-    MAIN_WIN_TITLE = 4
-    MAIN_WIN_FOCUS_TITLE = 5
+    # Main window:
+    MAIN_WIN = auto()
+    MAIN_WIN_BORDER = auto()
+    MAIN_WIN_FOCUS_BORDER = auto()
+    MAIN_WIN_TITLE = auto()
+    MAIN_WIN_FOCUS_TITLE = auto()
+    MAIN_WIN_ERROR_TEXT = auto()
 
-    CONTACTS_WIN = 6
-    CONTACT_WIN_BORDER = 7
-    CONTACTS_WIN_FOCUS_BORDER = 8
-    CONTACT_WIN_TITLE = 9
-    CONTACTS_WIN_FOCUS_TITLE = 10
+    CONTACTS_WIN = auto()
+    CONTACT_WIN_BORDER = auto()
+    CONTACTS_WIN_FOCUS_BORDER = auto()
+    CONTACT_WIN_TITLE = auto()
+    CONTACTS_WIN_FOCUS_TITLE = auto()
 
-    MESSAGES_WIN = 11
-    MESSAGES_WIN_BORDER = 12
-    MESSAGES_WIN_FOCUS_BORDER = 13
-    MESSAGES_WIN_TITLE = 14
-    MESSAGES_WIN_FOCUS_TITLE = 15
+    MESSAGES_WIN = auto()
+    MESSAGES_WIN_BORDER = auto()
+    MESSAGES_WIN_FOCUS_BORDER = auto()
+    MESSAGES_WIN_TITLE = auto()
+    MESSAGES_WIN_FOCUS_TITLE = auto()
 
-    TYPING_WIN = 16
-    TYPING_WIN_BORDER = 17
-    TYPING_WIN_FOCUS_BORDER = 18
-    TYPING_WIN_TITLE = 19
-    TYPING_WIN_FOCUS_TITLE = 20
+    TYPING_WIN = auto()
+    TYPING_WIN_BORDER = auto()
+    TYPING_WIN_FOCUS_BORDER = auto()
+    TYPING_WIN_TITLE = auto()
+    TYPING_WIN_FOCUS_TITLE = auto()
 
-    MENU_BAR_EMPTY = 21
-    STATUS_BAR_EMPTY = 22
+    MENU_BAR_EMPTY = auto()
+    STATUS_BAR_EMPTY = auto()
 
-    MENU_UNSEL = 23
-    MENU_SEL = 24
-    MENU_UNSEL_ACCEL = 25
-    MENU_SEL_ACCEL = 26
+    MENU_UNSEL = auto()
+    MENU_SEL = auto()
+    MENU_UNSEL_ACCEL = auto()
+    MENU_SEL_ACCEL = auto()
 
-    FILE_MENU_BORDER = 27
-    FILE_MENU_SEL = 28
-    FILE_MENU_SEL_ACCEL = 29
-    FILE_MENU_UNSEL = 30
-    FILE_MENU_UNSEL_ACCEL = 31
+    FILE_MENU_BORDER = auto()
+    FILE_MENU_SEL = auto()
+    FILE_MENU_SEL_ACCEL = auto()
+    FILE_MENU_UNSEL = auto()
+    FILE_MENU_UNSEL_ACCEL = auto()
 
-    ACCOUNTS_MENU_BORDER = 32
-    ACCOUNTS_MENU_SEL = 33
-    ACCOUNTS_MENU_SEL_ACCEL = 34
-    ACCOUNTS_MENU_UNSEL = 35
-    ACCOUNTS_MENU_UNSEL_ACCEL = 36
+    ACCOUNTS_MENU_BORDER = auto()
+    ACCOUNTS_MENU_SEL = auto()
+    ACCOUNTS_MENU_SEL_ACCEL = auto()
+    ACCOUNTS_MENU_UNSEL = auto()
+    ACCOUNTS_MENU_UNSEL_ACCEL = auto()
 
-    HELP_MENU_BORDER = 37
-    HELP_MENU_SEL = 48
-    HELP_MENU_SEL_ACCEL = 39
-    HELP_MENU_UNSEL = 40
-    HELP_MENU_UNSEL_ACCEL = 41
+    HELP_MENU_BORDER = auto()
+    HELP_MENU_SEL = auto()
+    HELP_MENU_SEL_ACCEL = auto()
+    HELP_MENU_UNSEL = auto()
+    HELP_MENU_UNSEL_ACCEL = auto()
 
-    SETTINGS_WIN = 42
-    SETTINGS_WIN_BORDER = 43
-    SETTINGS_WIN_FOCUS_BORDER = 44
-    SETTINGS_WIN_TITLE = 45
-    SETTINGS_WIN_FOCUS_TITLE = 46
+    SETTINGS_WIN = auto()
+    SETTINGS_WIN_BORDER = auto()
+    SETTINGS_WIN_FOCUS_BORDER = auto()
+    SETTINGS_WIN_TITLE = auto()
+    SETTINGS_WIN_FOCUS_TITLE = auto()
 
-    QUIT_WIN = 47
-    QUIT_WIN_BORDER = 48
-    QUIT_WIN_FOCUS_BORDER = 49
-    QUIT_WIN_TITLE = 50
-    QUIT_WIN_FOCUS_TITLE = 51
+    QUIT_WIN = auto()
+    QUIT_WIN_BORDER = auto()
+    QUIT_WIN_FOCUS_BORDER = auto()
+    QUIT_WIN_TITLE = auto()
+    QUIT_WIN_FOCUS_TITLE = auto()
+    QUIT_WIN_TEXT = auto()
+    QUIT_WIN_SEL_TEXT = auto()
+    QUIT_WIN_SEL_ACCEL_TEXT = auto()
+    QUIT_WIN_UNSEL_TEXT = auto()
+    QUIT_WIN_UNSEL_ACCEL_TEXT = auto()
 
-    SWITCH_WIN = 52
-    SWITCH_WIN_BORDER = 53
-    SWITCH_WIN_FOCUS_BORDER = 54
-    SWITCH_WIN_TITLE = 55
-    SWITCH_WIN_FOCUS_TITLE = 56
+    SWITCH_WIN = auto()
+    SWITCH_WIN_BORDER = auto()
+    SWITCH_WIN_FOCUS_BORDER = auto()
+    SWITCH_WIN_TITLE = auto()
+    SWITCH_WIN_FOCUS_TITLE = auto()
 
-    LINK_WIN = 57
-    LINK_WIN_BORDER = 58
-    LINK_WIN_FOCUS_BORDER = 59
-    LINK_WIN_TITLE = 60
-    LINK_WIN_FOCUS_TITLE = 61
+    LINK_WIN = auto()
+    LINK_WIN_BORDER = auto()
+    LINK_WIN_FOCUS_BORDER = auto()
+    LINK_WIN_TITLE = auto()
+    LINK_WIN_FOCUS_TITLE = auto()
 
-    REGISTER_WIN = 62
-    REGISTER_WIN_BORDER = 63
-    REGISTER_WIN_FOCUS_BORDER = 64
-    REGISTER_WIN_TITLE = 65
-    REGISTER_WIN_FOCUS_TITLE = 66
+    REGISTER_WIN = auto()
+    REGISTER_WIN_BORDER = auto()
+    REGISTER_WIN_FOCUS_BORDER = auto()
+    REGISTER_WIN_TITLE = auto()
+    REGISTER_WIN_FOCUS_TITLE = auto()
 
-    KEYS_WIN = 67
-    KEYS_WIN_BORDER = 68
-    KEYS_WIN_FOCUS_BORDER = 69
-    KEYS_WIN_TITLE = 70
-    KEYS_WIN_FOCUS_TITLE = 71
+    KEYS_WIN = auto()
+    KEYS_WIN_BORDER = auto()
+    KEYS_WIN_FOCUS_BORDER = auto()
+    KEYS_WIN_TITLE = auto()
+    KEYS_WIN_FOCUS_TITLE = auto()
 
-    ABOUT_WIN = 72
-    ABOUT_WIN_BORDER = 73
-    ABOUT_WIN_FOCUS_BORDER = 74
-    ABOUT_WIN_TITLE = 75
-    ABOUT_WIN_FOCUS_TITLE = 76
+    ABOUT_WIN = auto()
+    ABOUT_WIN_BORDER = auto()
+    ABOUT_WIN_FOCUS_BORDER = auto()
+    ABOUT_WIN_TITLE = auto()
+    ABOUT_WIN_FOCUS_TITLE = auto()
 
-    VERSION_WIN = 77
-    VERSION_WIN_BORDER = 78
-    VERSION_WIN_FOCUS_BORDER = 79
-    VERSION_WIN_TITLE = 80
-    VERSION_FOCUS_TITLE = 81
+    VERSION_WIN = auto()
+    VERSION_WIN_BORDER = auto()
+    VERSION_WIN_FOCUS_BORDER = auto()
+    VERSION_WIN_TITLE = auto()
+    VERSION_FOCUS_TITLE = auto()
 
 
 _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
@@ -194,6 +201,8 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'mainWinTitle': {'fg': 15, 'bg': 18, 'bold': True, 'underline': True, 'reverse': False},
         # Main window focused title:
         'mainWinFTitle': {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': True},
+        # Main window Error text:
+        'mainWinErrorText': {'fg': 15, 'bg': 1, 'bold': True, 'underline': False, 'reverse': False},
 
         # CONTACTS WINDOW COLOUR ATTRIBUTES:
         # Contacts window centre:
@@ -254,6 +263,16 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'quitWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The quit window focused title:
         'quitWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
+        # The quit window text:
+        'quitWinText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # The quit window selected text:
+        'quitWinSelText': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
+        # The quit window selected accelerator text:
+        'quitWinSelAccelText': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
+        # The quit window unselected text:
+        'quitWinUnselText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # The quit window unselected accelerator text:
+        'quitWinUnselAccelText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': True, 'reverse': False},
 
         # THE SWITCH ACCOUNT WINDOW COLOUR ATTRIBUTES:
         # The switch window centre:
@@ -434,6 +453,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'mainWinFBorder': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': True},
         'mainWinTitle': {'fg': 7, 'bg': 237, 'bold': True, 'underline': True, 'reverse': False},
         'mainWinFTitle': {'fg': 7, 'bg': 237, 'bold': True, 'underline': True, 'reverse': True},
+        'mainWinErrorText': {'fg': 15, 'bg': 1, 'bold': True, 'underline': False, 'reverse': False},
         'contWin': {'fg': 7, 'bg': 238, 'bold': False, 'underline': False, 'reverse': False},
         'contWinBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': False},
         'contWinFBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': True},
@@ -461,6 +481,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'quitWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'quitWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'quitWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+        'quitWinText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'quitWinSelText': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
+        'quitWinSelAccelText': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+        'quitWinUnselText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'quitWinUnselAccelText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': True, 'reverse': False},
         'switchWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'switchWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'switchWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
@@ -531,24 +556,11 @@ _ATTRIBUTE_PRIMARY_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle'
                                       'regWinBorder', 'regWinFBorder', 'regWinTitle', 'regWinFTitle', 'keysWin',
                                       'keysWinBorder', 'keysWinFBorder', 'keysWinTitle', 'keysWinTitle', 'aboutWin',
                                       'aboutWinBorder', 'aboutWinFBorder', 'aboutWinTitle', 'aboutWinFTitle', 'verWin',
-                                      'verWinBorder', 'verWinFBorder', 'verWinTitle', 'verWinFTitle',
+                                      'verWinBorder', 'verWinFBorder', 'verWinTitle', 'verWinFTitle', 'quitWinText',
+                                      'quitWinSelText', 'quitWinSelAccelText', 'quitWinUnselText',
+                                      'quitWinUnselAccelText', 'mainWinErrorText',
                                       ]
 """Primary attribute theme keys."""
-# 'keysWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-# 'keysWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
-# 'keysWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
-# 'keysWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
-# 'keysWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
-# 'aboutWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-# 'aboutWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
-# 'aboutWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
-# 'aboutWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
-# 'aboutWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
-# 'verWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-# 'verWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
-# 'verWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
-# 'verWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
-# 'verWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
 
 _TITLE_CHAR_PRIMARY_KEYS: list[str] = ['mainWinTitleChars', 'contWinTitleChars', 'msgsWinTitleChars',
                                        'typeWinTitleChars', 'setWinTitleChars', 'quitWinTitleChars',
@@ -658,67 +670,86 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     """
     curses.init_pair(ThemeColours.MAIN_WIN, theme['mainWin']['fg'], theme['mainWin']['bg'])
     curses.init_pair(ThemeColours.MAIN_WIN_BORDER, theme['mainWinBorder']['fg'], theme['mainWinBorder']['bg'])
-    curses.init_pair(ThemeColours.MAIN_WIN_TITLE, theme['mainWinTitle']['fg'], theme['mainWinTitle']['bg'])
-    curses.init_pair(ThemeColours.CONTACTS_WIN, theme['contWin']['fg'], theme['contWin']['bg'])
-    curses.init_pair(ThemeColours.CONTACT_WIN_BORDER, theme['contWinBorder']['fg'], theme['contWinBorder']['bg'])
-    curses.init_pair(ThemeColours.CONTACT_WIN_TITLE, theme['contWinTitle']['fg'], theme['contWinTitle']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN, theme['msgsWin']['fg'], theme['msgsWin']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN_BORDER, theme['msgsWinBorder']['fg'], theme['msgsWinBorder']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN_TITLE, theme['msgsWinTitle']['fg'], theme['msgsWinTitle']['bg'])
-    curses.init_pair(ThemeColours.TYPING_WIN, theme['typeWin']['fg'], theme['typeWin']['bg'])
-    curses.init_pair(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder']['fg'], theme['typeWinBorder']['bg'])
-    curses.init_pair(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle']['fg'], theme['typeWinTitle']['bg'])
     curses.init_pair(ThemeColours.MAIN_WIN_FOCUS_BORDER, theme['mainWinFBorder']['fg'],
                      theme['mainWinFBorder']['bg'])
-    curses.init_pair(ThemeColours.CONTACTS_WIN_FOCUS_BORDER, theme['contWinFBorder']['fg'],
-                     theme['contWinFBorder']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN_FOCUS_BORDER, theme['msgsWinFBorder']['fg'],
-                     theme['msgsWinFBorder']['bg'])
-    curses.init_pair(ThemeColours.TYPING_WIN_FOCUS_BORDER, theme['typeWinFBorder']['fg'],
-                     theme['typeWinFBorder']['bg'])
+    curses.init_pair(ThemeColours.MAIN_WIN_TITLE, theme['mainWinTitle']['fg'], theme['mainWinTitle']['bg'])
     curses.init_pair(ThemeColours.MAIN_WIN_FOCUS_TITLE, theme['mainWinFTitle']['fg'],
                      theme['mainWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.MAIN_WIN_ERROR_TEXT, theme['mainWinErrorText']['fg'], theme['mainWinErrorText']['bg'])
+
+    curses.init_pair(ThemeColours.CONTACTS_WIN, theme['contWin']['fg'], theme['contWin']['bg'])
+    curses.init_pair(ThemeColours.CONTACT_WIN_BORDER, theme['contWinBorder']['fg'], theme['contWinBorder']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_FOCUS_BORDER, theme['contWinFBorder']['fg'],
+                     theme['contWinFBorder']['bg'])
+    curses.init_pair(ThemeColours.CONTACT_WIN_TITLE, theme['contWinTitle']['fg'], theme['contWinTitle']['bg'])
     curses.init_pair(ThemeColours.CONTACTS_WIN_FOCUS_TITLE, theme['contWinFTitle']['fg'],
                      theme['contWinFTitle']['bg'])
+
+    curses.init_pair(ThemeColours.MESSAGES_WIN, theme['msgsWin']['fg'], theme['msgsWin']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_BORDER, theme['msgsWinBorder']['fg'], theme['msgsWinBorder']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_FOCUS_BORDER, theme['msgsWinFBorder']['fg'],
+                     theme['msgsWinFBorder']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_TITLE, theme['msgsWinTitle']['fg'], theme['msgsWinTitle']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_FOCUS_TITLE, theme['msgsWinFTitle']['fg'],
                      theme['msgsWinFTitle']['bg'])
+
+    curses.init_pair(ThemeColours.TYPING_WIN, theme['typeWin']['fg'], theme['typeWin']['bg'])
+    curses.init_pair(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder']['fg'], theme['typeWinBorder']['bg'])
+    curses.init_pair(ThemeColours.TYPING_WIN_FOCUS_BORDER, theme['typeWinFBorder']['fg'],
+                     theme['typeWinFBorder']['bg'])
+    curses.init_pair(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle']['fg'], theme['typeWinTitle']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_FOCUS_TITLE, theme['typeWinFTitle']['fg'],
                      theme['typeWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.MENU_BAR_EMPTY, theme['menuBG']['fg'], theme['menuBG']['bg'])
-    curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
     curses.init_pair(ThemeColours.MENU_SEL, theme['menuSel']['fg'], theme['menuSel']['bg'])
     curses.init_pair(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel']['fg'], theme['menuSelAccel']['bg'])
     curses.init_pair(ThemeColours.MENU_UNSEL, theme['menuUnsel']['fg'], theme['menuUnsel']['bg'])
     curses.init_pair(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel']['fg'], theme['menuUnselAccel']['bg'])
+
+    curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
+
     curses.init_pair(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder']['fg'], theme['fileMenuBorder']['bg'])
     curses.init_pair(ThemeColours.FILE_MENU_SEL, theme['fileMenuSel']['fg'], theme['fileMenuSel']['bg'])
     curses.init_pair(ThemeColours.FILE_MENU_UNSEL, theme['fileMenuUnsel']['fg'], theme['fileMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder']['fg'], theme['acctMenuBorder']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel']['fg'], theme['acctMenuSel']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel']['fg'], theme['acctMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_BORDER, theme['helpMenuBorder']['fg'], theme['helpMenuBorder']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_SEL, theme['helpMenuSel']['fg'], theme['helpMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_UNSEL, theme['helpMenuUnsel']['fg'], theme['helpMenuUnsel']['bg'])
     curses.init_pair(ThemeColours.FILE_MENU_SEL_ACCEL, theme['fileMenuSelAccel']['fg'], theme['fileMenuSelAccel']['bg'])
     curses.init_pair(ThemeColours.FILE_MENU_UNSEL_ACCEL, theme['fileMenuUnselAccel']['fg'],
                      theme['fileMenuUnselAccel']['bg'])
+
+    curses.init_pair(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder']['fg'], theme['acctMenuBorder']['bg'])
+    curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel']['fg'], theme['acctMenuSel']['bg'])
+    curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel']['fg'], theme['acctMenuUnsel']['bg'])
     curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL_ACCEL, theme['acctMenuSelAccel']['fg'],
                      theme['acctMenuSelAccel']['bg'])
     curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL_ACCEL, theme['acctMenuUnselAccel']['fg'],
                      theme['acctMenuUnselAccel']['bg'])
+
+    curses.init_pair(ThemeColours.HELP_MENU_BORDER, theme['helpMenuBorder']['fg'], theme['helpMenuBorder']['bg'])
+    curses.init_pair(ThemeColours.HELP_MENU_SEL, theme['helpMenuSel']['fg'], theme['helpMenuUnsel']['bg'])
+    curses.init_pair(ThemeColours.HELP_MENU_UNSEL, theme['helpMenuUnsel']['fg'], theme['helpMenuUnsel']['bg'])
     curses.init_pair(ThemeColours.HELP_MENU_SEL_ACCEL, theme['helpMenuSelAccel']['fg'], theme['helpMenuSelAccel']['bg'])
     curses.init_pair(ThemeColours.HELP_MENU_UNSEL_ACCEL, theme['helpMenuUnselAccel']['fg'],
                      theme['helpMenuUnselAccel']['bg'])
+
     curses.init_pair(ThemeColours.SETTINGS_WIN, theme['setWin']['fg'], theme['setWin']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_BORDER, theme['setWinBorder']['fg'], theme['setWinBorder']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_FOCUS_BORDER, theme['setWinFBorder']['fg'], theme['setWinFBorder']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_TITLE, theme['setWinTitle']['fg'], theme['setWinTitle']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_FOCUS_TITLE, theme['setWinFTitle']['fg'], theme['setWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.QUIT_WIN, theme['quitWin']['fg'], theme['quitWin']['bg'])
     curses.init_pair(ThemeColours.QUIT_WIN_BORDER, theme['quitWinBorder']['fg'], theme['quitWinBorder']['bg'])
     curses.init_pair(ThemeColours.QUIT_WIN_FOCUS_BORDER, theme['quitWinFBorder']['fg'], theme['quitWinFBorder']['bg'])
     curses.init_pair(ThemeColours.QUIT_WIN_TITLE, theme['quitWinTitle']['fg'], theme['quitWinTitle']['bg'])
     curses.init_pair(ThemeColours.QUIT_WIN_FOCUS_TITLE, theme['quitWinFTitle']['fg'], theme['quitWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.QUIT_WIN_TEXT, theme['quitWinText']['fg'], theme['quitWinText']['bg'])
+    curses.init_pair(ThemeColours.QUIT_WIN_SEL_TEXT, theme['quitWinSelText']['fg'], theme['quitWinSelText']['bg'])
+    curses.init_pair(ThemeColours.QUIT_WIN_SEL_ACCEL_TEXT, theme['quitWinSelAccelText']['fg'],
+                     theme['quitWinSelAccelText']['bg'])
+    curses.init_pair(ThemeColours.QUIT_WIN_UNSEL_TEXT, theme['quitWinUnselText']['fg'], theme['quitWinUnselText']['bg'])
+    curses.init_pair(ThemeColours.QUIT_WIN_UNSEL_ACCEL_TEXT, theme['quitWinUnselAccelText']['fg'],
+                     theme['quitWinUnselAccelText']['bg'])
+
     curses.init_pair(ThemeColours.SWITCH_WIN, theme['switchWin']['fg'], theme['switchWin']['bg'])
     curses.init_pair(ThemeColours.SWITCH_WIN_BORDER, theme['switchWinBorder']['fg'], theme['switchWinBorder']['bg'])
     curses.init_pair(ThemeColours.SWITCH_WIN_FOCUS_BORDER, theme['switchWinFBorder']['fg'],
@@ -726,27 +757,32 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.SWITCH_WIN_TITLE, theme['switchWinTitle']['fg'], theme['switchWinTitle']['bg'])
     curses.init_pair(ThemeColours.SWITCH_WIN_FOCUS_TITLE, theme['switchWinFTitle']['fg'],
                      theme['switchWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.LINK_WIN, theme['linkWin']['fg'], theme['linkWin']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_BORDER, theme['linkWinBorder']['fg'], theme['linkWin']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_FOCUS_BORDER, theme['linkWinFBorder']['fg'], theme['linkWinFBorder']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_TITLE, theme['linkWinTitle']['fg'], theme['linkWinTitle']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_FOCUS_TITLE, theme['linkWinFTitle']['fg'], theme['linkWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.REGISTER_WIN, theme['regWin']['fg'], theme['regWin']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_BORDER, theme['regWinBorder']['fg'], theme['regWinBorder']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_FOCUS_BORDER, theme['regWinFBorder']['fg'], theme['regWinFBorder']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_TITLE, theme['regWinTitle']['fg'], theme['regWinTitle']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_FOCUS_TITLE, theme['regWinFTitle']['fg'], theme['regWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.KEYS_WIN, theme['keysWin']['fg'], theme['keysWin']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_BORDER, theme['keysWinBorder']['fg'], theme['keysWinBorder']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_FOCUS_BORDER, theme['keysWinFBorder']['fg'], theme['keysWinFBorder']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_TITLE, theme['keysWinTitle']['fg'], theme['keysWinTitle']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_FOCUS_TITLE, theme['keysWinFTitle']['fg'], theme['keysWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.ABOUT_WIN, theme['aboutWin']['fg'], theme['aboutWin']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_BORDER, theme['aboutWinBorder']['fg'], theme['aboutWinBorder']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_FOCUS_BORDER, theme['aboutWinFBorder']['fg'],
                      theme['aboutWinFBorder']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_TITLE, theme['aboutWinTitle']['fg'], theme['aboutWinTitle']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_FOCUS_TITLE, theme['aboutWinFTitle']['fg'], theme['aboutWinFTitle']['bg'])
+
     curses.init_pair(ThemeColours.VERSION_WIN, theme['verWin']['fg'], theme['verWin']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_BORDER, theme['verWinBorder']['fg'], theme['verWinBorder']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_TITLE, theme['verWinTitle']['fg'], theme['verWinTitle']['bg'])

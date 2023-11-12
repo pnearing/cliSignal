@@ -2,7 +2,7 @@
 from typing import Optional, Callable, Any
 from warnings import warn
 import curses
-from common import ROW, COL, STRINGS, CB_PARAM, CB_CALLABLE, CallbackStates
+from common import ROW, COL, STRINGS, CB_PARAM, CB_CALLABLE, CallbackStates, add_accel_text
 from typeError import __type_error__
 
 
@@ -69,8 +69,6 @@ class MenuItem(object):
         """Unselected tail indicator character, added to the end of the label when unselected."""
         self._callback: tuple[Optional[Callable], Optional[list[Any]]] = callback
         """The call back to call when activated."""
-        self._label: str = label
-        """The label with accel indicators."""
         self._is_selected: bool = False
         """If this menu item is selected."""
 
@@ -79,6 +77,8 @@ class MenuItem(object):
         """Top left corner of this menu item."""
         self.width: int = width
         """Width of this menu item."""
+        self.label: str = label
+        """The label with accel indicators."""
         return
 
 #######################################
@@ -123,43 +123,24 @@ class MenuItem(object):
         # Draw label, start by moving the cursor to start:
         self._window.move(self.top_left[ROW], self.top_left[COL])
 
-        # Determine indicator attributes:
-        indicator_attrs: int
-        if self.is_selected:
-            indicator_attrs = self._sel_attrs
-        else:
-            indicator_attrs = self._unsel_attrs
-
         # Put start selection indicator:
         indicator: str
         if self.is_selected:
-            self._window.addstr(self._sel_lead_indicator, indicator_attrs)
+            self._window.addstr(self._sel_lead_indicator, self._sel_attrs)
         else:
-            self._window.addstr(self._unsel_lead_indicator, indicator_attrs)
+            self._window.addstr(self._unsel_lead_indicator, self._unsel_attrs)
 
         # Put the label:
-        is_accel: bool = False
-        for char in self._label:
-            if char == '_':  # Accel indicator.
-                is_accel = not is_accel
-            else:
-                # Determine attributes:
-                attrs: int
-                if self.is_selected and is_accel:
-                    attrs = self._sel_accel_attrs
-                elif self.is_selected and not is_accel:
-                    attrs = self._sel_attrs
-                elif not self.is_selected and is_accel:
-                    attrs = self._unsel_accel_attrs
-                else:  # Not self._is_selected and not is_accel:
-                    attrs = self._unsel_attrs
-                self._window.addstr(char, attrs)
+        if self.is_selected:
+            add_accel_text(self._window, self.label, self._sel_attrs, self._sel_accel_attrs)
+        else:
+            add_accel_text(self._window, self.label, self._unsel_attrs, self._unsel_accel_attrs)
 
         # Put the trailing selection indicator:
         if self.is_selected:
-            self._window.addstr(self._sel_tail_indicator, indicator_attrs)
+            self._window.addstr(self._sel_tail_indicator, self._sel_attrs)
         else:
-            self._window.addstr(self._unsel_tail_indicator, indicator_attrs)
+            self._window.addstr(self._unsel_tail_indicator, self._unsel_attrs)
         return
 
     def activate(self) -> None:

@@ -45,5 +45,6 @@ class LinkWindow(Window):
         # Super the window:
         Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
                         title_attrs, title_focus_attrs, title_chars, bg_char, False)
+        self.is_visible = False
         return
 

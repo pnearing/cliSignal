@@ -5,7 +5,7 @@ Class to store and manipulate the main window.
 """
 from typing import Optional, Callable, Any
 import curses
-from common import ROW, COL, calc_attributes, STRINGS
+from common import ROW, COL, ROWS, COLS, calc_attributes, STRINGS, MIN_SIZE, center_string
 from themes import ThemeColours
 from window import Window
 from contactsWindow import ContactsWindow
@@ -13,6 +13,8 @@ from messagesWindow import MessagesWindow
 from typingWindow import TypingWindow
 from menuBar import MenuBar
 from statusBar import StatusBar
+from quitWindow import QuitWindow
+from linkWindow import LinkWindow
 
 
 class MainWindow(Window):
@@ -24,6 +26,8 @@ class MainWindow(Window):
                  window: curses.window,
                  theme: dict[str, dict[str, int | bool | str]],
                  callbacks: dict[str, dict[str, tuple[Optional[Callable], Optional[list[Any]]]]],
+                 quit_window: QuitWindow,
+                 link_window: LinkWindow,
                  ) -> None:
         """
         Initialize the MainWindow object.
@@ -82,6 +86,7 @@ class MainWindow(Window):
         self.status_top_left: tuple[int, int] = (-1, -1)
         """The top let of the status bar."""
         self.recalculate_window_sizes()
+
         # Create window objects:
         self.contacts_window: ContactsWindow = ContactsWindow(self.contacts_size, self.contacts_top_left, theme)
         """The contacts Window object."""
@@ -93,29 +98,50 @@ class MainWindow(Window):
         """The menu bar Bar object."""
         self.status_bar: StatusBar = StatusBar(self._window, self.status_width, self.status_top_left, theme)
         """The status bar Bar object."""
+
+        # Store the passed windows, so we can redraw them.
+        self.quit_window: QuitWindow = quit_window
+        """The quit window object."""
+        self.link_window: LinkWindow = link_window
+        """The link window object."""
+        # The size error message:
+        self._error_message: str = STRINGS['messages']['sizeError'].format(rows=MIN_SIZE[ROWS], cols=MIN_SIZE[COLS])
+        self._error_attrs: int = calc_attributes(ThemeColours.MAIN_WIN_ERROR_TEXT, theme['mainWinErrorText'])
         return
 
     def recalculate_window_sizes(self):
-        self.contacts_size = (self.size[ROW] - 2, int(self.size[COL] * 0.33))
+        self.contacts_size = (self.size[ROWS] - 2, int(self.size[COLS] * 0.33))
         self.contacts_top_left = (self.top_left[ROW] + 1, self.top_left[COL])
-        self.messages_size = (int(self.size[ROW] * 0.75) - 1, self.size[COL] - self.contacts_size[COL])
-        self.messages_top_left = (self.top_left[ROW] + 1, self.top_left[COL] + self.contacts_size[COL])
-        self.typing_size = (self.size[ROW] - self.messages_size[ROW] - 2, self.size[COL] - self.contacts_size[COL])
-        self.typing_top_left = (self.messages_top_left[ROW] + self.messages_size[ROW],
-                                self.top_left[COL] + self.contacts_size[COL])
-        self.menu_width = self.size[COL]
+        self.messages_size = (int(self.size[ROWS] * 0.75) - 1, self.size[COLS] - self.contacts_size[COLS])
+        self.messages_top_left = (self.top_left[ROW] + 1, self.top_left[COL] + self.contacts_size[COLS])
+        self.typing_size = (self.size[ROWS] - self.messages_size[ROWS] - 2, self.size[COLS] - self.contacts_size[COLS])
+        self.typing_top_left = (self.messages_top_left[ROW] + self.messages_size[ROWS],
+                                self.top_left[COL] + self.contacts_size[COLS])
+        self.menu_width = self.size[COLS]
         self.menu_top_left = (self.top_left[ROW], self.top_left[COL])
-        self.status_width = self.size[COL]
-        self.status_top_left = (self.size[ROW], self.top_left[COL])
+        self.status_width = self.size[COLS]
+        self.status_top_left = (self.size[ROWS], self.top_left[COL])
         return
 
     def redraw(self) -> None:
+        # Draw main border and title:
         super().redraw()
+        # If the terminal is too small, draw an error message:
+        if self.real_size[ROWS] < MIN_SIZE[ROWS] or self.real_size[COLS] < MIN_SIZE[COLS]:
+            row: int = int(self.size[ROWS] / 2)
+            center_string(self._window, row, self._error_message, self._error_attrs)
+            curses.doupdate()
+            return
+        # Draw the main windows:
         self.contacts_window.redraw()
         self.messages_window.redraw()
         self.typing_window.redraw()
+        # Draw the menu and status bars:
         self.menu_bar.redraw()
         self.status_bar.redraw()
+        # Draw the sub-windows last, only one should be visible at a time.
+        self.quit_window.redraw()
+        self.link_window.redraw()
         curses.doupdate()
         return
 

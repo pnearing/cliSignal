@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 from typing import Final, Optional, Callable, Any
 import argparse
 import os.path
@@ -203,15 +204,21 @@ def signal_call_message_cb():
 #########################################
 # Functions:
 #########################################
-def confirm_quit(quit_window: QuitWindow) -> bool:
+def confirm_quit(std_screen: curses.window, quit_window: QuitWindow) -> bool:
     """
     Show an "are you sure message", and return users' input.
     :return: bool: True, the user quits; False, the user doesn't quit.
     """
-    message: str = common.STRINGS['messages']['quit']
-    confirm_str: str = common.STRINGS['other']['yesOrNo']
-
-    return True
+    quit_window.is_visible = True
+    quit_window.is_focused = True
+    while True:
+        quit_window.redraw()
+        curses.doupdate()
+        char_code: int = std_screen.getch()
+        response: Optional[bool] = quit_window.process_key(char_code)
+        if isinstance(response, bool):
+            return response
+    return False
 
 
 #########################################
@@ -250,7 +257,7 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
         },
         'file': {
             'settings': (file_menu_settings_cb, None),
-            'quit': (file_menu_quit_cb, None),
+            'quit': (file_menu_quit_cb, [quit_window]),
         },
         'accounts': {
             'switch': (accounts_menu_switch_cb, None),
@@ -265,7 +272,13 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
     }
 
     # Create the windows:
-    main_window = MainWindow(std_screen, theme, callbacks)
+    main_window = MainWindow(
+        window=std_screen,
+        theme=theme,
+        callbacks=callbacks,
+        quit_window=quit_window,
+        link_window=link_window,
+    )
 
     # Store references to the windows for focus:
     focus_windows: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow, MenuBar] = (
@@ -287,6 +300,7 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
                 char_code: int = std_screen.getch()
                 std_screen.addstr(10, 10, "    ")
                 std_screen.addstr(10, 10, str(char_code))
+                std_screen.addstr(9, 10, str(std_screen.getmaxyx()))
                 std_screen.refresh()
 
                 # Pre-process char code:
@@ -418,9 +432,11 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
                     continue
 
         except KeyboardInterrupt:
-
-            user_response: bool = confirm_quit()
-            break  # TODO: Are you sure message.
+            if common.SETTINGS['quitConfirm']:
+                user_response: bool = confirm_quit(std_screen, quit_window)
+                if not user_response:
+                    continue
+            break
 
     # Fix mouse mask:
     if common.SETTINGS['useMouse']:

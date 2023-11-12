@@ -2,7 +2,7 @@
 from typing import Optional, Callable, Any
 from warnings import warn
 import curses
-from common import ROW, COL, CB_CALLABLE, CB_PARAM, CallbackStates
+from common import ROW, COL, CB_CALLABLE, CB_PARAM, CallbackStates, add_accel_text
 from typeError import __type_error__
 from fileMenu import FileMenu
 from accountsMenu import AccountsMenu
@@ -114,28 +114,19 @@ class MenuBarItem(object):
         """
         # Move the cursor to the top left corner:
         self._window.move(self.top_left[ROW], self.top_left[COL])
+
         # Write the leading indicator character:
         if self.is_selected:
             self._window.addstr(self._sel_lead_indicator, self._sel_attrs)
         else:
             self._window.addstr(self._unsel_lead_indicator, self._unsel_attrs)
+
         # Write the label, parsing the _ as accel indicator start / stop char.
-        is_accel: bool = False
-        for char in self.label:
-            if char == '_':  # If char is underscore flip is_accel
-                is_accel = not is_accel
-            else:
-                # Select attributes for this character:
-                attrs: int
-                if self.is_selected and is_accel:
-                    attrs = self._sel_accel_attrs
-                elif self.is_selected and not is_accel:
-                    attrs = self._sel_attrs
-                elif not self.is_selected and is_accel:
-                    attrs = self._unsel_accel_attrs
-                else:  # Not self._is_selected and not is_accel:
-                    attrs = self._unsel_attrs
-                self._window.addstr(char, attrs)
+        if self.is_selected:
+            add_accel_text(self._window, self.label, self._sel_attrs, self._sel_accel_attrs)
+        else:
+            add_accel_text(self._window, self.label, self._unsel_attrs, self._unsel_accel_attrs)
+
         # Add the trailing selection indicator:
         if self.is_selected:
             self._window.addstr(self._sel_tail_indicator, self._sel_attrs)

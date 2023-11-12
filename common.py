@@ -6,9 +6,14 @@ from enum import IntEnum, Enum
 _VERSION: Final[str] = '1.0.0'
 
 #####################################
+# String constants:
+#####################################
+_ACCEL_INDICATOR: Final[str] = '_'
+
+#####################################
 # Strings:
 #####################################
-STRINGS: Final[dict[str, dict[str, Optional[str]]]] = {
+STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     # Background characters:
     'background': {
         'mainWin': ' ', 'contactsWin': ' ', 'messagesWin': ' ', 'typingWin': ' ', 'settingsMenu': ' ', 'quitMenu': ' ',
@@ -22,20 +27,42 @@ STRINGS: Final[dict[str, dict[str, Optional[str]]]] = {
         'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Version'
     },
     # Main menu items:
-    'mainMenuNames': {'file': 'File _F1_', 'accounts': 'Accounts _F2_', 'help': 'Help _F3_'},
+    'mainMenuNames': {
+        'file': f'File {_ACCEL_INDICATOR}F1{_ACCEL_INDICATOR}',
+        'accounts': f'Accounts {_ACCEL_INDICATOR}F2{_ACCEL_INDICATOR}',
+        'help': f'Help {_ACCEL_INDICATOR}F3{_ACCEL_INDICATOR}',
+    },
     # File menu items:
-    'fileMenuNames': {'settings': '_S_ettings', 'quit': '_Q_uit'},
+    'fileMenuNames': {
+        'settings': f'{_ACCEL_INDICATOR}S{_ACCEL_INDICATOR}ettings',
+        'quit': f'{_ACCEL_INDICATOR}Q{_ACCEL_INDICATOR}uit'
+    },
     # Accounts menu items:
-    'acctMenuNames': {'switch': '_S_witch account', 'link': '_L_ink account', 'register': '_R_egister account'},
+    'acctMenuNames': {
+        'switch': f'{_ACCEL_INDICATOR}S{_ACCEL_INDICATOR}witch account',
+        'link': f'{_ACCEL_INDICATOR}L{_ACCEL_INDICATOR}ink account',
+        'register': f'{_ACCEL_INDICATOR}R{_ACCEL_INDICATOR}egister account'
+    },
     # Help menu items:
-    'helpMenuNames': {'shortcuts': '_S_hortcut Keys', 'about': '_A_bout', 'version': '_V_ersion'},
+    'helpMenuNames': {
+        'shortcuts': f'{_ACCEL_INDICATOR}S{_ACCEL_INDICATOR}hortcut Keys',
+        'about': f'{_ACCEL_INDICATOR}A{_ACCEL_INDICATOR}bout',
+        'version': f'{_ACCEL_INDICATOR}V{_ACCEL_INDICATOR}ersion'
+    },
     # Messages:
     'messages': {
-        'quit': 'Are you sure you want to quit?',
+        'sizeError': 'Window size must be min: {cols:}x{rows:}',
+        'quit': ' Are you sure you want to quit? ',
     },
     # Other:
     'other': {
-        'yesOrNo': '[ _Y_es / _N_ o ]',
+        'yesOrNo': {
+            'yes': f'{_ACCEL_INDICATOR}Y{_ACCEL_INDICATOR}es',
+            'no': f'{_ACCEL_INDICATOR}N{_ACCEL_INDICATOR}o',
+            'leadChars': '[ ',
+            'midChars': ' | ',
+            'tailChars': ' ]'
+        },
     },
 }
 
@@ -52,8 +79,16 @@ SETTINGS: dict[str, Optional[str | bool]] = {
     'theme': 'light',
     'themePath': None,
     'useMouse': False,
+    'quitConfirm': True,
 }
 """The settings for cliSignal."""
+
+#####################################
+# Minimum size of the terminal.
+#####################################
+MIN_SIZE: Final[tuple[int, int]] = (19, 60)
+"""The minimum size of the terminal to display."""
+
 #####################################
 # Key character code constants:
 #####################################
@@ -121,6 +156,9 @@ class HelpMenuSelection(IntEnum):
     VERSION = 2
 
 
+##################################
+# Functions:
+##################################
 def calc_attributes(colour_pair: int, attrs: dict[str, int | bool]) -> int:
     """
     Calculate the int attribute given the theme and desired attributes in a dict.
@@ -221,7 +259,7 @@ def add_title_to_win(window: curses.window,
                      ) -> None:
     """
     Add a provided title to a given window.
-    :param window: curses.window: The curser window to draw on.
+    :param window: curses.window: The curses window to draw on.
     :param title: Optional[str]: The title to add, if None, no title is added.
     :param border_attrs: int: The attributes of the border.
     :param title_attrs: int: The attributes of the title.
@@ -241,4 +279,48 @@ def add_title_to_win(window: curses.window,
         # Put the end border char:
         end_str: str = ' ' + end_char
         window.addstr(end_str, border_attrs)
+    return
+
+
+def center_string(window: curses.window,
+                  row: int,
+                  value: str,
+                  attrs: int,
+                  ) -> None:
+    """
+    Center a string on a window.
+    :param window: curses.window: The window to draw on.
+    :param row: int: The row to add the sting on.
+    :param value: str: The string value to add
+    :param attrs: int: The colour attributes to use.
+    :return: None
+    """
+    _, num_cols = window.getmaxyx()
+    col: int = int(num_cols / 2) - int(len(value) / 2)
+    window.addstr(row, col, value, attrs)
+    return
+
+
+def add_accel_text(window: curses.window,
+                   accel_text: str,
+                   normal_attrs: int,
+                   accel_attrs: int
+                   ) -> None:
+    """
+    Add accelerator text to the given window, at the current position.
+    :param window: curses.window: The window to draw on.
+    :param accel_text: str: The text with accelerator indicators.
+    :param normal_attrs: int: The attributes for the normal text.
+    :param accel_attrs: int: The attributes for the accelerator text.
+    :return: None
+    """
+    is_accel: bool = False
+    for character in accel_text:
+        if character == _ACCEL_INDICATOR:
+            is_accel = not is_accel
+        else:
+            if is_accel:
+                window.addstr(character, accel_attrs)
+            else:
+                window.addstr(character, normal_attrs)
     return

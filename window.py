@@ -79,6 +79,7 @@ class Window(object):
         """The characters to use to start and end the title."""
         self._is_static_size: bool = is_static_size
         """This window is of static size, so when resize is called, we don't change the size."""
+        self._min_size: tuple[Optional[int], Optional[int]] = (None, None)
 
         # Set external properties:
         self.title: str = title
