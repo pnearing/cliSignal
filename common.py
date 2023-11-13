@@ -18,13 +18,14 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     'background': {
         'mainWin': ' ', 'contactsWin': ' ', 'messagesWin': ' ', 'typingWin': ' ', 'settingsMenu': ' ', 'quitMenu': ' ',
         'switchMenu': ' ', 'linkMenu': ' ', 'registerMenu': ' ', 'shortcutsMenu': ' ', 'aboutMenu': ' ',
-        'versionMenu': ' ', 'menuBar': ' ', 'statusBar': ' ', 'quitWin': ' ', 'linkWin': ' ',
+        'versionMenu': ' ', 'menuBar': ' ', 'statusBar': ' ', 'quitWin': ' ', 'linkWin': ' ', 'qrcode': ' ',
     },
     # Window titles:
     'titles': {
         'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None,
         'settings': 'Settings', 'quit': 'Quit', 'switch': 'Switch Account', 'link': 'Link Account',
-        'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Version'
+        'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Version',
+        'qrcode': 'Scan QR-Code',
     },
     # Main menu items:
     'mainMenuNames': {
@@ -51,8 +52,11 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     },
     # Messages:
     'messages': {
-        'sizeError': 'Window size must be min: {cols:}x{rows:}',
-        'quit': ' Are you sure you want to quit? ',
+        'sizeError': 'Min window size: {cols:}x{rows:}',
+        'quit': 'Are you sure you want to quit?',
+        'linkGen': 'Generating and encoding link...',
+        'linkOk': 'Successfully linked account.',
+        'linkErr': 'An error occurred during the link process.',
     },
     # Other:
     'other': {
@@ -76,6 +80,7 @@ SETTINGS: dict[str, Optional[str | bool]] = {
     'signalSocketPath': None,
     'startSignal': True,
     'workingDir': None,
+    'logPath': None,
     'theme': 'light',
     'themePath': None,
     'useMouse': False,
@@ -86,7 +91,7 @@ SETTINGS: dict[str, Optional[str | bool]] = {
 #####################################
 # Minimum size of the terminal.
 #####################################
-MIN_SIZE: Final[tuple[int, int]] = (19, 60)
+MIN_SIZE: Final[tuple[int, int]] = (22, 50)
 """The minimum size of the terminal to display."""
 
 #####################################
@@ -324,3 +329,20 @@ def add_accel_text(window: curses.window,
             else:
                 window.addstr(character, normal_attrs)
     return
+
+
+def calc_center_top_left(containing_size: tuple[int, int], window_size: tuple[int, int]) -> tuple[int, int]:
+    """
+    Calculate the top left corner, to centre a window in the containing window.
+    :param containing_size: tuple[int, int]: The containing window size: (ROWS, COLS)
+    :param window_size: tuple[int, int]: The display window size: (ROWS, COLS)
+    :return: tuple[int, int]: The top left corner: (ROW, COL)
+    """
+    top: int = int(containing_size[ROWS] / 2) - int(window_size[ROWS] / 2) - 1
+    left: int = int(containing_size[COLS] / 2) - int(window_size[COLS] / 2) - 1
+    if top < 0:
+        top = 0
+    if left < 0:
+        left = 0
+    return top, left
+

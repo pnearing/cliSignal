@@ -17,7 +17,7 @@ class Bar(object):
     """
 
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  width: int,
                  top_left: tuple[int, int],
                  bg_attrs: int,
@@ -25,14 +25,14 @@ class Bar(object):
                  ) -> None:
         """
         Initialize the status bar.
-        :param window: curses.window: The window to draw on (Main window)
+        :param std_screen: curses.window: The window to draw on (Main window)
         :param width: int: The width of the status bar.
         :param top_left: tuple[int, int]: The top left corner of the status bar.
         :param bg_attrs: int: The attributes to use for empty spaces on the status bar.
         :param bg_char: str: The character to use for the background.
         """
         # Set internal vars:
-        self._window: curses.window = window
+        self._std_screen: curses.window = std_screen
         """The curses window object"""
         self._bg_attrs: int = bg_attrs
         """The attributes to use for the background of the bar."""
@@ -55,7 +55,7 @@ class Bar(object):
         """
         # Draw a background:
         for col in range(self.top_left[COL], (self.top_left[COL] + self.width)):
-            self._window.addstr(self.top_left[ROW], col, self._bg_char, self._bg_attrs)
+            self._std_screen.addstr(self.top_left[ROW], col, self._bg_char, self._bg_attrs)
         return
 
     def resize(self, width: int, top_left: tuple[int, int]) -> None:

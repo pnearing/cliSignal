@@ -21,14 +21,14 @@ class FileMenu(Menu):
 # Initialize:
 ###############################################
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
                  callbacks: dict[str, tuple[Optional[Callable], Optional[list[Any]]]],
                  ) -> None:
         """
         Initialize the file menu.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param top_left: tuple[int, int]: The top left corner of the file menu.
         :param theme: dict[str, dict[str, int | bool | str]]: The current theme in use.
         :param callbacks: dict[str, Optional[Callable]]: A dict with the callbacks for the file menu items.
@@ -52,7 +52,7 @@ class FileMenu(Menu):
         # Create menu Items:
         settings_label: str = STRINGS['fileMenuNames']['settings']
         settings_bg_char: str = STRINGS['background']['settingsMenu']
-        settings_menu_item: MenuItem = MenuItem(window=window,
+        settings_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                                 width=size[COLS] - 2,
                                                 top_left=(top_left[ROW] + 1, top_left[COL] + 1),
                                                 label=settings_label,
@@ -69,7 +69,7 @@ class FileMenu(Menu):
                                                 )
         quit_label: str = STRINGS['fileMenuNames']['quit']
         quit_bg_char: str = STRINGS['background']['quitMenu']
-        quit_menu_item: MenuItem = MenuItem(window=window,
+        quit_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                             width=size[COLS] - 2,
                                             top_left=(top_left[ROW] + 2, top_left[COL] + 1),
                                             label=quit_label,
@@ -87,7 +87,7 @@ class FileMenu(Menu):
         menu_items: list[MenuItem] = [settings_menu_item, quit_menu_item]
 
         # Call super:
-        Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
+        Menu.__init__(self, std_screen, size, top_left, menu_items, border_chars, border_attrs)
 
         # Private properties:
         self._selection = FileMenuSelection.SETTINGS

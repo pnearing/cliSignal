@@ -33,7 +33,6 @@ class Window(object):
                  title_focus_attrs: int,
                  title_chars: dict[str, str],
                  bg_char: str,
-                 is_main_window: bool = False,
                  is_static_size: bool = False,
                  ) -> None:
         """
@@ -49,7 +48,6 @@ class Window(object):
         :param title_focus_attrs: int: The colours and attributes to use for the title when focused.
         :param title_chars: dict[str, str]: The dict of title start and end chars.
         :param bg_char: str: The background character.
-        :param is_main_window: bool: Is the main window, i.e. std_screen, and not a sub-window.
         """
         # Super init:
         object.__init__(self)
@@ -69,17 +67,12 @@ class Window(object):
         """The colour pair number and attributes for the title of this window."""
         self._title_focus_attrs: int = title_focus_attrs
         """The colour pair number and attributes for the title when focused."""
-        self._is_main_window: bool = is_main_window
-        """True if this is the main window, means certain calls aren't made."""
         self._is_focused: bool = False
         """If this window is focused, this is private because we use getter / setters for it."""
-        self._bg_char: str = bg_char
-        """The character to use for drawing the center of the screen."""
         self._title_chars: dict[str, str] = title_chars
         """The characters to use to start and end the title."""
-        self._is_static_size: bool = is_static_size
-        """This window is of static size, so when resize is called, we don't change the size."""
-        self._min_size: tuple[Optional[int], Optional[int]] = (None, None)
+        self._bg_char: str = bg_char
+        """The character to use for drawing the center of the screen."""
 
         # Set external properties:
         self.title: str = title
@@ -151,17 +144,23 @@ class Window(object):
     def resize(self, size: tuple[int, int], top_left: tuple[int, int]) -> None:
         """
         Recalculate size variables when the window is resized.
+        :param size: tuple[int, int]: The new size of the window: (ROWS, COLS).
+            NOTE: If ROWS or COLS is set to -1, size will be ignored, and the resize, function will not be called.
+        :param top_left: tuple[int, int]: The new top left corner of the window: (ROW, COL).
+            NOTE: If ROW or COL is set to -1, top_left will be ignored, and the mvwin function will not be called.
         :return: None
         """
-        # Set Vars:
+        # Resize and move the window if required:
+        if size[ROWS] != -1 or size[COLS] != -1:
+            self._window.resize(size[ROWS], size[COLS])
 
-        if not self._is_main_window:
-            if not self._is_static_size:
-                self._window.resize(size[ROWS], size[COLS])
+        real_top_left: tuple[int, int] = top_left
+        if top_left[ROW] != -1 or top_left[COL] != -1:
             self._window.mvwin(top_left[ROW], top_left[COL])
-
+        else:
+            real_top_left = (0, 0)  # This is the main window, real top_left is 0,0.
         num_rows, num_cols = self._window.getmaxyx()
-        self.real_top_left = top_left
+        self.real_top_left = real_top_left
         self.top_left = (self.real_top_left[ROW] + 1, self.real_top_left[COL] + 1)
         self.real_size = (num_rows, num_cols)
         self.size = (num_rows - 2, num_cols - 2)

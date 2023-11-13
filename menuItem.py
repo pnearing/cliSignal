@@ -14,7 +14,7 @@ class MenuItem(object):
 # Initialize:
 #######################################
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  width: int,
                  top_left: tuple[int, int],
                  label: str,
@@ -31,7 +31,7 @@ class MenuItem(object):
                  ) -> None:
         """
         Initialize a single menu item.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param width: int: The width of the menu item.
         :param top_left: tuple[int, int]: The top left corner of this item.
         :param label: str: The label to apply to this item.
@@ -47,7 +47,7 @@ class MenuItem(object):
         :param callback: Callable: The callback to call for this menu item.
         """
         # Internal properties:
-        self._window: curses.window = window
+        self._std_screen: curses.window = std_screen
         """The curses window to draw on."""
         self._bg_char: str = bg_char
         """The character to use for drawing the background."""
@@ -92,13 +92,17 @@ class MenuItem(object):
         """
         try:
             if self._callback is not None and self._callback[CB_PARAM] is not None:
-                self._callback[CB_CALLABLE](state, self._window, *self._callback[CB_PARAM])
+                self._callback[CB_CALLABLE](state, self._std_screen, *self._callback[CB_PARAM])
             elif self._callback is not None and self._callback[CB_PARAM] is None:
-                self._callback[CB_CALLABLE](state, self._window)
-        except TypeError:
+                self._callback[CB_CALLABLE](state, self._std_screen)
+        except TypeError as e:
+            warning_message: str = "Callback not callable[%s]: %s" % (self._callback.__name__, e.args[0])
             warn("Callback is not callable.", RuntimeWarning)
         except Exception as e:
-            warn("Callback caused exception: %s" % str(type(e)), RuntimeWarning)
+            warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
+            warn(warning_message, RuntimeWarning)
+            raise e
+        except KeyboardInterrupt as e:
             raise e
         return
 
@@ -111,36 +115,36 @@ class MenuItem(object):
         :return: None
         """
         # draw background.
-        self._window.move(self.top_left[ROW], self.top_left[COL])
+        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
         bg_attrs: int
         if self.is_selected:
             bg_attrs = self._sel_attrs
         else:
             bg_attrs = self._unsel_attrs
         for col in range(self.top_left[COL], self.top_left[COL] + self.width):
-            self._window.addstr(self._bg_char, bg_attrs)
+            self._std_screen.addstr(self._bg_char, bg_attrs)
 
         # Draw label, start by moving the cursor to start:
-        self._window.move(self.top_left[ROW], self.top_left[COL])
+        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
 
         # Put start selection indicator:
         indicator: str
         if self.is_selected:
-            self._window.addstr(self._sel_lead_indicator, self._sel_attrs)
+            self._std_screen.addstr(self._sel_lead_indicator, self._sel_attrs)
         else:
-            self._window.addstr(self._unsel_lead_indicator, self._unsel_attrs)
+            self._std_screen.addstr(self._unsel_lead_indicator, self._unsel_attrs)
 
         # Put the label:
         if self.is_selected:
-            add_accel_text(self._window, self.label, self._sel_attrs, self._sel_accel_attrs)
+            add_accel_text(self._std_screen, self.label, self._sel_attrs, self._sel_accel_attrs)
         else:
-            add_accel_text(self._window, self.label, self._unsel_attrs, self._unsel_accel_attrs)
+            add_accel_text(self._std_screen, self.label, self._unsel_attrs, self._unsel_accel_attrs)
 
         # Put the trailing selection indicator:
         if self.is_selected:
-            self._window.addstr(self._sel_tail_indicator, self._sel_attrs)
+            self._std_screen.addstr(self._sel_tail_indicator, self._sel_attrs)
         else:
-            self._window.addstr(self._unsel_tail_indicator, self._unsel_attrs)
+            self._std_screen.addstr(self._unsel_tail_indicator, self._unsel_attrs)
         return
 
     def activate(self) -> None:

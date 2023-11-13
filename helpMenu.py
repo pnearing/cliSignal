@@ -17,14 +17,14 @@ class HelpMenu(Menu):
     Handle the help menu.
     """
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
                  callbacks: dict[str, tuple[Optional[Callable], Optional[list[Any]]]],
                  ) -> None:
         """
         Initialize the help menu.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param top_left: tuple[int, int]: The top left corner of this menu.
         :param theme: dict[str, dict[str, int | bool | str]: The current theme in use.
         """
@@ -46,7 +46,7 @@ class HelpMenu(Menu):
         # Build the menu items:
         shortcut_label: str = STRINGS['helpMenuNames']['shortcuts']
         shortcut_bg_char: str = STRINGS['background']['shortcutsMenu']
-        shortcut_menu_item: MenuItem = MenuItem(window=window,
+        shortcut_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                                 width=size[COLS] - 2,
                                                 top_left=(top_left[ROW] + 1, top_left[COL] + 1),
                                                 label=shortcut_label,
@@ -63,7 +63,7 @@ class HelpMenu(Menu):
                                                 )
         about_label: str = STRINGS['helpMenuNames']['about']
         about_bg_char: str = STRINGS['background']['aboutMenu']
-        about_menu_item: MenuItem = MenuItem(window=window,
+        about_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                              width=size[COLS] - 2,
                                              top_left=(top_left[ROW] + 2, top_left[COL] + 1),
                                              label=about_label,
@@ -80,7 +80,7 @@ class HelpMenu(Menu):
                                              )
         version_label: str = STRINGS['helpMenuNames']['version']
         version_bg_char: str = STRINGS['background']['versionMenu']
-        version_menu_item: MenuItem = MenuItem(window=window,
+        version_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                                width=size[COLS] - 2,
                                                top_left=(top_left[ROW] + 3, top_left[COL] + 1),
                                                label=version_label,
@@ -99,7 +99,7 @@ class HelpMenu(Menu):
         menu_items: list[MenuItem] = [shortcut_menu_item, about_menu_item, version_menu_item]
 
         # Call super:
-        Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
+        Menu.__init__(self, std_screen, size, top_left, menu_items, border_chars, border_attrs)
 
         # Set internal properties:
         self._selection = HelpMenuSelection.KEYS

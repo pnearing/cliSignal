@@ -24,7 +24,7 @@ class MenuBar(Bar):
     """
 
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  width: int,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
@@ -32,7 +32,7 @@ class MenuBar(Bar):
                  ) -> None:
         """
         Initialize the menu bar.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param width: int: The width of the menu bar.
         :param top_left: tuple[int, int]: The top left corner of the menu bar.
         :param theme: dict[str, dict[str, int | bool | str]]: The current theme.
@@ -51,7 +51,7 @@ class MenuBar(Bar):
         unsel_tail_indicator: str = theme['menuSelChars']['tailUnsel']
 
         # Run super:
-        Bar.__init__(self, window, width, top_left, empty_attrs, bg_char)
+        Bar.__init__(self, std_screen, width, top_left, empty_attrs, bg_char)
 
         # Set internal properties:
         self._is_focused: bool = False
@@ -68,12 +68,12 @@ class MenuBar(Bar):
         # File menu:
         file_menu_item_top_left: tuple[int, int] = (top_left[ROW], top_left[COL] + 1)
         file_menu_top_left: tuple[int, int] = (top_left[ROW] + 1, top_left[COL] + 1)
-        file_menu: FileMenu = FileMenu(window=self._window,
+        file_menu: FileMenu = FileMenu(std_screen=self._std_screen,
                                        top_left=file_menu_top_left,
                                        theme=theme,
                                        callbacks=callbacks['file'],
                                        )
-        file_menu_item = MenuBarItem(window=self._window,
+        file_menu_item = MenuBarItem(std_screen=self._std_screen,
                                      top_left=file_menu_item_top_left,
                                      label=labels['file'],
                                      sel_attrs=sel_attrs,
@@ -92,12 +92,12 @@ class MenuBar(Bar):
                                                     file_menu_item.top_left[COL] + file_menu_item.width + 1)
         acct_menu_top_left: tuple[int, int] = (top_left[ROW] + 1,
                                                file_menu_item.top_left[COL] + file_menu_item.width + 1)
-        acct_menu = AccountsMenu(window=self._window,
+        acct_menu = AccountsMenu(std_screen=self._std_screen,
                                  top_left=acct_menu_top_left,
                                  theme=theme,
                                  callbacks=callbacks['accounts']
                                  )
-        acct_menu_item = MenuBarItem(window=self._window,
+        acct_menu_item = MenuBarItem(std_screen=self._std_screen,
                                      top_left=acct_menu_item_top_left,
                                      label=labels['accounts'],
                                      sel_attrs=sel_attrs,
@@ -116,12 +116,12 @@ class MenuBar(Bar):
                                                     acct_menu_item_top_left[COL] + acct_menu_item.width + 1)
         help_menu_top_left: tuple[int, int] = (top_left[ROW] + 1,
                                                acct_menu_item_top_left[COL] + acct_menu_item.width + 1)
-        help_menu: HelpMenu = HelpMenu(window=self._window,
+        help_menu: HelpMenu = HelpMenu(std_screen=self._std_screen,
                                        top_left=help_menu_top_left,
                                        theme=theme,
                                        callbacks=callbacks['help']
                                        )
-        help_menu_item = MenuBarItem(window=self._window,
+        help_menu_item = MenuBarItem(std_screen=self._std_screen,
                                      top_left=help_menu_item_top_left,
                                      label=labels['help'],
                                      sel_attrs=sel_attrs,
@@ -153,7 +153,7 @@ class MenuBar(Bar):
         super().redraw()
         for menu_item in self.menu_bar_items:
             menu_item.redraw()
-        self._window.noutrefresh()
+        self._std_screen.noutrefresh()
         return
 
     def inc_selection(self) -> None:
@@ -188,13 +188,13 @@ class MenuBar(Bar):
         # Pass the key code to the active menu before parsing:
         if self.is_menu_activated:
             handled: Optional[bool] = self._active_menu.process_key(char_code)
-            self._window.addstr(12,10, str(handled))
-            self._window.refresh()
+            self._std_screen.addstr(12, 10, str(handled))
+            self._std_screen.refresh()
             if isinstance(handled, bool):
                 return handled
 
-        self._window.addstr(11, 10, str(char_code))
-        self._window.refresh()
+        self._std_screen.addstr(11, 10, str(char_code))
+        self._std_screen.refresh()
 
         if char_code in KEYS_ENTER:  # ENTER key / keypad ENTER key.
             if self.selection is not None:

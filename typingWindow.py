@@ -43,7 +43,7 @@ class TypingWindow(Window):
 
         # Super the window:
         Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
-                        title_attrs, title_focus_attrs, title_chars, bg_char, False)
+                        title_attrs, title_focus_attrs, title_chars, bg_char)
         return
 
     def process_key(self, char_code: int) -> bool:

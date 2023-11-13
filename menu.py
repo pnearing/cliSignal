@@ -32,7 +32,7 @@ class Menu(object):
 # Initialize:
 ########################################
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
                  menu_items: list[MenuItem],
@@ -41,7 +41,7 @@ class Menu(object):
                  ) -> None:
         """
         Initialize a basic menu.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param size: tuple[int, int]: The size of the menu: (ROWS, COLS).
         :param top_left: tuple[int, int]: The top left corner of the menu: (ROW, COL).
         :param menu_items: list[MenuItem]: The items in this menu.
@@ -52,7 +52,7 @@ class Menu(object):
         object.__init__(self)
 
         # Internal Properties:
-        self._window: curses.window = window
+        self._std_screen: curses.window = std_screen
         """The curses window to draw on."""
         self._menu_items: list[MenuItem] = menu_items
         """The list of MenuItems for this menu."""
@@ -90,7 +90,7 @@ class Menu(object):
         if not self.is_visible:
             return
         # Draw a border:
-        draw_border_on_win(window=self._window, border_attrs=self._border_attrs,
+        draw_border_on_win(window=self._std_screen, border_attrs=self._border_attrs,
                            ts=self._border_chars['ts'], bs=self._border_chars['bs'], ls=self._border_chars['ls'],
                            rs=self._border_chars['rs'], tl=self._border_chars['tl'], tr=self._border_chars['tr'],
                            bl=self._border_chars['bl'], br=self._border_chars['br'], size=self.size,
@@ -98,7 +98,7 @@ class Menu(object):
         # Draw the menu items:
         for menu_item in self._menu_items:
             menu_item.redraw()
-        self._window.refresh()
+        self._std_screen.refresh()
         return
 
     def inc_selection(self) -> None:
@@ -227,3 +227,11 @@ class Menu(object):
             if value:
                 self.redraw()
         return
+
+    @property
+    def std_screen(self) -> curses.window:
+        """
+        The std screen curses.window object.
+        :return: curses.window: The std screen.
+        """
+        return self._std_screen

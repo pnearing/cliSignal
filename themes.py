@@ -10,6 +10,7 @@ class ThemeColours(IntEnum):
     """
     Theme colour pair numbers.
     """
+    # TODO: Clean up unused colours.
     # Main window:
     MAIN_WIN = auto()
     MAIN_WIN_BORDER = auto()
@@ -90,6 +91,7 @@ class ThemeColours(IntEnum):
     LINK_WIN_FOCUS_BORDER = auto()
     LINK_WIN_TITLE = auto()
     LINK_WIN_FOCUS_TITLE = auto()
+    LINK_WIN_TEXT = auto()
 
     REGISTER_WIN = auto()
     REGISTER_WIN_BORDER = auto()
@@ -115,7 +117,23 @@ class ThemeColours(IntEnum):
     VERSION_WIN_TITLE = auto()
     VERSION_FOCUS_TITLE = auto()
 
+    GEN_MESSAGE_WIN = auto()
+    GEN_MESSAGE_WIN_BORDER = auto()
+    GEN_MESSAGE_WIN_FOCUS_BORDER = auto()
+    GEN_MESSAGE_WIN_TITLE = auto()
+    GEN_MESSAGE_WIN_FOCUS_TITLE = auto()
 
+    QRCODE_WIN = auto()
+    QRCODE_WIN_BORDER = auto()
+    QRCODE_WIN_FOCUS_BORDER = auto()
+    QRCODE_WIN_TITLE = auto()
+    QRCODE_WIN_FOCUS_TITLE = auto()
+    QRCODE_TEXT = auto()
+
+
+###########################
+# Theme definitions: If you're looking to make your own theme, this is where you want to look.
+###########################
 _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
     # LIGHT THEME:
     'light': {
@@ -165,6 +183,9 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Register account window border characters:
         'regWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        # QRCode window border characters:
+        'qrcodeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
 
         # TITLE CHARACTERS:
         # Main window Title start and end characters:
@@ -175,10 +196,24 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'msgsWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         # Typing window title start and end characters: NOTE: NOT USED.
         'typeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        # Link window title start and end characters:
+        # Settings window title start and end characters:
+        'setWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # Quit window title start and end characters:
+        'quitWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # Switch account window title start and end characters:
+        'switchWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # Link account window title start and end characters:
         'linkWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        # Register window title start and end characters:
+        # Register a new account window title start and end characters:
         'regWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # Keyboard shortcuts window title start and end characters:
+        'keysWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # About window title start and end characters:
+        'aboutWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # Version window title start and end characters:
+        'verWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        # QR Code window title start and end characters:
+        'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
 
         # MENU SELECTION INDICATOR CHARACTERS:
         # Menu bar selection indicator characters:
@@ -243,11 +278,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # SETTINGS WINDOW COLOUR ATTRIBUTES:
         # The settings window centre:
         'setWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The settings window border:
+        # The settings window border: NOTE: Not used.
         'setWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The settings window focused border:
         'setWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The settings window title:
+        # The settings window title: NOTE: Not used.
         'setWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The settings window focused title:
         'setWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
@@ -255,11 +290,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # THE QUIT WINDOW COLOUR ATTRIBUTES:
         # The quit window centre:
         'quitWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The quit window border:
+        # The quit window border: NOTE: Not used.
         'quitWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The quit window focused border:
         'quitWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The quit window title:
+        # The quit window title: NOTE: Not used.
         'quitWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The quit window focused title:
         'quitWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
@@ -277,11 +312,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # THE SWITCH ACCOUNT WINDOW COLOUR ATTRIBUTES:
         # The switch window centre:
         'switchWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The switch window border:
+        # The switch window border: NOTE: Not used.
         'switchWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The switch window focused border:
         'switchWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The switch window title:
+        # The switch window title: NOTE: Not used.
         'switchWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The switch window focused title:
         'switchWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
@@ -289,23 +324,25 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # THE LINK ACCOUNT WINDOW COLOUR ATTRIBUTES:
         # The link window centre:
         'linkWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The link window border:
+        # The link window border: NOTE: Not used.
         'linkWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The link window focused border:
         'linkWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The link window title:
+        # The link window title: NOTE: Not used.
         'linkWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The link window focused title:
         'linkWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
+        # The link window text:
+        'linkWinText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
 
         # THE REGISTER NEW ACCOUNT WINDOW COLOUR ATTRIBUTES:
         # The register window centre:
         'regWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The register window border:
+        # The register window border: NOTE: Not used.
         'regWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The register window focused border:
         'regWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The register window title:
+        # The register window title: NOTE: Not used.
         'regWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The register window focused title:
         'regWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
@@ -313,11 +350,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # THE SHORTCUT KEYS HELP WINDOW COLOUR ATTRIBUTES:
         # The keys window centre:
         'keysWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The keys window border:
+        # The keys window border: NOTE: Not used.
         'keysWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The keys window focused border:
         'keysWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The keys window title:
+        # The keys window title: NOTE: Not used.
         'keysWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The keys window focused title:
         'keysWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
@@ -325,11 +362,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # THE ABOUT WINDOW COLOUR ATTRIBUTES:
         # The about window centre:
         'aboutWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The about window border:
+        # The about window border: NOTE: Not used.
         'aboutWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The about window focused border:
         'aboutWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The about window title:
+        # The about window title: NOTE: Not used.
         'aboutWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The about window focused title:
         'aboutWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
@@ -337,14 +374,40 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # THE VERSION WINDOW COLOUR ATTRIBUTES:
         # The version window centre:
         'verWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # The version window border:
+        # The version window border: NOTE: Not used.
         'verWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
         # The version window focused border:
         'verWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
-        # The version window title:
+        # The version window title: NOTE: Not used.
         'verWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The version window focused title:
         'verWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
+
+        # GENERAL MESSAGE WINDOW:
+        # General message background window attributes:
+        'genMsgWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # General message border attributes: NOTE: Not used.
+        'genMsgWinBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': False},
+        # General message focused border attributes:
+        'genMsgWinFBorder': {'fg': 7, 'bg': 21, 'bold': True, 'underline': False, 'reverse': True},
+        # General message window title attributes: NOTE: Not used.
+        'genMsgWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
+        # General message window focused title attributes:
+        'genMsgWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
+
+        # QR-CODE WINDOW:
+        # QR Code window background:
+        'qrcodeWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # QR Code border: NOTE: Not used.
+        'qrcodeWinBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # QR Code focused border:
+        'qrcodeWinFBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # QR Code title: NOTE: Not used.
+        'qrcodeWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
+        # QR COde focused title:
+        'qrcodeWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
+        # QRCODE text:
+        'qrcodeText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
 
         # MENU BAR COLOUR ATTRIBUTES:
         # Menu bar background spaces:
@@ -425,6 +488,8 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         'verWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'qrcodeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
 
         'fileMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
                                 'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
@@ -444,6 +509,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'switchWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'linkWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'regWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'fileMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'acctMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
@@ -459,8 +525,6 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'contWinFBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': True},
         'contWinTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': False},
         'contWinFTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': True},
-        'contNameUnsel': {'fg': 7, 'bg': 238, 'bold': False, 'underline': False, 'reverse': False},
-        'contNameSel': {'fg': 7, 'bg': 238, 'bold': False, 'underline': True, 'reverse': True},
         'msgsWin': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
         'msgsWinBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
         'msgsWinFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': True},
@@ -496,6 +560,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'linkWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'linkWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'linkWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+        'linkWinText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'regWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'regWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'regWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
@@ -516,6 +581,17 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'verWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'verWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'verWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+        'genMsgWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'genMsgWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
+        'genMsgWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
+        'genMsgWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
+        'genMsgWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+        'qrcodeWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinBorder': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinFBorder': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
+        'qrcodeWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
+        'qrcodeText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'menuBG': {'fg': 7, 'bg': 236, 'bold': False, 'underline': False, 'reverse': False},
         'menuSel': {'fg': 7, 'bg': 0, 'bold': True, 'underline': False, 'reverse': True},
         'menuSelAccel': {'fg': 7, 'bg': 0, 'bold': True, 'underline': True, 'reverse': True},
@@ -544,21 +620,24 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
 # Primary Keys:
 _ATTRIBUTE_PRIMARY_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle', 'contWin', 'contWinBorder',
                                       'contWinTitle', 'msgsWin', 'msgsWinBorder', 'msgsWinTitle', 'typeWin',
-                                      'typeWinBorder', 'typeWinTitle', 'contNameUnsel', 'contNameSel',
-                                      'mainWinFBorder', 'msgsWinFBorder', 'contWinFBorder', 'typeWinFBorder',
-                                      'mainWinFTitle', 'contWinFTitle', 'msgsWinFTitle', 'typeWinFTitle',
-                                      'menuBG', 'statusBG', 'menuSel', 'menuSelAccel', 'menuUnsel', 'menuUnselAccel',
-                                      'fileMenuBorder', 'acctMenuBorder', 'helpMenuBorder', 'setWin', 'setWinBorder',
-                                      'setWinFBorder', 'setWinTitle', 'setWinFTitle', 'quitWin', 'quitWinBorder',
-                                      'quitWinFBorder', 'quitWinTitle', 'quitWinFTitle', 'switchWin', 'switchWinBorder',
-                                      'switchWinFBorder', 'switchWinTitle', 'switchWinFTitle', 'linkWin',
-                                      'linkWinBorder', 'linkWinFBorder', 'linkWinTitle', 'linkWinFTitle', 'regWin',
-                                      'regWinBorder', 'regWinFBorder', 'regWinTitle', 'regWinFTitle', 'keysWin',
-                                      'keysWinBorder', 'keysWinFBorder', 'keysWinTitle', 'keysWinTitle', 'aboutWin',
-                                      'aboutWinBorder', 'aboutWinFBorder', 'aboutWinTitle', 'aboutWinFTitle', 'verWin',
-                                      'verWinBorder', 'verWinFBorder', 'verWinTitle', 'verWinFTitle', 'quitWinText',
-                                      'quitWinSelText', 'quitWinSelAccelText', 'quitWinUnselText',
-                                      'quitWinUnselAccelText', 'mainWinErrorText',
+                                      'typeWinBorder', 'typeWinTitle', 'mainWinFBorder', 'msgsWinFBorder',
+                                      'contWinFBorder', 'typeWinFBorder', 'mainWinFTitle', 'contWinFTitle',
+                                      'msgsWinFTitle', 'typeWinFTitle', 'menuBG', 'statusBG', 'menuSel', 'menuSelAccel',
+                                      'menuUnsel', 'menuUnselAccel', 'fileMenuBorder', 'acctMenuBorder',
+                                      'helpMenuBorder', 'setWin', 'setWinBorder', 'setWinFBorder', 'setWinTitle',
+                                      'setWinFTitle', 'quitWin', 'quitWinBorder', 'quitWinFBorder', 'quitWinTitle',
+                                      'quitWinFTitle', 'switchWin', 'switchWinBorder', 'switchWinFBorder',
+                                      'switchWinTitle', 'switchWinFTitle', 'linkWin', 'linkWinBorder', 'linkWinFBorder',
+                                      'linkWinTitle', 'linkWinFTitle', 'regWin', 'regWinBorder', 'regWinFBorder',
+                                      'regWinTitle', 'regWinFTitle', 'keysWin', 'keysWinBorder', 'keysWinFBorder',
+                                      'keysWinTitle', 'keysWinTitle', 'aboutWin', 'aboutWinBorder', 'aboutWinFBorder',
+                                      'aboutWinTitle', 'aboutWinFTitle', 'verWin', 'verWinBorder', 'verWinFBorder',
+                                      'verWinTitle', 'verWinFTitle', 'quitWinText', 'quitWinSelText',
+                                      'quitWinSelAccelText', 'quitWinUnselText', 'quitWinUnselAccelText',
+                                      'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder', 'genMsgWinFBorder',
+                                      'genMsgWinTitle', 'genMsgWinFTitle', 'qrcodeWin', 'qrcodeWinBorder',
+                                      'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle', 'linkWinText',
+                                      'qrcodeText'
                                       ]
 """Primary attribute theme keys."""
 
@@ -566,8 +645,10 @@ _TITLE_CHAR_PRIMARY_KEYS: list[str] = ['mainWinTitleChars', 'contWinTitleChars',
                                        'typeWinTitleChars', 'setWinTitleChars', 'quitWinTitleChars',
                                        'keysWinTitleChars', 'aboutWinTitleChars', 'verWinTitleChars',
                                        'switchWinTitleChars', 'linkWinTitleChars', 'regWinTitleChars',
+                                       'qrcodeWinTitleChars',
                                        ]
 """Title characters primary keys."""
+
 _MENU_SEL_PRIMARY_KEYS: list[str] = ['menuSelChars', 'fileMenuSelChars', 'acctMenuSelChars', 'helpMenuSelChars']
 """Menu selection primary keys."""
 
@@ -575,16 +656,20 @@ _BORDER_PRIMARY_KEYS: list[str] = ['mainBorderChars', 'contWinBorderChars', 'msg
                                    'fileMenuBorderChars', 'acctMenuBorderChars', 'helpMenuBorderChars',
                                    'setWinBorderChars', 'quitWinBorderChars', 'switchWinBorderChars',
                                    'keysWinBorderChars', 'verWinBorderChars', 'linkWinBorderChars', 'regWinBorderChars',
+                                   'qrcodeWinBorderChars',
                                    ]
 """Keys with border strings."""
 
 # Sub keys:
 _ATTR_KEYS: list[str] = ['fg', 'bg', 'bold', 'underline', 'reverse']
 """Attribute keys."""
+
 _BORDER_CHAR_KEYS: list[str] = ['ts', 'bs', 'ls', 'rs', 'tl', 'tr', 'bl', 'br']
 """Border character keys."""
+
 _TITLE_CHAR_KEYS: list[str] = ['start', 'end']
 """Title character keys."""
+
 _MENU_SEL_CHAR_KEYS: list[str] = ['leadSel', 'leadUnsel', 'tailSel', 'tailUnsel']
 """Menu selection indicator character keys."""
 
@@ -763,6 +848,7 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.LINK_WIN_FOCUS_BORDER, theme['linkWinFBorder']['fg'], theme['linkWinFBorder']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_TITLE, theme['linkWinTitle']['fg'], theme['linkWinTitle']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_FOCUS_TITLE, theme['linkWinFTitle']['fg'], theme['linkWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.LINK_WIN_TEXT, theme['linkWinText']['fg'], theme['linkWinText']['bg'])
 
     curses.init_pair(ThemeColours.REGISTER_WIN, theme['regWin']['fg'], theme['regWin']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_BORDER, theme['regWinBorder']['fg'], theme['regWinBorder']['bg'])
@@ -787,5 +873,23 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.VERSION_WIN_BORDER, theme['verWinBorder']['fg'], theme['verWinBorder']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_TITLE, theme['verWinTitle']['fg'], theme['verWinTitle']['bg'])
     curses.init_pair(ThemeColours.VERSION_FOCUS_TITLE, theme['verWinFTitle']['fg'], theme['verWinFTitle']['bg'])
-    return
 
+    curses.init_pair(ThemeColours.GEN_MESSAGE_WIN, theme['genMsgWin']['fg'], theme['genMsgWin']['bg'])
+    curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_BORDER, theme['genMsgWinBorder']['fg'],
+                     theme['genMsgWinBorder']['bg'])
+    curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_FOCUS_BORDER, theme['genMsgWinFBorder']['fg'],
+                     theme['genMsgWinFBorder']['bg'])
+    curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_TITLE, theme['genMsgWinTitle']['fg'], theme['genMsgWinTitle']['bg'])
+    curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_FOCUS_TITLE, theme['genMsgWinFTitle']['fg'],
+                     theme['genMsgWinFTitle']['bg'])
+
+    curses.init_pair(ThemeColours.QRCODE_WIN, theme['qrcodeWin']['fg'], theme['qrcodeWin']['bg'])
+    curses.init_pair(ThemeColours.QRCODE_WIN_BORDER, theme['qrcodeWinBorder']['fg'], theme['qrcodeWinBorder']['bg'])
+    curses.init_pair(ThemeColours.QRCODE_WIN_FOCUS_BORDER, theme['qrcodeWinFBorder']['fg'],
+                     theme['qrcodeWinFBorder']['bg'])
+    curses.init_pair(ThemeColours.QRCODE_WIN_TITLE, theme['qrcodeWinTitle']['fg'], theme['qrcodeWinTitle']['bg'])
+    curses.init_pair(ThemeColours.QRCODE_WIN_FOCUS_TITLE, theme['qrcodeWinFTitle']['fg'],
+                     theme['qrcodeWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.QRCODE_TEXT, theme['qrcodeText']['fg'], theme['qrcodeText']['bg'])
+
+    return

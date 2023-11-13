@@ -16,14 +16,14 @@ class AccountsMenu(Menu):
     Handle the account menu.
     """
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]],
                  callbacks: dict[str, tuple[Optional[Callable], Optional[Any]]],
                  ) -> None:
         """
         Initialize the account menu.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param top_left: tuple[int, int]: The top left corner of the menu.
         :param theme: dict[str, dict[str, int | bool | str]]: The theme currently in use.
         """
@@ -48,7 +48,7 @@ class AccountsMenu(Menu):
         # Create switch account menu item:
         switch_label: str = STRINGS['acctMenuNames']['switch']
         switch_bg_char: str = STRINGS['background']['switchMenu']
-        switch_menu_item: MenuItem = MenuItem(window=window,
+        switch_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                               width=size[COLS] - 2,
                                               top_left=(top_left[ROW] + 1, top_left[COL] + 1),
                                               label=switch_label,
@@ -65,7 +65,7 @@ class AccountsMenu(Menu):
                                               )
         link_label: str = STRINGS['acctMenuNames']['link']
         link_bg_char: str = STRINGS['background']['linkMenu']
-        link_menu_item: MenuItem = MenuItem(window=window,
+        link_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                             width=size[COLS] - 2,
                                             top_left=(top_left[ROW] + 2, top_left[COL] + 1),
                                             label=link_label,
@@ -82,7 +82,7 @@ class AccountsMenu(Menu):
                                             )
         register_label: str = STRINGS['acctMenuNames']['register']
         register_bg_char: str = STRINGS['background']['registerMenu']
-        register_menu_item: MenuItem = MenuItem(window=window,
+        register_menu_item: MenuItem = MenuItem(std_screen=std_screen,
                                                 width=size[COLS] - 2,
                                                 top_left=(top_left[ROW] + 3, top_left[COL] + 1),
                                                 label=register_label,
@@ -100,7 +100,7 @@ class AccountsMenu(Menu):
         menu_items: list[MenuItem] = [switch_menu_item, link_menu_item, register_menu_item]
 
         # Call super:
-        Menu.__init__(self, window, size, top_left, menu_items, border_chars, border_attrs)
+        Menu.__init__(self, std_screen, size, top_left, menu_items, border_chars, border_attrs)
 
         # Internal Properties:
         self._selection = AccountsMenuSelection.SWITCH

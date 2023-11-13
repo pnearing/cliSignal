@@ -18,7 +18,7 @@ class MenuBarItem(object):
 # Initialize:
 #################################
     def __init__(self,
-                 window: curses.window,
+                 std_screen: curses.window,
                  top_left: tuple[int, int],
                  label: str,
                  sel_attrs: int,
@@ -34,7 +34,7 @@ class MenuBarItem(object):
                  ) -> None:
         """
         Initialize a menu item.
-        :param window: curses.window: The window to draw on.
+        :param std_screen: curses.window: The window to draw on.
         :param top_left: tuple[int, int]: The top left corner of this menu item.
         :param label: str: The text of the menu item.
         :param sel_attrs: int: The attributes to use when selected.
@@ -51,7 +51,7 @@ class MenuBarItem(object):
         # Super:
         object.__init__(self)
         # Private properties
-        self._window: curses.window = window
+        self._std_screen: curses.window = std_screen
         """The curses window object to draw on."""
         self._sel_attrs: int = sel_attrs
         """The attributes to use when this item is selected."""
@@ -98,10 +98,20 @@ class MenuBarItem(object):
         """
         return_value: Optional[Any] = None
         if self._callback[CB_CALLABLE] is not None:
-            if self._callback[CB_PARAM] is not None:
-                return_value = self._callback[CB_CALLABLE](state, self._window, self._callback[CB_PARAM])
-            else:
-                return_value = self._callback[CB_CALLABLE](state, self._window)
+            try:
+                if self._callback[CB_PARAM] is not None:
+                    return_value = self._callback[CB_CALLABLE](state, self._std_screen, self._callback[CB_PARAM])
+                else:
+                    return_value = self._callback[CB_CALLABLE](state, self._std_screen)
+            except TypeError as e:
+                warning_message: str = "Callback not callable[%s]: TypeError: %s" % (self._callback.__name__, e.args[0])
+                warn(warning_message, RuntimeWarning)
+            except Exception as e:
+                warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
+                warn(warning_message, RuntimeWarning)
+                raise e
+            except KeyboardInterrupt as e:  # Catch and re-raise keyboard interrupt for quit.
+                raise e
         return return_value
 
 #################################
@@ -113,25 +123,25 @@ class MenuBarItem(object):
         :return: None
         """
         # Move the cursor to the top left corner:
-        self._window.move(self.top_left[ROW], self.top_left[COL])
+        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
 
         # Write the leading indicator character:
         if self.is_selected:
-            self._window.addstr(self._sel_lead_indicator, self._sel_attrs)
+            self._std_screen.addstr(self._sel_lead_indicator, self._sel_attrs)
         else:
-            self._window.addstr(self._unsel_lead_indicator, self._unsel_attrs)
+            self._std_screen.addstr(self._unsel_lead_indicator, self._unsel_attrs)
 
         # Write the label, parsing the _ as accel indicator start / stop char.
         if self.is_selected:
-            add_accel_text(self._window, self.label, self._sel_attrs, self._sel_accel_attrs)
+            add_accel_text(self._std_screen, self.label, self._sel_attrs, self._sel_accel_attrs)
         else:
-            add_accel_text(self._window, self.label, self._unsel_attrs, self._unsel_accel_attrs)
+            add_accel_text(self._std_screen, self.label, self._unsel_attrs, self._unsel_accel_attrs)
 
         # Add the trailing selection indicator:
         if self.is_selected:
-            self._window.addstr(self._sel_tail_indicator, self._sel_attrs)
+            self._std_screen.addstr(self._sel_tail_indicator, self._sel_attrs)
         else:
-            self._window.addstr(self._unsel_tail_indicator, self._unsel_attrs)
+            self._std_screen.addstr(self._unsel_tail_indicator, self._unsel_attrs)
 
         # If the menu is active, redraw it:
         if self.is_activated:
@@ -204,3 +214,11 @@ class MenuBarItem(object):
         self._is_activated = value
         self.menu.is_activated = value
         return
+
+    @property
+    def std_screen(self) -> curses.window:
+        """
+        The std screen curses.window object.
+        :return: curses.window: The std screen.
+        """
+        return self._std_screen
