@@ -61,7 +61,8 @@ class AccountsMenu(Menu):
                                               unsel_accel_attrs=unsel_accel_attrs,
                                               unsel_lead_indicator=unsel_lead_indicator,
                                               unsel_tail_indicator=unsel_tail_indicator,
-                                              callback=callbacks['switch']
+                                              callback=callbacks['switch'],
+                                              char_codes=[ord('S'), ord('s')],
                                               )
         link_label: str = STRINGS['acctMenuNames']['link']
         link_bg_char: str = STRINGS['background']['linkMenu']
@@ -78,7 +79,8 @@ class AccountsMenu(Menu):
                                             unsel_accel_attrs=unsel_accel_attrs,
                                             unsel_lead_indicator=unsel_lead_indicator,
                                             unsel_tail_indicator=unsel_tail_indicator,
-                                            callback=callbacks['link']
+                                            callback=callbacks['link'],
+                                            char_codes=[ord('L'), ord('l')],
                                             )
         register_label: str = STRINGS['acctMenuNames']['register']
         register_bg_char: str = STRINGS['background']['registerMenu']
@@ -95,7 +97,8 @@ class AccountsMenu(Menu):
                                                 unsel_accel_attrs=unsel_accel_attrs,
                                                 unsel_lead_indicator=unsel_lead_indicator,
                                                 unsel_tail_indicator=unsel_tail_indicator,
-                                                callback=callbacks['register']
+                                                callback=callbacks['register'],
+                                                char_codes=[ord('R'), ord('r')],
                                                 )
         menu_items: list[MenuItem] = [switch_menu_item, link_menu_item, register_menu_item]
 

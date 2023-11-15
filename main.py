@@ -21,6 +21,7 @@ import prettyPrint
 from prettyPrint import print_coloured, print_info, print_error, print_debug
 from terminal import Colours
 import logging
+import socket
 
 
 #########################################
@@ -62,11 +63,13 @@ _CLI_SIGNAL_CONFIG_FILE_PATH: Final[str] = os.path.join(_WORKING_DIR, _CONFIG_FI
 """The full path to the cliSignal config file."""
 _CLI_SIGNAL_LOG_PATH: Final[str] = os.path.join(_WORKING_DIR, _CLI_SIGNAL_LOG_FILE_NAME)
 """The full path to the cliSignal log file."""
+_HOST_NAME: Final[str] = socket.gethostname()
+"""The host name of the computer running cliSignal."""
+_DEVICE_NAME: Final[str] = _HOST_NAME + '-cliSignal'
 
 #########################################
 # Vars:
 #########################################
-# _CURRENT_FOCUS: Focus = Focus.MAIN
 _CURRENT_FOCUS: Focus = Focus.MENU_BAR
 """The currently focused window."""
 _FOCUS_WINDOWS: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow, MenuBar] = ()
@@ -151,7 +154,7 @@ def accounts_menu_link_cb(status: str,
     :return: None
     """
     # Set vars:
-    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
+    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _DEVICE_NAME
     link_window: LinkWindow = _MAIN_WINDOW.link_window
     qr_window: QRCodeWindow = _MAIN_WINDOW.qr_window
 
@@ -163,7 +166,7 @@ def accounts_menu_link_cb(status: str,
     _MAIN_WINDOW.redraw()
     # std_screen.refresh()
 
-    link, qr_code, _ = signal_cli.start_link_account()
+    link, qr_code, _ = signal_cli.start_link_account(_DEVICE_NAME)
     # remove extra lines on qr-code:
     qr_list: list[str] = qr_code.splitlines(keepends=False)[1:-2]
     for i, line in enumerate(qr_list):
@@ -365,7 +368,7 @@ def parse_mouse(mouse_pos: tuple[int, int], button_state: int) -> None:
     :param button_state: int: The current button state.
     :return: None
     """
-    global _CURRENT_FOCUS, _FOCUS_WINDOWS
+    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
     # Set the window focus:
     _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
     if _FOCUS_WINDOWS[Focus.CONTACTS].is_mouse_over(mouse_pos):
@@ -376,6 +379,9 @@ def parse_mouse(mouse_pos: tuple[int, int], button_state: int) -> None:
         _CURRENT_FOCUS = Focus.TYPING
     elif _FOCUS_WINDOWS[Focus.MENU_BAR].is_mouse_over(mouse_pos):
         _CURRENT_FOCUS = Focus.MENU_BAR
+        menu_bar: MenuBar = _FOCUS_WINDOWS[Focus.MENU_BAR]
+        menu_bar.process_mouse(mouse_pos, button_state)
+        _MAIN_WINDOW.redraw()
     _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
     # TODO: Process button state.
     return
@@ -422,19 +428,18 @@ def dec_focus() -> None:
 #########################################
 def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
     global _DEBUG, _VERBOSE, _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _RESIZING, _EXIT_ERROR
-    # Setup extended key codes, and turn off the cursor:
+
+    # Setup extended key codes; And turn off the cursor:
     std_screen.keypad(True)
     curses.curs_set(False)
 
-    # Setup the mouse:
+    # Set up the mouse:
     reset_mouse_mask: Optional[int] = None
     if common.SETTINGS['useMouse']:
         out_info("Starting mouse support.")
         # Tell the terminal to report mouse movement.
         out_debug("Sending terminal control characters...")
         print('\033[?1003h', end='', flush=True)
-        if _DEBUG:
-            curses.beep()
         # Set the curses mouse mask:
         out_debug('Setting mouse mask...')
         response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
@@ -446,7 +451,7 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
             out_debug("Setting mouse mask success.")
             reset_mouse_mask = response[1]
 
-    # Setup colour pairs according to theme:
+    # Set up colour pairs according to theme:
     if not curses.has_extended_color_support():
         message: str = "Terminal must have 256 colour support."
         out_error(message)
@@ -506,7 +511,8 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
     # Set visible status items:
     if _DEBUG:
         main_window.status_bar.is_char_code_visible = True
-
+        if common.SETTINGS['useMouse']:
+            main_window.status_bar.is_mouse_visible = True
     # Draw the window for the first time:
     main_window.redraw()
 
@@ -522,9 +528,10 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
                     do_resize(main_window)
                     continue
                 elif char_code == curses.KEY_MOUSE:  # Mouse move / button hit:
-                    _, mouse_col, mouse_row, _, button_state = curses.getmouse()
-                    mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
                     if common.SETTINGS['useMouse']:
+                        _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+                        mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
+                        main_window.status_bar.mouse_pos = mouse_pos
                         parse_mouse(mouse_pos, button_state)
                     continue
 

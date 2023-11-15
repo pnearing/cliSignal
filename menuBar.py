@@ -85,7 +85,8 @@ class MenuBar(Bar):
                                      unsel_lead_indicator=unsel_lead_indicator,
                                      unsel_tail_indicator=unsel_tail_indicator,
                                      menu=file_menu,
-                                     callback=callbacks['main']['file']
+                                     callback=callbacks['main']['file'],
+                                     selection=MenuBarSelections.FILE
                                      )
         # Accounts menu:
         acct_menu_item_top_left: tuple[int, int] = (top_left[ROW],
@@ -109,7 +110,8 @@ class MenuBar(Bar):
                                      unsel_lead_indicator=unsel_lead_indicator,
                                      unsel_tail_indicator=unsel_tail_indicator,
                                      menu=acct_menu,
-                                     callback=callbacks['main']['accounts']
+                                     callback=callbacks['main']['accounts'],
+                                     selection=MenuBarSelections.ACCOUNTS
                                      )
         # Help menu:
         help_menu_item_top_left: tuple[int, int] = (top_left[ROW],
@@ -133,7 +135,8 @@ class MenuBar(Bar):
                                      unsel_lead_indicator=unsel_lead_indicator,
                                      unsel_tail_indicator=unsel_tail_indicator,
                                      menu=help_menu,
-                                     callback=callbacks['main']['help']
+                                     callback=callbacks['main']['help'],
+                                     selection=MenuBarSelections.HELP
                                      )
 
         # Build the menu item list:
@@ -193,9 +196,6 @@ class MenuBar(Bar):
             if isinstance(handled, bool):
                 return handled
 
-        self._std_screen.addstr(11, 10, str(char_code))
-        self._std_screen.refresh()
-
         if char_code in KEYS_ENTER:  # ENTER key / keypad ENTER key.
             if self.selection is not None:
                 self.menu_bar_items[self.selection].activate()
@@ -226,6 +226,38 @@ class MenuBar(Bar):
             return True
         # Character wasn't handled:
         return False
+
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> None:
+        """
+        Process the mouse when the mouse is over the menu bar.
+        :param mouse_pos: tuple[int, int]: The current mouse position.
+        :param button_state: int: The buttons pressed or not.
+        :return: None
+        """
+        if self.is_menu_activated:
+            if self._active_menu.is_mouse_over(mouse_pos):
+                handled: bool = self._active_menu.process_mouse(mouse_pos, button_state)
+                if handled:
+                    return
+        if button_state & curses.BUTTON1_CLICKED != 0 or button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
+            # Check if the click is over the menu bar:
+            for menu_bar_item in self.menu_bar_items:
+                if menu_bar_item.is_mouse_over(mouse_pos):
+                    if self.is_menu_activated and self.selection is not None:
+                        self.menu_bar_items[self.selection].deactivate()
+                    self.selection = menu_bar_item.selection
+                    if self._active_menu == menu_bar_item.menu:
+                        menu_bar_item.deactivate()
+                        self._active_menu = None
+                        self.selection = menu_bar_item.selection
+                    else:
+                        menu_bar_item.activate()
+                        self._active_menu = menu_bar_item.menu
+                    return
+            # if self.is_menu_activated:
+
+
+        return
 
     ###################################
     # Properties:

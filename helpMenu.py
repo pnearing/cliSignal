@@ -59,7 +59,8 @@ class HelpMenu(Menu):
                                                 unsel_accel_attrs=unsel_accel_attrs,
                                                 unsel_lead_indicator=unsel_lead_indicator,
                                                 unsel_tail_indicator=unsel_tail_indicator,
-                                                callback=callbacks['shortcuts']
+                                                callback=callbacks['shortcuts'],
+                                                char_codes=[ord('S'), ord('s')],
                                                 )
         about_label: str = STRINGS['helpMenuNames']['about']
         about_bg_char: str = STRINGS['background']['aboutMenu']
@@ -76,7 +77,8 @@ class HelpMenu(Menu):
                                              unsel_accel_attrs=unsel_accel_attrs,
                                              unsel_lead_indicator=unsel_lead_indicator,
                                              unsel_tail_indicator=unsel_tail_indicator,
-                                             callback=callbacks['about']
+                                             callback=callbacks['about'],
+                                             char_codes=[ord('A'), ord('a')],
                                              )
         version_label: str = STRINGS['helpMenuNames']['version']
         version_bg_char: str = STRINGS['background']['versionMenu']
@@ -93,7 +95,8 @@ class HelpMenu(Menu):
                                                unsel_accel_attrs=unsel_accel_attrs,
                                                unsel_lead_indicator=unsel_lead_indicator,
                                                unsel_tail_indicator=unsel_tail_indicator,
-                                               callback=callbacks['version']
+                                               callback=callbacks['version'],
+                                               char_codes=[ord('V'), ord('v')]
                                                )
 
         menu_items: list[MenuItem] = [shortcut_menu_item, about_menu_item, version_menu_item]

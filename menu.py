@@ -71,10 +71,19 @@ class Menu(object):
         self._max_selection: Optional[int] = None
 
         # External properties:
-        self.size: tuple[int, int] = size
-        """The size of the menu."""
-        self.top_left: tuple[int, int] = top_left
-        """The top left corner of this menu."""
+        self.real_size: tuple[int, int] = size
+        """The real size of the menu."""
+        self.size: tuple[int, int] = (size[ROWS] - 2, size[COLS] - 2)
+        """The drawable size of the menu."""
+        self.real_top_left: tuple[int, int] = top_left
+        """The real top left corner of this menu."""
+        self.top_left: tuple[int, int] = (top_left[ROW] + 1, top_left[COL] + 1)
+        """The effective top left corner of this menu."""
+        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[ROWS],
+                                                   self.real_top_left[COL] + self.real_size[COLS])
+        """The real bottom right corner of this menu."""
+        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[ROW], self.top_left[COL] + self.size[COL])
+        """The effective bottom right corner of this menu."""
         self.is_visible: bool = False
         """Is this menu visible?"""
         return
@@ -93,8 +102,8 @@ class Menu(object):
         draw_border_on_win(window=self._std_screen, border_attrs=self._border_attrs,
                            ts=self._border_chars['ts'], bs=self._border_chars['bs'], ls=self._border_chars['ls'],
                            rs=self._border_chars['rs'], tl=self._border_chars['tl'], tr=self._border_chars['tr'],
-                           bl=self._border_chars['bl'], br=self._border_chars['br'], size=self.size,
-                           top_left=self.top_left)
+                           bl=self._border_chars['bl'], br=self._border_chars['br'], size=self.real_size,
+                           top_left=self.real_top_left)
         # Draw the menu items:
         for menu_item in self._menu_items:
             menu_item.redraw()
@@ -130,18 +139,48 @@ class Menu(object):
         :return: bool: True, character handled, False, it was not handled and menuBar shouldn't process it, None it was
             not handled and menuBar should handle it.
         """
+        # Check that an accelerator was pressed:
+        for menu_item in self._menu_items:
+            if char_code in menu_item.char_codes:
+                self.is_activated = False
+                menu_item.activate()
+                return True
         if char_code in KEYS_ENTER:
             self.is_activated = False
             self._menu_items[self.selection].activate()
+            return True
         elif char_code == curses.KEY_UP:
             self.dec_selection()
+            return True
         elif char_code == curses.KEY_DOWN:
             self.inc_selection()
-        elif char_code in (KEY_ESC, KEY_BACKSPACE):
-            return None
-        elif char_code in (curses.KEY_LEFT, curses.KEY_RIGHT):
-            return None
+            return True
         return None
+
+    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+        """
+        Is the mouse over this menu:
+        :param mouse_pos: tuple[int, int]: The current mouse position: (ROW, COL).
+        :return: bool: True if the mouse is over this menu, False it is not.
+        """
+        if (self.top_left[ROW]) <= mouse_pos[ROW] <= (self.bottom_right[ROW]):
+            if (self.top_left[COL]) <= mouse_pos[COL] <= (self.bottom_right[COL]):
+                return True
+        return False
+
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
+        """
+        Process the mouse state.
+        :param mouse_pos: tuple[int, int]: The current mouse position.
+        :param button_state: int: The current button state.
+        :return: bool: True, the mouse event has been handled, False it has not.
+        """
+        if button_state & curses.BUTTON1_CLICKED != 0 or button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
+            for menu_item in self._menu_items:
+                if menu_item.is_mouse_over(mouse_pos):
+                    menu_item.activate()
+                    return True
+        return False
 
 ########################################
 # Properties:

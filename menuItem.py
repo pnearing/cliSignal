@@ -28,6 +28,7 @@ class MenuItem(object):
                  unsel_lead_indicator: str,
                  unsel_tail_indicator: str,
                  callback: tuple[Optional[Callable], Optional[list[Any]]],
+                 char_codes: list[int],
                  ) -> None:
         """
         Initialize a single menu item.
@@ -45,6 +46,7 @@ class MenuItem(object):
         :param unsel_lead_indicator: str: The character to add before the label when unselected.
         :param unsel_tail_indicator: str: The character to add after the label when unselected.
         :param callback: Callable: The callback to call for this menu item.
+        :param char_codes: list[int]: The character codes of the accelerator for this menu item.
         """
         # Internal properties:
         self._std_screen: curses.window = std_screen
@@ -77,8 +79,14 @@ class MenuItem(object):
         """Top left corner of this menu item."""
         self.width: int = width
         """Width of this menu item."""
+        self.size: tuple[int, int] = (1, self.width)
+        """The size of this menu item."""
+        self.bottom_right: tuple[int, int] = (top_left[ROW], top_left[COL] + self.width)
+        """The bottom right of this menu item."""
         self.label: str = label
         """The label with accel indicators."""
+        self.char_codes: list[int] = char_codes
+        """The character codes this menu item should react to."""
         return
 
 #######################################
@@ -154,6 +162,17 @@ class MenuItem(object):
         """
         self._run_callback(CallbackStates.ACTIVATED.value)
         return
+
+    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+        """
+        Is the mouse over this menu item?
+        :param mouse_pos: tuple[int, int]: The current mouse position: (ROW, COL)
+        :return: bool: True if the mouse is over this menu item, False it is not.
+        """
+        if mouse_pos[ROW] == self.top_left[ROW]:
+            if self.top_left[COL] <= mouse_pos[COL] <= self.bottom_right[COL]:
+                return True
+        return False
 
 #######################################
 # Properties:

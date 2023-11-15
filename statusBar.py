@@ -8,6 +8,7 @@ import curses
 from themes import ThemeColours
 from common import ROW, COL, calc_attributes, STRINGS
 from bar import Bar
+from typeError import __type_error__
 
 
 class StatusBar(Bar):
@@ -29,13 +30,19 @@ class StatusBar(Bar):
         """
         empty_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG'])
         bg_char: str = STRINGS['background']['statusBar']
+
         Bar.__init__(self, std_screen, width, top_left, empty_attrs, bg_char)
+        # Status indicator attrs:
+        self._char_code_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_CC, theme['statusCC'])
+        self._mouse_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_MOUSE, theme['statusMouse'])
 
         # Status indicator show / hide properties:
         self.is_char_code_visible: bool = False
+        self.is_mouse_visible: bool = False
 
         # Status indicator values to show:
         self._char_code: int = -1
+        self._mouse_pos: tuple[int, int] = (-1, -1)
         return
 
     def redraw(self) -> None:
@@ -48,7 +55,9 @@ class StatusBar(Bar):
         super().redraw()
         self._std_screen.move(self.top_left[ROW], self.top_left[COL])
         if self.is_char_code_visible:
-            self._std_screen.addstr("-CharCode:%i-" % self.char_code, self._bg_attrs)
+            self._std_screen.addstr("-\U0001f5ae:%i-" % self.char_code, self._char_code_attrs)
+        if self.is_mouse_visible:
+            self._std_screen.addstr("-\U0001f5b1(R,C):%s-" % str(self.mouse_pos), self._mouse_attrs)
         self._std_screen.refresh()
         return
 
@@ -71,6 +80,40 @@ class StatusBar(Bar):
         :param value: int: The value to set the char code to.
         :return: None
         """
+        if not isinstance(value, int):
+            raise __type_error__('value', 'int', value)
+        old_value = self._char_code
         self._char_code = value
-        self.redraw()
+        if old_value != value:
+            self.redraw()
+        return
+
+    @property
+    def mouse_pos(self) -> tuple[int, int]:
+        """
+        Mouse position.
+        :return: tuple[int, int]: Mouse position in (ROW, COL) format.
+        """
+        return self._mouse_pos
+
+    @mouse_pos.setter
+    def mouse_pos(self, value):
+        """
+        Mouse position
+        Setter.
+        :param value: tuple[int, int]: The position to set to: (ROW, COL).
+        :return: None
+        """
+        if not isinstance(value, tuple):
+            __type_error__('value', 'tuple[int, int]', value)
+        elif len(value) != 2:
+            raise ValueError("value must have only 2 elements.")
+        elif not isinstance(value[0], int):
+            __type_error__('value[0]', 'int', value[0])
+        elif not isinstance(value[1], int):
+            __type_error__('value[1]', 'int', value[1])
+        old_value = self._mouse_pos
+        self._mouse_pos = value
+        if old_value != value:
+            self.redraw()
         return

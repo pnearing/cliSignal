@@ -65,7 +65,8 @@ class FileMenu(Menu):
                                                 unsel_accel_attrs=unsel_accel_attrs,
                                                 unsel_lead_indicator=unsel_lead_indicator,
                                                 unsel_tail_indicator=unsel_tail_indicator,
-                                                callback=callbacks['settings']
+                                                callback=callbacks['settings'],
+                                                char_codes=[ord('S'), ord('s')],
                                                 )
         quit_label: str = STRINGS['fileMenuNames']['quit']
         quit_bg_char: str = STRINGS['background']['quitMenu']
@@ -83,6 +84,7 @@ class FileMenu(Menu):
                                             unsel_lead_indicator=unsel_lead_indicator,
                                             unsel_tail_indicator=unsel_tail_indicator,
                                             callback=callbacks['quit'],
+                                            char_codes=[ord('Q'), ord('q')],
                                             )
         menu_items: list[MenuItem] = [settings_menu_item, quit_menu_item]
 

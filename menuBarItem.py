@@ -31,6 +31,7 @@ class MenuBarItem(object):
                  unsel_tail_indicator: str,
                  menu: FileMenu | AccountsMenu | HelpMenu,
                  callback: tuple[Optional[Callable], Optional[list[Any]]],
+                 selection: int,
                  ) -> None:
         """
         Initialize a menu item.
@@ -47,6 +48,7 @@ class MenuBarItem(object):
         :param unsel_tail_indicator: str The string to append to the end of the label when unselected.
         :param menu: FileMenu | AccountsMenu | HelpMenu: The menu this item holds.
         :param callback: Optional[Callable]: The call back to call when activated.
+        :param selection: int: The selection int representation; One of MenuBarSelections.
         """
         # Super:
         object.__init__(self)
@@ -83,8 +85,14 @@ class MenuBarItem(object):
         """This items top left corner."""
         self.width: int = len(label)  # This is 2 chars longer than the actual width of the title due to accel chars.
         """This items actual width, including leading and trailing spaces."""
+        self.size: tuple[int, int] = (1, self.width)
+        """The size of this item in ROW, COL format."""
+        self.bottom_right: tuple[int, int] = (top_left[ROW], top_left[COL] + self.width)
+        """The bottom right of this menu item."""
         self.label: str = label
         """The label to display."""
+        self.selection: int = selection
+        """The selection of this menu bar item."""
         return
 
 #################################
@@ -163,6 +171,17 @@ class MenuBarItem(object):
         self._run_callback(CallbackStates.DEACTIVATED.value)
         self.menu.is_activated = False
         return
+
+    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+        """
+        Return True if the mouse is over this menu item.
+        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :return: bool: True if the mouse is over this menu bar item, False it is not.
+        """
+        if mouse_pos[ROW] == self.top_left[ROW]:
+            if self.top_left[COL] <= mouse_pos[COL] <= self.bottom_right[COL]:
+                return True
+        return False
 
 #################################
 # Properties:

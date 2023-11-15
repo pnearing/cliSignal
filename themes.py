@@ -38,12 +38,14 @@ class ThemeColours(IntEnum):
     TYPING_WIN_FOCUS_TITLE = auto()
 
     MENU_BAR_EMPTY = auto()
-    STATUS_BAR_EMPTY = auto()
-
     MENU_UNSEL = auto()
     MENU_SEL = auto()
     MENU_UNSEL_ACCEL = auto()
     MENU_SEL_ACCEL = auto()
+
+    STATUS_BAR_EMPTY = auto()
+    STATUS_BAR_CC = auto()
+    STATUS_BAR_MOUSE = auto()
 
     FILE_MENU_BORDER = auto()
     FILE_MENU_SEL = auto()
@@ -424,6 +426,10 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # STATUS BAR COLOUR ATTRIBUTES:
         # Status bar background spaces:
         'statusBG': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Status bar character code:
+        'statusCC': {'fg': 16, 'bg': 220, 'bold': False, 'underline': False, 'reverse': False},
+        # Status bar mouse info:
+        'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': False, 'reverse': False},
 
         # FILE MENU COLOUR ATTRIBUTES:
         # File menu border:
@@ -593,11 +599,13 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'qrcodeWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'qrcodeText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'menuBG': {'fg': 7, 'bg': 236, 'bold': False, 'underline': False, 'reverse': False},
-        'menuSel': {'fg': 7, 'bg': 0, 'bold': True, 'underline': False, 'reverse': True},
-        'menuSelAccel': {'fg': 7, 'bg': 0, 'bold': True, 'underline': True, 'reverse': True},
-        'menuUnsel': {'fg': 7, 'bg': 0, 'bold': False, 'underline': False, 'reverse': False},
-        'menuUnselAccel': {'fg': 7, 'bg': 0, 'bold': False, 'underline': True, 'reverse': False},
-        'statusBG': {'fg': 7, 'bg': 0, 'bold': False, 'underline': False, 'reverse': False},
+        'menuSel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': False, 'reverse': True},
+        'menuSelAccel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': True},
+        'menuUnsel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
+        'menuUnselAccel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': True, 'reverse': False},
+        'statusBG': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
+        'statusCC': {'fg': 16, 'bg': 220, 'bold': False, 'underline': False, 'reverse': False},
+        'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': True, 'reverse': False},
         'fileMenuBorder': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
         'fileMenuSel': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': True},
         'fileMenuUnsel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
@@ -637,7 +645,7 @@ _ATTRIBUTE_PRIMARY_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle'
                                       'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder', 'genMsgWinFBorder',
                                       'genMsgWinTitle', 'genMsgWinFTitle', 'qrcodeWin', 'qrcodeWinBorder',
                                       'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle', 'linkWinText',
-                                      'qrcodeText'
+                                      'qrcodeText', 'statusCC', 'statusMouse',
                                       ]
 """Primary attribute theme keys."""
 
@@ -793,6 +801,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel']['fg'], theme['menuUnselAccel']['bg'])
 
     curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
+    curses.init_pair(ThemeColours.STATUS_BAR_CC, theme['statusCC']['fg'], theme['statusCC']['bg'])
+    curses.init_pair(ThemeColours.STATUS_BAR_MOUSE, theme['statusMouse']['fg'], theme['statusMouse']['bg'])
 
     curses.init_pair(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder']['fg'], theme['fileMenuBorder']['bg'])
     curses.init_pair(ThemeColours.FILE_MENU_SEL, theme['fileMenuSel']['fg'], theme['fileMenuSel']['bg'])
