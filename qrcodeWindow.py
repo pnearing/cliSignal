@@ -6,7 +6,8 @@ Display a given qr-code.
 import time
 from typing import Optional, Any
 import curses
-from common import ROW, ROWS, COL, COLS, calc_attributes, STRINGS, center_string, calc_center_top_left
+from common import ROW, HEIGHT, COL, WIDTH, STRINGS
+from cursesFunctions import center_string, calc_center_top_left, calc_attributes
 from themes import ThemeColours
 from window import Window
 
@@ -25,7 +26,7 @@ class QRCodeWindow(Window):
         :param theme: dict[str, dict[str, int | bool | str]]: The current theme.
         """
         title: str = STRINGS['titles']['qrcode']
-        bg_char: str = STRINGS['background']['qrcode']
+        bg_char: str = theme['backgroundChars']['qrcodeWin']
 
         # Set theme attrs:
         window_attrs: int = calc_attributes(ThemeColours.QRCODE_WIN, theme['qrcodeWin'])
@@ -64,10 +65,8 @@ class QRCodeWindow(Window):
         if not self.is_visible:
             return
         super().redraw()
-        string = '\u2584' * len(self.qrcode[0])
-        self._window.addstr(1, 1, string, self._text_attrs)
-        for i, line in enumerate(self.qrcode[1:]):
-            self._window.addstr(2 + i, 1, line, self._text_attrs)
+        for i, line in enumerate(self.qrcode):
+            self._window.addstr(1 + i, 1, line, self._text_attrs)
         self._window.refresh()
         return
 

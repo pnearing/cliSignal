@@ -5,9 +5,11 @@ Handle basic menu display and control.
 """
 from typing import Any, Optional
 import curses
-from common import ROW, COL, ROWS, COLS, draw_border_on_win, KEY_ESC, KEYS_ENTER, KEY_BACKSPACE
+from common import ROW, COL, HEIGHT, WIDTH, KEY_ESC, KEYS_ENTER, KEY_BACKSPACE
+from cursesFunctions import draw_border_on_win, calc_attributes
 from menuItem import MenuItem
 from typeError import __type_error__
+from themes import ThemeColours
 
 
 def calc_size(menu_labels) -> tuple[int, int]:
@@ -36,8 +38,7 @@ class Menu(object):
                  size: tuple[int, int],
                  top_left: tuple[int, int],
                  menu_items: list[MenuItem],
-                 border_chars: dict[str, str],
-                 border_attrs: int,
+                 theme: dict[str, dict[str, int | bool | str]],
                  ) -> None:
         """
         Initialize a basic menu.
@@ -45,8 +46,7 @@ class Menu(object):
         :param size: tuple[int, int]: The size of the menu: (ROWS, COLS).
         :param top_left: tuple[int, int]: The top left corner of the menu: (ROW, COL).
         :param menu_items: list[MenuItem]: The items in this menu.
-        :param border_chars: dict[str, str]: The border character dict from the theme.
-        :param border_attrs: int: The attributes to use for the border of this menu.
+        :param theme: dict[str, dict[str, int | bool | str]]: The current theme.
         """
         # Run super:
         object.__init__(self)
@@ -58,9 +58,9 @@ class Menu(object):
         """The list of MenuItems for this menu."""
         self._is_activated: bool = False
         """Is this menu activated?"""
-        self._border_chars: dict[str, str] = border_chars
+        self._border_chars: dict[str, str] = theme['menuBorderChars']
         """The characters to use for the border."""
-        self._border_attrs: int = border_attrs
+        self._border_attrs: int = calc_attributes(ThemeColours.MENU_BORDER, theme['menuBorder'])
         """The attributes to use for the border of this menu."""
         self._selection: Optional[int] = None
         """The current selection."""
@@ -73,14 +73,14 @@ class Menu(object):
         # External properties:
         self.real_size: tuple[int, int] = size
         """The real size of the menu."""
-        self.size: tuple[int, int] = (size[ROWS] - 2, size[COLS] - 2)
+        self.size: tuple[int, int] = (size[HEIGHT] - 2, size[WIDTH] - 2)
         """The drawable size of the menu."""
         self.real_top_left: tuple[int, int] = top_left
         """The real top left corner of this menu."""
         self.top_left: tuple[int, int] = (top_left[ROW] + 1, top_left[COL] + 1)
         """The effective top left corner of this menu."""
-        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[ROWS],
-                                                   self.real_top_left[COL] + self.real_size[COLS])
+        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[HEIGHT],
+                                                   self.real_top_left[COL] + self.real_size[WIDTH])
         """The real bottom right corner of this menu."""
         self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[ROW], self.top_left[COL] + self.size[COL])
         """The effective bottom right corner of this menu."""
@@ -178,6 +178,7 @@ class Menu(object):
         if button_state & curses.BUTTON1_CLICKED != 0 or button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
             for menu_item in self._menu_items:
                 if menu_item.is_mouse_over(mouse_pos):
+                    self.is_activated = False
                     menu_item.activate()
                     return True
         return False

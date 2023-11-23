@@ -3,6 +3,7 @@
 File: bar.py
 Base functions of the menu / status bar.
 """
+import logging
 from typing import Optional
 from enum import IntEnum
 import curses
@@ -53,8 +54,14 @@ class Bar(object):
         Redraw the status bar.
         :return: None
         """
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.redraw.__name__)
         # Draw a background:
-        for col in range(self.top_left[COL], (self.top_left[COL] + self.width)):
+        rows, cols = self._std_screen.getmaxyx()
+        if self.top_left[ROW] >= rows - 1 or self.top_left[COL] + self.width >= cols - 1:
+            logger.debug("top_left[ROW]:%i >= max_row:%i or top_left[COL]:%i >= max_col: %i"
+                         % (self.top_left[ROW], rows - 1, self.top_left[COL] + self.width, cols -1))
+            return
+        for col in range(self.top_left[ROW], (self.top_left[COL] + self.width)):
             self._std_screen.addstr(self.top_left[ROW], col, self._bg_char, self._bg_attrs)
         return
 

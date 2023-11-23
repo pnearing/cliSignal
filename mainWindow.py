@@ -5,7 +5,8 @@ Class to store and manipulate the main window.
 """
 from typing import Optional, Callable, Any
 import curses
-from common import ROW, COL, ROWS, COLS, calc_attributes, STRINGS, MIN_SIZE, center_string
+from common import ROW, COL, HEIGHT, WIDTH, STRINGS, MIN_SIZE
+from cursesFunctions import calc_attributes, center_string
 from themes import ThemeColours
 from window import Window
 from contactsWindow import ContactsWindow
@@ -16,6 +17,7 @@ from statusBar import StatusBar
 from quitWindow import QuitWindow
 from linkWindow import LinkWindow
 from qrcodeWindow import QRCodeWindow
+
 
 class MainWindow(Window):
     """
@@ -41,7 +43,7 @@ class MainWindow(Window):
         """
         # Set title and background character:
         title: str = STRINGS['titles']['main']
-        bg_char: str = STRINGS['background']['mainWin']
+        bg_char: str = theme['backgroundChars']['mainWin']
 
         # Define window attrs for the main window:
         window_attrs: int = calc_attributes(ThemeColours.MAIN_WIN, theme['mainWin'])
@@ -114,29 +116,32 @@ class MainWindow(Window):
         self.qr_window: QRCodeWindow = qr_window
         """The QR-Code window."""
         # The size error message:
-        self._error_message: str = STRINGS['messages']['sizeError'].format(rows=MIN_SIZE[ROWS], cols=MIN_SIZE[COLS])
+        self._error_message: str = STRINGS['messages']['sizeError'].format(rows=MIN_SIZE[HEIGHT], cols=MIN_SIZE[WIDTH])
         self._error_attrs: int = calc_attributes(ThemeColours.MAIN_WIN_ERROR_TEXT, theme['mainWinErrorText'])
         return
 
+    # def __calculate_contacts_size__(self):
+
     def recalculate_window_sizes(self):
-        self.contacts_size = (self.size[ROWS] - 2, int(self.size[COLS] * 0.33))
+        self.contacts_size = (self.size[HEIGHT] - 2, int(self.size[WIDTH] * 0.33))
         self.contacts_top_left = (self.top_left[ROW] + 1, self.top_left[COL])
-        self.messages_size = (int(self.size[ROWS] * 0.75) - 1, self.size[COLS] - self.contacts_size[COLS])
-        self.messages_top_left = (self.top_left[ROW] + 1, self.top_left[COL] + self.contacts_size[COLS])
-        self.typing_size = (self.size[ROWS] - self.messages_size[ROWS] - 2, self.size[COLS] - self.contacts_size[COLS])
-        self.typing_top_left = (self.messages_top_left[ROW] + self.messages_size[ROWS],
-                                self.top_left[COL] + self.contacts_size[COLS])
-        self.menu_width = self.status_width = self.size[COLS]
+        self.messages_size = (int(self.size[HEIGHT] * 0.75) - 1, self.size[WIDTH] - self.contacts_size[WIDTH])
+        self.messages_top_left = (self.top_left[ROW] + 1, self.top_left[COL] + self.contacts_size[WIDTH])
+        self.typing_size = (self.size[HEIGHT] - self.messages_size[HEIGHT] - 2, self.size[WIDTH] - self.contacts_size[WIDTH])
+        self.typing_top_left = (self.messages_top_left[ROW] + self.messages_size[HEIGHT],
+                                self.top_left[COL] + self.contacts_size[WIDTH])
+        self.menu_width = self.status_width = self.size[WIDTH]
         self.menu_top_left = (self.top_left[ROW], self.top_left[COL])
-        self.status_width = self.size[COLS]
-        self.status_top_left = (self.size[ROWS], self.top_left[COL])
+        self.status_width = self.size[WIDTH]
+        self.status_top_left = (self.size[HEIGHT], self.top_left[COL])
         return
 
     def redraw(self) -> None:
+        self.real_size = self._std_screen.getmaxyx()
         # If the terminal is too small, draw an error message:
-        if self.real_size[ROWS] < MIN_SIZE[ROWS] or self.real_size[COLS] < MIN_SIZE[COLS]:
+        if self.real_size[HEIGHT] < MIN_SIZE[HEIGHT] or self.real_size[WIDTH] < MIN_SIZE[WIDTH]:
             self._std_screen.clear()
-            row: int = int(self.size[ROWS] / 2)
+            row: int = int(self.size[HEIGHT] / 2)
             try:
                 center_string(self._std_screen, row, self._error_message, self._error_attrs)
             except curses.error:
@@ -162,7 +167,7 @@ class MainWindow(Window):
         return
 
     def resize(self) -> None:
-        if self.real_size[ROWS] < MIN_SIZE[ROWS] or self.real_size[COLS] < MIN_SIZE[COLS]:
+        if self.real_size[HEIGHT] < MIN_SIZE[HEIGHT] or self.real_size[WIDTH] < MIN_SIZE[WIDTH]:
             return
 
         super().resize((-1, -1), (-1, -1))  # Send -1 as size and top_left so resize, and mvwin aren't run.

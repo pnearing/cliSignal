@@ -2,7 +2,9 @@
 from typing import Optional, Callable, Any
 from warnings import warn
 import curses
-from common import ROW, COL, STRINGS, CB_PARAM, CB_CALLABLE, CallbackStates, add_accel_text
+from common import ROW, COL, STRINGS, CBStates, CBIndex
+from cursesFunctions import calc_attributes, add_accel_text
+from themes import ThemeColours
 from typeError import __type_error__
 
 
@@ -18,15 +20,7 @@ class MenuItem(object):
                  width: int,
                  top_left: tuple[int, int],
                  label: str,
-                 bg_char: str,
-                 sel_attrs: int,
-                 sel_accel_attrs: int,
-                 sel_lead_indicator: str,
-                 sel_tail_indicator: str,
-                 unsel_attrs: int,
-                 unsel_accel_attrs: int,
-                 unsel_lead_indicator: str,
-                 unsel_tail_indicator: str,
+                 theme: dict[str, dict[str, int | bool | str]],
                  callback: tuple[Optional[Callable], Optional[list[Any]]],
                  char_codes: list[int],
                  ) -> None:
@@ -36,38 +30,30 @@ class MenuItem(object):
         :param width: int: The width of the menu item.
         :param top_left: tuple[int, int]: The top left corner of this item.
         :param label: str: The label to apply to this item.
-        :param bg_char: str: The background character.
-        :param sel_attrs: int: The attributes to use when selected.
-        :param sel_accel_attrs: int: The attributes to use for the accelerator when selected.
-        :param sel_lead_indicator: str: The character to add before the label when selected.
-        :param sel_tail_indicator: str: The character to add after the label when selected.
-        :param unsel_attrs: int: The attributes to use when unselected.
-        :param unsel_accel_attrs: int: The attributes to use for the accelerator when unselected.
-        :param unsel_lead_indicator: str: The character to add before the label when unselected.
-        :param unsel_tail_indicator: str: The character to add after the label when unselected.
         :param callback: Callable: The callback to call for this menu item.
         :param char_codes: list[int]: The character codes of the accelerator for this menu item.
         """
+
         # Internal properties:
         self._std_screen: curses.window = std_screen
         """The curses window to draw on."""
-        self._bg_char: str = bg_char
+        self._bg_char: str = theme['backgroundChars']['menuItem']
         """The character to use for drawing the background."""
-        self._sel_attrs: int = sel_attrs
+        self._sel_attrs: int = calc_attributes(ThemeColours.MENU_SEL, theme['menuSel'])
         """Attributes to use when selected."""
-        self._sel_accel_attrs: int = sel_accel_attrs
+        self._sel_accel_attrs: int = calc_attributes(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel'])
         """Attributes to use for the accelerator when selected."""
-        self._sel_lead_indicator: str = sel_lead_indicator
+        self._sel_lead_indicator: str = theme['menuSelChars']['leadSel']
         """Selection indicator character, added to the beginning of the label when selected."""
-        self._sel_tail_indicator: str = sel_tail_indicator
+        self._sel_tail_indicator: str = theme['menuSelChars']['tailSel']
         """Selection indicator character, added to the end of the label when selected."""
-        self._unsel_attrs: int = unsel_attrs
+        self._unsel_attrs: int = calc_attributes(ThemeColours.MENU_UNSEL, theme['menuUnsel'])
         """Attributes to use when unselected."""
-        self._unsel_accel_attrs: int = unsel_accel_attrs
+        self._unsel_accel_attrs: int = calc_attributes(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel'])
         """Attributes to use for the accelerator when unselected."""
-        self._unsel_lead_indicator: str = unsel_lead_indicator
+        self._unsel_lead_indicator: str = theme['menuSelChars']['leadUnsel']
         """Unselected lead indicator character, added to the beginning of the label when unselected."""
-        self._unsel_tail_indicator: str = unsel_tail_indicator
+        self._unsel_tail_indicator: str = theme['menuSelChars']['tailUnsel']
         """Unselected tail indicator character, added to the end of the label when unselected."""
         self._callback: tuple[Optional[Callable], Optional[list[Any]]] = callback
         """The call back to call when activated."""
@@ -98,20 +84,18 @@ class MenuItem(object):
         :param state: str: The status string.
         :return: None
         """
-        try:
-            if self._callback is not None and self._callback[CB_PARAM] is not None:
-                self._callback[CB_CALLABLE](state, self._std_screen, *self._callback[CB_PARAM])
-            elif self._callback is not None and self._callback[CB_PARAM] is None:
-                self._callback[CB_CALLABLE](state, self._std_screen)
-        except TypeError as e:
-            warning_message: str = "Callback not callable[%s]: %s" % (self._callback.__name__, e.args[0])
-            warn("Callback is not callable.", RuntimeWarning)
-        except Exception as e:
-            warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
-            warn(warning_message, RuntimeWarning)
-            raise e
-        except KeyboardInterrupt as e:
-            raise e
+        if self._callback is not None:
+            try:
+                if self._callback[CBIndex.PARAMS] is not None:
+                    self._callback[CBIndex.CALLABLE](state, self._std_screen, *self._callback[CBIndex.PARAMS])
+                else:
+                    self._callback[CBIndex.CALLABLE](state, self._std_screen)
+            except KeyboardInterrupt as e:
+                raise e
+            except Exception as e:
+                warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
+                warn(warning_message, RuntimeWarning)
+                raise e
         return
 
 #######################################
@@ -160,7 +144,7 @@ class MenuItem(object):
         Activate this menu item.
         :return: None
         """
-        self._run_callback(CallbackStates.ACTIVATED.value)
+        self._run_callback(CBStates.ACTIVATED.value)
         return
 
     def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:

@@ -5,7 +5,8 @@ Message typing area window.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, calc_attributes, STRINGS
+from common import ROW, COL, STRINGS
+from cursesFunctions import calc_attributes
 from themes import ThemeColours
 from window import Window
 
@@ -27,7 +28,7 @@ class TypingWindow(Window):
         """
         # Set title and background char:
         title: str = STRINGS['titles']['typing']
-        bg_char: str = STRINGS['background']['typingWin']
+        bg_char: str = theme['backgroundChars']['typingWin']
 
         # Set window attributes:
         window_attrs: int = calc_attributes(ThemeColours.TYPING_WIN, theme['typeWin'])
@@ -51,5 +52,14 @@ class TypingWindow(Window):
         Process a key press.
         :param char_code: int: The character code.
         :return: bool: True, the character was handled, False it was not.
+        """
+        return False
+
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
+        """
+        Process a mouse event.
+        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :param button_state: int: The button state.
+        :return: bool: True, mouse event handled, False it was not.
         """
         return False

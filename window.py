@@ -5,12 +5,9 @@
 """
 from typing import Optional
 import curses
-from common import add_title_to_win, draw_border_on_win
-from common import ROW, COL, ROWS, COLS
+from cursesFunctions import add_title_to_win, draw_border_on_win
+from common import ROW, COL, HEIGHT, WIDTH
 from typeError import __type_error__
-
-
-DEBUG: bool = True
 
 
 class Window(object):
@@ -79,24 +76,37 @@ class Window(object):
         """The title of this window."""
         self.real_size: tuple[int, int] = window.getmaxyx()
         """The real size of the window, not taking the border into account. (rows, cols)."""
-        self.size: tuple[int, int] = (self.real_size[ROWS] - 2, self.real_size[COLS] - 2)
+        self.size: tuple[int, int] = (self.real_size[HEIGHT] - 2, self.real_size[WIDTH] - 2)
         """The drawable size of the window, taking the border into account. (rows, cols)."""
         self.real_top_left: tuple[int, int] = top_left
         """The real top left of this window, not taking the border into account. (row, col)."""
         self.top_left: tuple[int, int] = (self.real_top_left[ROW] + 1, self.real_top_left[COL] + 1)
         """The drawable top left of this window, taking the border into account. (row, col)."""
-        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[ROWS],
-                                                   self.real_top_left[COL] + self.real_size[COLS])
+        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[HEIGHT],
+                                                   self.real_top_left[COL] + self.real_size[WIDTH])
         """The real bottom right of the window, not taking the border into account. (row, col)."""
-        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[ROWS],
-                                              self.top_left[COL] + self.size[COLS])
+        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[HEIGHT],
+                                              self.top_left[COL] + self.size[WIDTH])
         """The drawable bottom right of the window, taking the border into account. (row, col)."""
         self.is_visible: bool = True
         """If this window should be drawn."""
         return
 
 #########################################
-# Methods:
+# Internal Methods:
+#########################################
+    def __get_relative_mouse_pos__(self, mouse_pos: tuple[int, int]) -> tuple[int, int]:
+        """
+        Get the relative mouse position over the window; IE: If the mouse is at top_left, then mouse_pos = (0, 0)
+        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :return: tuple[int, int]: The relative position: (ROW, COL).
+        """
+        relative_row: int = mouse_pos[ROW] - self.real_top_left[ROW]
+        relative_col: int = mouse_pos[COL] - self.real_top_left[COL]
+        return relative_row, relative_col
+
+#########################################
+# External Methods:
 #########################################
     def redraw(self) -> None:
         """
@@ -128,16 +138,9 @@ class Window(object):
         add_title_to_win(self._window, self.title, border_attrs, title_attrs,
                          self._title_chars['start'], self._title_chars['end'])
         # Fill the centre with background colour, and character:
-        for row in range(1, self.size[ROWS] + 1):
-            for col in range(1, self.size[COLS] + 1):
-                if DEBUG:
-                    try:
-                        self._window.addch(row, col, self._bg_char, self._window_attrs)
-                    except curses.error:
-                        message = "R: %i, C: %i, size: %s" % (row, col, self.size)
-                        raise RuntimeError(message)
-                else:
-                    self._window.addch(row, col, self._bg_char, self._window_attrs)
+        for row in range(1, self.size[HEIGHT] + 1):
+            for col in range(1, self.size[WIDTH] + 1):
+                self._window.addch(row, col, self._bg_char, self._window_attrs)
         self._window.noutrefresh()
         return
 
@@ -151,11 +154,11 @@ class Window(object):
         :return: None
         """
         # Resize and move the window if required:
-        if size[ROWS] != -1 or size[COLS] != -1:
-            self._window.resize(size[ROWS], size[COLS])
+        if size[HEIGHT] != -1 and size[WIDTH] != -1:
+            self._window.resize(size[HEIGHT], size[WIDTH])
 
         real_top_left: tuple[int, int] = top_left
-        if top_left[ROW] != -1 or top_left[COL] != -1:
+        if top_left[ROW] != -1 and top_left[COL] != -1:
             self._window.mvwin(top_left[ROW], top_left[COL])
         else:
             real_top_left = (0, 0)  # This is the main window, real top_left is 0,0.
@@ -174,14 +177,9 @@ class Window(object):
         :param mouse_pos: tuple[int, int]: The mouse position.
         :return: bool: True if the mouse is over this window, False if not.
         """
-        in_row: bool = False
-        in_col: bool = False
-        if self.top_left[ROW] <= mouse_pos[ROW] <= (self.top_left[ROW] + self.size[ROWS]):
-            in_row = True
-        if self.top_left[COL] <= mouse_pos[COL] <= (self.top_left[COL] + self.size[COLS]):
-            in_col = True
-        if in_row and in_col:
-            return True
+        if self.top_left[ROW] <= mouse_pos[ROW] <= (self.top_left[ROW] + self.size[HEIGHT]):
+            if self.top_left[COL] <= mouse_pos[COL] <= (self.top_left[COL] + self.size[WIDTH]):
+                return True
         return False
 
     def process_key(self, char_code: int) -> bool:
@@ -189,6 +187,15 @@ class Window(object):
         Stub for process key.
         :param char_code: int: The character code of the key pressed.
         :return: bool: True key was processed, False, it was not.
+        """
+        return False
+
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
+        """
+        Stub for process mouse.
+        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :param button_state: int: The current button state.
+        :return: bool: True the event was processed, False it was not.
         """
         return False
 

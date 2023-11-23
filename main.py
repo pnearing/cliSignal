@@ -1,27 +1,39 @@
 #!/usr/bin/env python3
+"""
+File: main.py
+"""
 import time
 from typing import Final, Optional, Callable, Any
 import argparse
 import os.path
 import curses
 from enum import IntEnum
-from SignalCliApi.signalCli import SignalCli
+import logging
+import socket
+
 from configFile import ConfigFile, ConfigFileError
+import prettyPrint
+from prettyPrint import print_coloured, print_info, print_error, print_debug, print_warning
+from terminal import Colours
+
+from SignalCliApi.signalCli import SignalCli
+from SignalCliApi.signalExceptions import SignalError
+from SignalCliApi.signalErrors import LinkError
+
 import common
 from themes import load_theme, init_colours
 from mainWindow import MainWindow
 from contactsWindow import ContactsWindow
 from messagesWindow import MessagesWindow
 from typingWindow import TypingWindow
-from linkWindow import LinkWindow, LinkMessageSelections
+from linkWindow import LinkWindow, LinkMessages
 from menuBar import MenuBar
 from quitWindow import QuitWindow
 from qrcodeWindow import QRCodeWindow
-import prettyPrint
-from prettyPrint import print_coloured, print_info, print_error, print_debug
-from terminal import Colours
-import logging
-import socket
+
+import typeError
+
+typeError.USE_SYSLOG = False
 
 
 #########################################
@@ -63,7 +75,7 @@ _CLI_SIGNAL_CONFIG_FILE_PATH: Final[str] = os.path.join(_WORKING_DIR, _CONFIG_FI
 """The full path to the cliSignal config file."""
 _CLI_SIGNAL_LOG_PATH: Final[str] = os.path.join(_WORKING_DIR, _CLI_SIGNAL_LOG_FILE_NAME)
 """The full path to the cliSignal log file."""
-_HOST_NAME: Final[str] = socket.gethostname()
+_HOST_NAME: Final[str] = socket.gethostname().split('.')[0]
 """The host name of the computer running cliSignal."""
 _DEVICE_NAME: Final[str] = _HOST_NAME + '-cliSignal'
 
@@ -74,7 +86,7 @@ _CURRENT_FOCUS: Focus = Focus.MENU_BAR
 """The currently focused window."""
 _FOCUS_WINDOWS: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow, MenuBar] = ()
 """The list of windows that switch focus with tab / shift tab."""
-_MAIN_WINDOW: MainWindow = None
+_MAIN_WINDOW: Optional[MainWindow] = None
 """The main window object."""
 _EXIT_ERROR: Optional[curses.error] = None
 """If we're exiting due to a curses error, This is the error."""
@@ -84,9 +96,12 @@ _VERBOSE: bool = False
 """True if we should produce verbose output."""
 _RESIZING: bool = False
 """True if we are currently resizing the window."""
-_LOGGER: logging.Logger = None
+_LOGGER: Optional[logging.Logger] = None
 """The logger for this module."""
-_CURSES_STARTED: bool = False
+_IS_CURSES_STARTED: bool = False
+"""Is curses started?"""
+_MOUSE_RESET_MASK: Optional[int] = None
+"""The reset mouse mask."""
 
 
 #########################################
@@ -154,44 +169,71 @@ def accounts_menu_link_cb(status: str,
     :return: None
     """
     # Set vars:
-    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _DEVICE_NAME
+    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _DEVICE_NAME, _LOGGER
     link_window: LinkWindow = _MAIN_WINDOW.link_window
     qr_window: QRCodeWindow = _MAIN_WINDOW.qr_window
 
     # Unfocus currently focused window:
     _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
+
     # Focus, and make visible the link message window.
+    link_window.current_message = LinkMessages.GENERATE
     link_window.is_focused = True
     link_window.is_visible = True
     _MAIN_WINDOW.redraw()
     # std_screen.refresh()
+    # Communicate with signal to start the link and get the qr code:
+    link, qr_code, _ = signal_cli.start_link(gen_text_qr=True)
 
-    link, qr_code, _ = signal_cli.start_link_account(_DEVICE_NAME)
-    # remove extra lines on qr-code:
-    qr_list: list[str] = qr_code.splitlines(keepends=False)[1:-2]
-    for i, line in enumerate(qr_list):
-        qr_list[i] = line[3:-3]
+    # Split qr-code from a string to a list:
+    qr_list: list[str] = qr_code.splitlines(keepends=False)
     qr_window.qrcode = qr_list
+
+    # Hide the link window:
     link_window.is_focused = False
     link_window.is_visible = False
+
+    # Show the qr code window:
     qr_window.is_focused = True
     qr_window.is_visible = True
     _MAIN_WINDOW.redraw()
-    time.sleep(5)
-    response = signal_cli.finish_link()
+
+    response = signal_cli.finish_link(_DEVICE_NAME)
     if response[0]:  # Link successful.
-        link_window.current_message = LinkMessageSelections.SUCCESS
+        link_window.current_message = LinkMessages.SUCCESS
     else:
-        link_window.current_message = LinkMessageSelections.FAILURE
+        error: LinkError = response[1]
+        if error == LinkError.USER_EXISTS:
+            link_window.current_message = LinkMessages.EXISTS
+        elif error == LinkError.TIMEOUT:
+            link_window.current_message = LinkMessages.TIMEOUT
+        elif error == LinkError.UNKNOWN:
+            link_window.current_message = LinkMessages.UNKNOWN
+        else:
+            error_message: str = "An un-handled error occurred: %s" % repr(error)
+            _LOGGER.critical("Raising NotImplementedError(%s)." % error_message)
+            raise NotImplementedError(error_message)
     qr_window.is_visible = False
     qr_window.is_focused = False
     link_window.is_focused = True
+    link_window.show_button = True
     link_window.is_visible = True
     _MAIN_WINDOW.redraw()
     while True:
         char_code: int = _MAIN_WINDOW.std_screen.getch()
-        if char_code in common.KEYS_ENTER or char_code in (common.KEY_ESC, common.KEY_BACKSPACE):
+        handled: bool = _MAIN_WINDOW.link_window.process_key(char_code)
+        if handled:
             break
+        if char_code == curses.KEY_MOUSE:
+            _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+            mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
+            handled: bool = _MAIN_WINDOW.link_window.process_mouse(mouse_pos, button_state)
+            if handled:
+                break
+        elif char_code == curses.KEY_RESIZE:
+            do_resize(_MAIN_WINDOW)
+    link_window.is_focused = False
+    link_window.is_visible = False
     _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
     _MAIN_WINDOW.redraw()
     return
@@ -226,6 +268,20 @@ def help_menu_version_cb(status: str, window: curses.window, *args: tuple[Any]) 
     The help menu, version callback.
     :return: None
     """
+    return
+
+
+#########################################
+# Button callbacks:
+#########################################
+def link_button_clicked_cb(state: str, *args) -> None:
+    """
+    The link OK button was clicked.
+    :param state: str: The state will always be activated.
+    :param args: Extra arguments passed to the callback.
+    :return: None
+    """
+
     return
 
 
@@ -287,9 +343,9 @@ def out_info(message: str, force=False) -> None:
     :param force: Override _VERBOSE
     :return: None
     """
-    global _CURSES_STARTED, _LOGGER, _VERBOSE
+    global _IS_CURSES_STARTED, _LOGGER, _VERBOSE
     if _VERBOSE or force:
-        if not _CURSES_STARTED:
+        if not _IS_CURSES_STARTED:
             print_info(message, force=True)
     if _LOGGER is not None:
         _LOGGER.info(message)
@@ -302,8 +358,8 @@ def out_error(message) -> None:
     :param message: The message to output.
     :return: None
     """
-    global _CURSES_STARTED, _LOGGER
-    if not _CURSES_STARTED:
+    global _IS_CURSES_STARTED, _LOGGER
+    if not _IS_CURSES_STARTED:
         print_error(message)
     if _LOGGER is not None:
         _LOGGER.error(message)
@@ -316,12 +372,26 @@ def out_debug(message) -> None:
     :param message: The message to output.
     :return: None
     """
-    global _CURSES_STARTED, _LOGGER, _DEBUG
+    global _IS_CURSES_STARTED, _LOGGER, _DEBUG
     if _DEBUG:
-        if not _CURSES_STARTED:
+        if not _IS_CURSES_STARTED:
             print_debug(message)
         if _LOGGER is not None:
             _LOGGER.debug(message)
+    return
+
+
+def out_warning(message) -> None:
+    """
+    Output a warning message to both the log file if logging started and stdout if curses is not started.
+    :param message: The message to output.
+    :return: None
+    """
+    global _IS_CURSES_STARTED, _LOGGER
+    if not _IS_CURSES_STARTED:
+        print_warning(message)
+    if _LOGGER is not None:
+        _LOGGER.warning(message)
     return
 
 
@@ -369,20 +439,26 @@ def parse_mouse(mouse_pos: tuple[int, int], button_state: int) -> None:
     :return: None
     """
     global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
-    # Set the window focus:
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-    if _FOCUS_WINDOWS[Focus.CONTACTS].is_mouse_over(mouse_pos):
-        _CURRENT_FOCUS = Focus.CONTACTS
-    elif _FOCUS_WINDOWS[Focus.MESSAGES].is_mouse_over(mouse_pos):
-        _CURRENT_FOCUS = Focus.MESSAGES
-    elif _FOCUS_WINDOWS[Focus.TYPING].is_mouse_over(mouse_pos):
-        _CURRENT_FOCUS = Focus.TYPING
-    elif _FOCUS_WINDOWS[Focus.MENU_BAR].is_mouse_over(mouse_pos):
-        _CURRENT_FOCUS = Focus.MENU_BAR
-        menu_bar: MenuBar = _FOCUS_WINDOWS[Focus.MENU_BAR]
-        menu_bar.process_mouse(mouse_pos, button_state)
-        _MAIN_WINDOW.redraw()
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
+    # Check for button click and send it to the currently focused window:
+    if button_state & curses.BUTTON1_CLICKED != 0 or button_state & curses.BUTTON1_PRESSED != 0 or button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
+        handled: bool = _FOCUS_WINDOWS[_CURRENT_FOCUS].process_mouse(mouse_pos, button_state)
+        if handled:
+            return
+
+        # Set the window focus:
+        _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
+        if _FOCUS_WINDOWS[Focus.CONTACTS].is_mouse_over(mouse_pos):
+            _CURRENT_FOCUS = Focus.CONTACTS
+        elif _FOCUS_WINDOWS[Focus.MESSAGES].is_mouse_over(mouse_pos):
+            _CURRENT_FOCUS = Focus.MESSAGES
+        elif _FOCUS_WINDOWS[Focus.TYPING].is_mouse_over(mouse_pos):
+            _CURRENT_FOCUS = Focus.TYPING
+        elif _FOCUS_WINDOWS[Focus.MENU_BAR].is_mouse_over(mouse_pos):
+            _CURRENT_FOCUS = Focus.MENU_BAR
+            menu_bar: MenuBar = _FOCUS_WINDOWS[Focus.MENU_BAR]
+            menu_bar.process_mouse(mouse_pos, button_state)
+            _MAIN_WINDOW.redraw()
+        _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
     # TODO: Process button state.
     return
 
@@ -423,6 +499,48 @@ def dec_focus() -> None:
     return
 
 
+def stop_mouse() -> None:
+    """
+    Stop the mouse support:
+    :return: None
+    """
+    # Pull in reset mouse mask:
+    global _MOUSE_RESET_MASK
+    out_info("Stopping mouse.")
+    # If it's not None, reset the mouse mask.
+    if _MOUSE_RESET_MASK is not None:
+        out_debug("Resetting mouse mask.")
+        curses.mousemask(_MOUSE_RESET_MASK)
+    # Tell the terminal to stop processing mouse movements:
+    out_debug("Sending terminal stop report characters.")
+    print('\033[?1003l', end='', flush=True)
+    return
+
+
+def start_mouse() -> bool:
+    """
+    Start the mouse.
+    :return: bool: True mouse was started, False it was not.
+    """
+    # Pull in reset mouse mask:
+    global _MOUSE_RESET_MASK
+    out_info("Starting mouse support.")
+    # Set the curses mouse mask:
+    out_debug('Setting mouse mask...')
+    response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+    if response == 0:  # Complete failure returns 0, no mask to reset to.
+        _MOUSE_RESET_MASK = None
+        out_warning("Error starting mouse, not using mouse.")
+        return False
+    else:  # Response is a tuple (avail_mask, old_mask)
+        out_debug("Setting mouse mask success.")
+        _MOUSE_RESET_MASK = response[1]
+    # Tell the terminal to report mouse movement.
+    out_debug("Sending terminal control characters...")
+    print('\033[?1003h', end='', flush=True)
+    return True
+
+
 #########################################
 # Main:
 #########################################
@@ -433,24 +551,6 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
     std_screen.keypad(True)
     curses.curs_set(False)
 
-    # Set up the mouse:
-    reset_mouse_mask: Optional[int] = None
-    if common.SETTINGS['useMouse']:
-        out_info("Starting mouse support.")
-        # Tell the terminal to report mouse movement.
-        out_debug("Sending terminal control characters...")
-        print('\033[?1003h', end='', flush=True)
-        # Set the curses mouse mask:
-        out_debug('Setting mouse mask...')
-        response = curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
-        if response == 0:  # Complete failure returns 0, no mask to reset to.
-            out_debug("Setting mouse mask failed.")
-            out_info("Error starting mouse, not using mouse.")
-            common.SETTINGS['useMouse'] = False
-        else:  # Response is a tuple (avail_mask, old_mask)
-            out_debug("Setting mouse mask success.")
-            reset_mouse_mask = response[1]
-
     # Set up colour pairs according to theme:
     if not curses.has_extended_color_support():
         message: str = "Terminal must have 256 colour support."
@@ -459,6 +559,11 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
         return
     theme: dict[str, dict[str, int | bool | str]] = load_theme()
     init_colours(theme)
+
+    # Setup the mouse:
+    if common.SETTINGS['useMouse']:
+        if not start_mouse():
+            common.SETTINGS['useMouse'] = False
 
     # Create sub-windows:
     link_window: LinkWindow = LinkWindow(std_screen, theme)
@@ -541,13 +646,11 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
                     char_handled = _FOCUS_WINDOWS[Focus.MENU_BAR].process_key(char_code)
                     if char_handled:
                         main_window.redraw()
-                        curses.doupdate()
                         continue
                 elif _CURRENT_FOCUS == Focus.CONTACTS:
                     char_handled = _FOCUS_WINDOWS[Focus.CONTACTS].process_key(char_code)
                     if char_handled:
                         main_window.redraw()
-                        curses.doupdate()
                         continue
                 elif _CURRENT_FOCUS == Focus.MESSAGES:
                     char_handled = _FOCUS_WINDOWS[Focus.MESSAGES].process_key(char_code)
@@ -642,12 +745,11 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
         except curses.error as e:
             _EXIT_ERROR = e
             break
-
+        except SignalError as e:
+            _EXIT_ERROR = e
+            break
     # Fix mouse mask:
-    if reset_mouse_mask is not None:
-        curses.mousemask(reset_mouse_mask)
-        print('\033[?1003l', end='', flush=True)
-
+    stop_mouse()
     return
 
 
@@ -671,12 +773,6 @@ if __name__ == '__main__':
     common.SETTINGS['workingDir'] = _WORKING_DIR
     # Change to working directory:
     os.chdir(_WORKING_DIR)
-
-    # Set logging path:
-    common.SETTINGS['logPath'] = _CLI_SIGNAL_LOG_PATH
-    logging.basicConfig(filename=_CLI_SIGNAL_LOG_PATH, encoding='utf-8', level=logging.DEBUG)
-    _LOGGER = logging.getLogger(__name__)
-    _LOGGER.debug("Logging started.")
 
     # Setup command line arguments:
     parser = argparse.ArgumentParser(description="Command line Signal client.",
@@ -734,18 +830,6 @@ if __name__ == '__main__':
                         type=str
                         )
     # Settings:
-    # cliSignal logging:
-    do_log = parser.add_mutually_exclusive_group()
-    do_log.add_argument('--logging',
-                        help="Enable cliSignal logging.",
-                        action='store_true',
-                        default=None
-                        )
-    do_log.add_argument('--noLogging',
-                        help="Disable cliSignal logging.",
-                        action='store_false',
-                        dest='logging'
-                        )
     # Use mouse:
     use_mouse = parser.add_mutually_exclusive_group()
     use_mouse.add_argument('--useMouse',
@@ -774,14 +858,24 @@ if __name__ == '__main__':
     _args: argparse.Namespace = parser.parse_args()
 
     # Parse --debug and --verbose options:
+    log_level = logging.WARNING
     if _args.debug:
         _DEBUG = True
         _VERBOSE = True
         prettyPrint.DEBUG = True
         prettyPrint.VERBOSE = True
+        log_level = logging.DEBUG
     elif _args.verbose:
         _VERBOSE = True
         prettyPrint.VERBOSE = True
+        log_level = logging.INFO
+
+    # Set logging path:
+    common.SETTINGS['logPath'] = _CLI_SIGNAL_LOG_PATH
+    logging.basicConfig(filename=_CLI_SIGNAL_LOG_PATH, encoding='utf-8', level=log_level,
+                        format='%(levelname)s : [%(asctime)s] : (%(name)s) : %(message)s')
+    _LOGGER = logging.getLogger(__name__)
+    _LOGGER.debug("Logging started.")
 
     # Parse --config option:
     cli_signal_config_path: str = _CLI_SIGNAL_CONFIG_FILE_PATH
@@ -903,11 +997,9 @@ if __name__ == '__main__':
     # Tell the terminal to report mouse movements:
 
     # Run main:
-    _CURSES_STARTED = True
+    _IS_CURSES_STARTED = True
     curses.wrapper(main, _signal_cli)
-    _CURSES_STARTED = False
-
-
+    _IS_CURSES_STARTED = False
 
     # Stop signal
     out_info("Stopping signal.", force=True)
@@ -917,6 +1009,12 @@ if __name__ == '__main__':
         if _RESIZING:
             out_error("Window size too small. Fatal.")
         out_error("EXITED DUE TO ERROR: %s" % str(_EXIT_ERROR.args))
+        if isinstance(_EXIT_ERROR, SignalError):
+            out_error("Signal error code: %i" % _EXIT_ERROR.code)
+            out_error("Signal error message: %s" % _EXIT_ERROR.message)
+            if _DEBUG:
+                raise _EXIT_ERROR
+
         if _DEBUG:
             print(_EXIT_ERROR.__traceback__)
             raise _EXIT_ERROR

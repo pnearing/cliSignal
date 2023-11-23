@@ -5,8 +5,8 @@ Quit "are you sure?" message.
 """
 from typing import Optional
 import curses
-from common import ROW, ROWS, COL, COLS, calc_attributes, STRINGS, center_string, add_accel_text, \
-    KEYS_ENTER, KEY_ESC, KEY_BACKSPACE, calc_center_top_left
+from common import ROW, HEIGHT, COL, WIDTH, STRINGS, KEYS_ENTER, KEY_ESC, KEY_BACKSPACE
+from cursesFunctions import calc_center_top_left, calc_attributes, center_string, add_accel_text
 from themes import ThemeColours
 from window import Window
 
@@ -29,7 +29,7 @@ class QuitWindow(Window):
         """
         # Set title and background character.
         title: str = STRINGS['titles']['quit']
-        bg_char: str = STRINGS['background']['quitWin']
+        bg_char: str = theme['backgroundChars']['quitWin']
 
         # Set the theme attrs:
         window_attrs: int = calc_attributes(ThemeColours.QUIT_WIN, theme['quitWin'])
@@ -108,7 +108,7 @@ class QuitWindow(Window):
 
         # Determine yes / no position:
         width = len(lead_chars) + (len('yes') - 2) + len(mid_chars) + (len('no') - 2) + len(tail_chars)
-        col: int = int(self.size[COLS] // 2) - int(width // 2)
+        col: int = int(self.size[WIDTH] // 2) - int(width // 2)
         row: int = 3
 
         # Add the message to the window:

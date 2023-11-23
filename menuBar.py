@@ -10,7 +10,7 @@ import curses
 from bar import Bar
 from themes import ThemeColours
 from common import ROW, COL, STRINGS, KEY_ESC, KEYS_ENTER, MenuBarSelections, KEY_TAB, KEY_SHIFT_TAB, KEY_BACKSPACE
-from common import calc_attributes
+from cursesFunctions import calc_attributes
 from typeError import __type_error__
 from menuBarItem import MenuBarItem
 from fileMenu import FileMenu
@@ -39,16 +39,16 @@ class MenuBar(Bar):
         :param callbacks: dict[str, Optional[Callable]]: The call back dict, keys 'file', 'account', 'help'.
         """
         # Set attributes:
-        empty_attrs: int = calc_attributes(ThemeColours.MENU_BAR_EMPTY, theme['menuBG'])
-        bg_char: str = STRINGS['background']['menuBar']
-        sel_attrs: int = calc_attributes(ThemeColours.MENU_SEL, theme['menuSel'])
-        sel_accel_attrs: int = calc_attributes(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel'])
-        unsel_attrs: int = calc_attributes(ThemeColours.MENU_UNSEL, theme['menuUnsel'])
-        unsel_accel_attrs: int = calc_attributes(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel'])
-        sel_lead_indicator: str = theme['menuSelChars']['leadSel']
-        sel_tail_indicator: str = theme['menuSelChars']['tailSel']
-        unsel_lead_indicator: str = theme['menuSelChars']['leadUnsel']
-        unsel_tail_indicator: str = theme['menuSelChars']['tailUnsel']
+        empty_attrs: int = calc_attributes(ThemeColours.MENU_BAR_EMPTY, theme['menuBarBG'])
+        bg_char: str = theme['backgroundChars']['menuBar']
+        sel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_SEL, theme['menuBarSel'])
+        sel_accel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_SEL_ACCEL, theme['menuBarSelAccel'])
+        unsel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_UNSEL, theme['menuBarUnsel'])
+        unsel_accel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_UNSEL_ACCEL, theme['menuBarUnselAccel'])
+        sel_lead_indicator: str = theme['menuBarSelChars']['leadSel']
+        sel_tail_indicator: str = theme['menuBarSelChars']['tailSel']
+        unsel_lead_indicator: str = theme['menuBarSelChars']['leadUnsel']
+        unsel_tail_indicator: str = theme['menuBarSelChars']['tailUnsel']
 
         # Run super:
         Bar.__init__(self, std_screen, width, top_left, empty_attrs, bg_char)
@@ -227,18 +227,17 @@ class MenuBar(Bar):
         # Character wasn't handled:
         return False
 
-    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> None:
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
         """
         Process the mouse when the mouse is over the menu bar.
         :param mouse_pos: tuple[int, int]: The current mouse position.
         :param button_state: int: The buttons pressed or not.
-        :return: None
+        :return: bool: True the mouse event was handled, False it was not.
         """
         if self.is_menu_activated:
-            if self._active_menu.is_mouse_over(mouse_pos):
-                handled: bool = self._active_menu.process_mouse(mouse_pos, button_state)
-                if handled:
-                    return
+            handled: bool = self._active_menu.process_mouse(mouse_pos, button_state)
+            if handled:
+                return True
         if button_state & curses.BUTTON1_CLICKED != 0 or button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
             # Check if the click is over the menu bar:
             for menu_bar_item in self.menu_bar_items:
@@ -253,7 +252,7 @@ class MenuBar(Bar):
                     else:
                         menu_bar_item.activate()
                         self._active_menu = menu_bar_item.menu
-                    return
+                    return True
             # if self.is_menu_activated:
 
 

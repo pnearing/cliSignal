@@ -5,7 +5,8 @@ Handle the help menu.
 """
 import curses
 from typing import Optional, Callable, Any
-from common import ROW, COL, ROWS, COLS, STRINGS, calc_attributes, HelpMenuSelection
+from common import ROW, COL, HEIGHT, WIDTH, STRINGS, HelpMenuSelection
+from cursesFunctions import calc_attributes
 from themes import ThemeColours
 from menu import Menu, calc_size
 from menuItem import MenuItem
@@ -30,71 +31,32 @@ class HelpMenu(Menu):
         """
         # Determine size:
         size: tuple[int, int] = calc_size(STRINGS['helpMenuNames'].values())
-        border_attrs: int = calc_attributes(ThemeColours.HELP_MENU_BORDER, theme['helpMenuBorder'])
-        border_chars: dict[str, str] = theme['helpMenuBorderChars']
-
-        # Get the attributes from the theme:
-        sel_attrs: int = calc_attributes(ThemeColours.HELP_MENU_SEL, theme['helpMenuSel'])
-        sel_accel_attrs: int = calc_attributes(ThemeColours.HELP_MENU_SEL_ACCEL, theme['helpMenuSelAccel'])
-        sel_lead_indicator: str = theme['helpMenuSelChars']['leadSel']
-        sel_tail_indicator: str = theme['helpMenuSelChars']['tailSel']
-        unsel_attrs: int = calc_attributes(ThemeColours.HELP_MENU_UNSEL, theme['helpMenuUnsel'])
-        unsel_accel_attrs: int = calc_attributes(ThemeColours.HELP_MENU_UNSEL_ACCEL, theme['helpMenuUnselAccel'])
-        unsel_lead_indicator: str = theme['helpMenuSelChars']['leadUnsel']
-        unsel_tail_indicator: str = theme['helpMenuSelChars']['tailUnsel']
 
         # Build the menu items:
         shortcut_label: str = STRINGS['helpMenuNames']['shortcuts']
-        shortcut_bg_char: str = STRINGS['background']['shortcutsMenu']
         shortcut_menu_item: MenuItem = MenuItem(std_screen=std_screen,
-                                                width=size[COLS] - 2,
+                                                width=size[WIDTH] - 2,
                                                 top_left=(top_left[ROW] + 1, top_left[COL] + 1),
                                                 label=shortcut_label,
-                                                bg_char=shortcut_bg_char,
-                                                sel_attrs=sel_attrs,
-                                                sel_accel_attrs=sel_accel_attrs,
-                                                sel_lead_indicator=sel_lead_indicator,
-                                                sel_tail_indicator=sel_tail_indicator,
-                                                unsel_attrs=unsel_attrs,
-                                                unsel_accel_attrs=unsel_accel_attrs,
-                                                unsel_lead_indicator=unsel_lead_indicator,
-                                                unsel_tail_indicator=unsel_tail_indicator,
+                                                theme=theme,
                                                 callback=callbacks['shortcuts'],
                                                 char_codes=[ord('S'), ord('s')],
                                                 )
         about_label: str = STRINGS['helpMenuNames']['about']
-        about_bg_char: str = STRINGS['background']['aboutMenu']
         about_menu_item: MenuItem = MenuItem(std_screen=std_screen,
-                                             width=size[COLS] - 2,
+                                             width=size[WIDTH] - 2,
                                              top_left=(top_left[ROW] + 2, top_left[COL] + 1),
                                              label=about_label,
-                                             bg_char=about_bg_char,
-                                             sel_attrs=sel_attrs,
-                                             sel_accel_attrs=sel_accel_attrs,
-                                             sel_lead_indicator=sel_lead_indicator,
-                                             sel_tail_indicator=sel_tail_indicator,
-                                             unsel_attrs=unsel_attrs,
-                                             unsel_accel_attrs=unsel_accel_attrs,
-                                             unsel_lead_indicator=unsel_lead_indicator,
-                                             unsel_tail_indicator=unsel_tail_indicator,
+                                             theme=theme,
                                              callback=callbacks['about'],
                                              char_codes=[ord('A'), ord('a')],
                                              )
         version_label: str = STRINGS['helpMenuNames']['version']
-        version_bg_char: str = STRINGS['background']['versionMenu']
         version_menu_item: MenuItem = MenuItem(std_screen=std_screen,
-                                               width=size[COLS] - 2,
+                                               width=size[WIDTH] - 2,
                                                top_left=(top_left[ROW] + 3, top_left[COL] + 1),
                                                label=version_label,
-                                               bg_char=version_bg_char,
-                                               sel_attrs=sel_attrs,
-                                               sel_accel_attrs=sel_accel_attrs,
-                                               sel_lead_indicator=sel_lead_indicator,
-                                               sel_tail_indicator=sel_tail_indicator,
-                                               unsel_attrs=unsel_attrs,
-                                               unsel_accel_attrs=unsel_accel_attrs,
-                                               unsel_lead_indicator=unsel_lead_indicator,
-                                               unsel_tail_indicator=unsel_tail_indicator,
+                                               theme=theme,
                                                callback=callbacks['version'],
                                                char_codes=[ord('V'), ord('v')]
                                                )
@@ -102,7 +64,7 @@ class HelpMenu(Menu):
         menu_items: list[MenuItem] = [shortcut_menu_item, about_menu_item, version_menu_item]
 
         # Call super:
-        Menu.__init__(self, std_screen, size, top_left, menu_items, border_chars, border_attrs)
+        Menu.__init__(self, std_screen, size, top_left, menu_items, theme)
 
         # Set internal properties:
         self._selection = HelpMenuSelection.KEYS

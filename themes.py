@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+File: themes.py
+-> Store theme information and functions.
+"""
 from typing import TextIO, Optional
 from enum import IntEnum, auto
 import curses
@@ -38,32 +42,20 @@ class ThemeColours(IntEnum):
     TYPING_WIN_FOCUS_TITLE = auto()
 
     MENU_BAR_EMPTY = auto()
-    MENU_UNSEL = auto()
-    MENU_SEL = auto()
-    MENU_UNSEL_ACCEL = auto()
-    MENU_SEL_ACCEL = auto()
+    MENU_BAR_UNSEL = auto()
+    MENU_BAR_SEL = auto()
+    MENU_BAR_UNSEL_ACCEL = auto()
+    MENU_BAR_SEL_ACCEL = auto()
 
     STATUS_BAR_EMPTY = auto()
     STATUS_BAR_CC = auto()
     STATUS_BAR_MOUSE = auto()
 
-    FILE_MENU_BORDER = auto()
-    FILE_MENU_SEL = auto()
-    FILE_MENU_SEL_ACCEL = auto()
-    FILE_MENU_UNSEL = auto()
-    FILE_MENU_UNSEL_ACCEL = auto()
-
-    ACCOUNTS_MENU_BORDER = auto()
-    ACCOUNTS_MENU_SEL = auto()
-    ACCOUNTS_MENU_SEL_ACCEL = auto()
-    ACCOUNTS_MENU_UNSEL = auto()
-    ACCOUNTS_MENU_UNSEL_ACCEL = auto()
-
-    HELP_MENU_BORDER = auto()
-    HELP_MENU_SEL = auto()
-    HELP_MENU_SEL_ACCEL = auto()
-    HELP_MENU_UNSEL = auto()
-    HELP_MENU_UNSEL_ACCEL = auto()
+    MENU_BORDER = auto()
+    MENU_SEL = auto()
+    MENU_SEL_ACCEL = auto()
+    MENU_UNSEL = auto()
+    MENU_UNSEL_ACCEL = auto()
 
     SETTINGS_WIN = auto()
     SETTINGS_WIN_BORDER = auto()
@@ -132,6 +124,11 @@ class ThemeColours(IntEnum):
     QRCODE_WIN_FOCUS_TITLE = auto()
     QRCODE_TEXT = auto()
 
+    BUTTON_SEL = auto()
+    BUTTON_SEL_ACCEL = auto()
+    BUTTON_UNSEL = auto()
+    BUTTON_UNSEL_ACCEL = auto()
+
 
 ###########################
 # Theme definitions: If you're looking to make your own theme, this is where you want to look.
@@ -139,6 +136,10 @@ class ThemeColours(IntEnum):
 _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
     # LIGHT THEME:
     'light': {
+        # BACKGROUND CHARACTERS, USUALLY SPACE:
+        'backgroundChars': {'menuItem': ' ', 'mainWin': ' ', 'contactsWin': ' ', 'linkWin': ' ', 'messagesWin': ' ',
+                            'qrcodeWin': ' ', 'quitWin': ' ', 'typingWin': ' ', 'menuBar': ' ', 'statusBar': ' ',
+                            },
         # BORDER CHARACTERS:
         # Main window border characters:
         'mainBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
@@ -152,15 +153,9 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Typing window border characters:
         'typeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
-        # File menu border characters:
-        'fileMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
-        # Accounts menu border characters:
-        'acctMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
-        # Help menu border characters:
-        'helpMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+        # Menu border chars:
+        'menuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                            'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
         # Settings window border characters.
         'setWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
@@ -217,15 +212,28 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # QR Code window title start and end characters:
         'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
 
-        # MENU SELECTION INDICATOR CHARACTERS:
+        # BUTTON CHARACTERS:
+        # Link window button start and end chars:
+        'linkWinBtnBorderChars': {'lead': '\u2561', 'tail': '\u255E'},
+
+        # SELECTION INDICATOR CHARACTERS:
         # Menu bar selection indicator characters:
+        'menuBarSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+        # Menu item selection indicator characters:
         'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
-        # File menu selection indicator characters:
-        'fileMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
-        # Accounts menu selection indicator characters:
-        'acctMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
-        # Help menu selection indicator characters:
-        'helpMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+        # Button selection indicator characters.
+        'buttonSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+
+        # BUTTON COLOUR ATTRIBUTES:
+        # Button selected text:
+        'buttonSel': {'fg': 7, 'bg': 18, 'bold': True, 'underline': False, 'reverse': False},
+        # Button unselected text:
+        'buttonUnsel': {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Button selected accelerator text:
+        'buttonSelAccel': {'fg': 7, 'bg': 18, 'bold': True, 'underline': True, 'reverse': False},
+        # Button unselected accelerator text:
+        'buttonUnselAccel': {'fg': 7, 'bg': 18, 'bold': False, 'underline': True, 'reverse': False},
+
 
         # MAIN WINDOW COLOUR ATTRIBUTES:
         # Main window centre:
@@ -413,15 +421,15 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
 
         # MENU BAR COLOUR ATTRIBUTES:
         # Menu bar background spaces:
-        'menuBG': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        'menuBarBG': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
         # Menu bar item selected:
-        'menuSel': {'fg': 15, 'bg': 18, 'bold': True, 'underline': False, 'reverse': False},
+        'menuBarSel': {'fg': 15, 'bg': 18, 'bold': True, 'underline': False, 'reverse': False},
         # Menu bar accelerator indicator when selected:
-        'menuSelAccel': {'fg': 15, 'bg': 18, 'bold': True, 'underline': True, 'reverse': False},
+        'menuBarSelAccel': {'fg': 15, 'bg': 18, 'bold': True, 'underline': True, 'reverse': False},
         # Menu bar item unselected:
-        'menuUnsel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        'menuBarUnsel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
         # Menu bar item accelerator indicator when unselected.
-        'menuUnselAccel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': True, 'reverse': False},
+        'menuBarUnselAccel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': True, 'reverse': False},
 
         # STATUS BAR COLOUR ATTRIBUTES:
         # Status bar background spaces:
@@ -431,45 +439,26 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Status bar mouse info:
         'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': False, 'reverse': False},
 
-        # FILE MENU COLOUR ATTRIBUTES:
-        # File menu border:
-        'fileMenuBorder': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        # FIle menu selected item:
-        'fileMenuSel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': True},
-        # File menu unselected item:
-        'fileMenuUnsel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        # File menu selected accelerator:
-        'fileMenuSelAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': True},
-        # File menu unselected accelerator:
-        'fileMenuUnselAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': False},
+        # GENERAL MENU COLOUR ATTRIBUTES:
+        # Menu border:
+        'menuBorder': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
+        # Selected item:
+        'menuSel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': True},
+        # Unselected item:
+        'menuUnsel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
+        # Selected item accelerator:
+        'menuSelAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': False},
+        # Unselected item accelerator:
+        'menuUnselAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': False},
 
-        # ACCOUNTS MENU COLOUR ATTRIBUTES:
-        # Accounts menu border:
-        'acctMenuBorder': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        # Accounts menu selected item.
-        'acctMenuSel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': True},
-        # Accounts menu unselected item.
-        'acctMenuUnsel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        # Accounts menu selected accelerator:
-        'acctMenuSelAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': True},
-        # Accounts menu unselected accelerator:
-        'acctMenuUnselAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': False},
 
-        # HELP MENU COLOUR ATTRIBUTES:
-        # Help menu border:
-        'helpMenuBorder': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        # Help menu selected item:
-        'helpMenuSel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': True},
-        # Help menu unselected item:
-        'helpMenuUnsel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
-        # Help menu selected accelerator:
-        'helpMenuSelAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': True},
-        # Help menu unselected accelerator:
-        'helpMenuUnselAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': False},
     },
     # DARK THEME:
     'dark': {
-        'titles': {'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None},
+        'backgroundChars': {'menuItem': ' ', 'mainWin': ' ', 'contactsWin': ' ', 'linkWin': ' ', 'messagesWin': ' ',
+                            'qrcodeWin': ' ', 'quitWin': ' ', 'typingWin': ' ', 'menuBar': ' ', 'statusBar': ' ',
+                            },
+
         'mainBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                             'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         'contWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
@@ -496,13 +485,9 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         'qrcodeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'menuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                            'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
 
-        'fileMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
-        'acctMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
-        'helpMenuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
         'mainWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'contWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'msgsWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
@@ -516,36 +501,49 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'linkWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'regWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
         'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+
+        'linkWinBtnBorderChars': {'lead': '\u2561', 'tail': '\u255E'},
+
+        'menuBarSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
-        'fileMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
-        'acctMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
-        'helpMenuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+        'buttonSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+
+        'buttonSel': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': False},
+        'buttonUnsel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
+        'buttonSelAccel': {'fg': 7, 'bg': 237, 'bold': True, 'underline': True, 'reverse': False},
+        'buttonUnselAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': False},
+
         'mainWin': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
         'mainWinBorder': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': False},
         'mainWinFBorder': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': True},
         'mainWinTitle': {'fg': 7, 'bg': 237, 'bold': True, 'underline': True, 'reverse': False},
         'mainWinFTitle': {'fg': 7, 'bg': 237, 'bold': True, 'underline': True, 'reverse': True},
         'mainWinErrorText': {'fg': 15, 'bg': 1, 'bold': True, 'underline': False, 'reverse': False},
+
         'contWin': {'fg': 7, 'bg': 238, 'bold': False, 'underline': False, 'reverse': False},
         'contWinBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': False},
         'contWinFBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': True},
         'contWinTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': False},
         'contWinFTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': True},
+
         'msgsWin': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
         'msgsWinBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
         'msgsWinFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': True},
         'msgsWinTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
         'msgsWinFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': True},
+
         'typeWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'typeWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'typeWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'typeWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'typeWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'setWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'setWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'setWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'setWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'setWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'quitWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'quitWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'quitWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
@@ -556,71 +554,73 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'quitWinSelAccelText': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
         'quitWinUnselText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'quitWinUnselAccelText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': True, 'reverse': False},
+
         'switchWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'switchWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'switchWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'switchWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'switchWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'linkWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'linkWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'linkWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'linkWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'linkWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
         'linkWinText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
+
         'regWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'regWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'regWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'regWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'regWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'keysWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'keysWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'keysWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'keysWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'keysWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'aboutWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'aboutWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'aboutWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'aboutWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'aboutWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'verWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'verWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'verWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'verWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'verWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'genMsgWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'genMsgWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
         'genMsgWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'genMsgWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'genMsgWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+
         'qrcodeWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-        'qrcodeWinBorder': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-        'qrcodeWinFBorder': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-        'qrcodeWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
-        'qrcodeWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
-        'qrcodeText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
-        'menuBG': {'fg': 7, 'bg': 236, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinBorder': {'fg': 7, 'bg': 232, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinFBorder': {'fg': 7, 'bg': 232, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinTitle': {'fg': 7, 'bg': 232, 'bold': True, 'underline': True, 'reverse': False},
+        'qrcodeWinFTitle': {'fg': 7, 'bg': 232, 'bold': True, 'underline': True, 'reverse': False},
+        'qrcodeText': {'fg': 160, 'bg': 232, 'bold': False, 'underline': False, 'reverse': False},
+
+        'menuBarBG': {'fg': 7, 'bg': 236, 'bold': False, 'underline': False, 'reverse': False},
+        'menuBarSel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': False, 'reverse': True},
+        'menuBarSelAccel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': True},
+        'menuBarUnsel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
+        'menuBarUnselAccel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': True, 'reverse': False},
+
+        'statusBG': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
+        'statusCC': {'fg': 16, 'bg': 220, 'bold': False, 'underline': False, 'reverse': False},
+        'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': True, 'reverse': False},
+
+        'menuBorder': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
         'menuSel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': False, 'reverse': True},
         'menuSelAccel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': True},
         'menuUnsel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
         'menuUnselAccel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': True, 'reverse': False},
-        'statusBG': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
-        'statusCC': {'fg': 16, 'bg': 220, 'bold': False, 'underline': False, 'reverse': False},
-        'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': True, 'reverse': False},
-        'fileMenuBorder': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
-        'fileMenuSel': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': True},
-        'fileMenuUnsel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
-        'fileMenuSelAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': True},
-        'fileMenuUnselAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': False},
-        'acctMenuBorder': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
-        'acctMenuSel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': True},
-        'acctMenuUnsel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
-        'acctMenuSelAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': True},
-        'acctMenuUnselAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': False},
-        'helpMenuBorder': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
-        'helpMenuSel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': True},
-        'helpMenuUnsel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
-        'helpMenuSelAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': True},
-        'helpMenuUnselAccel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': True, 'reverse': False},
+
     }
 }
 """Light and dark theme definitions."""
@@ -630,22 +630,21 @@ _ATTRIBUTE_PRIMARY_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle'
                                       'contWinTitle', 'msgsWin', 'msgsWinBorder', 'msgsWinTitle', 'typeWin',
                                       'typeWinBorder', 'typeWinTitle', 'mainWinFBorder', 'msgsWinFBorder',
                                       'contWinFBorder', 'typeWinFBorder', 'mainWinFTitle', 'contWinFTitle',
-                                      'msgsWinFTitle', 'typeWinFTitle', 'menuBG', 'statusBG', 'menuSel', 'menuSelAccel',
-                                      'menuUnsel', 'menuUnselAccel', 'fileMenuBorder', 'acctMenuBorder',
-                                      'helpMenuBorder', 'setWin', 'setWinBorder', 'setWinFBorder', 'setWinTitle',
-                                      'setWinFTitle', 'quitWin', 'quitWinBorder', 'quitWinFBorder', 'quitWinTitle',
-                                      'quitWinFTitle', 'switchWin', 'switchWinBorder', 'switchWinFBorder',
-                                      'switchWinTitle', 'switchWinFTitle', 'linkWin', 'linkWinBorder', 'linkWinFBorder',
-                                      'linkWinTitle', 'linkWinFTitle', 'regWin', 'regWinBorder', 'regWinFBorder',
-                                      'regWinTitle', 'regWinFTitle', 'keysWin', 'keysWinBorder', 'keysWinFBorder',
-                                      'keysWinTitle', 'keysWinTitle', 'aboutWin', 'aboutWinBorder', 'aboutWinFBorder',
-                                      'aboutWinTitle', 'aboutWinFTitle', 'verWin', 'verWinBorder', 'verWinFBorder',
-                                      'verWinTitle', 'verWinFTitle', 'quitWinText', 'quitWinSelText',
-                                      'quitWinSelAccelText', 'quitWinUnselText', 'quitWinUnselAccelText',
-                                      'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder', 'genMsgWinFBorder',
-                                      'genMsgWinTitle', 'genMsgWinFTitle', 'qrcodeWin', 'qrcodeWinBorder',
-                                      'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle', 'linkWinText',
-                                      'qrcodeText', 'statusCC', 'statusMouse',
+                                      'msgsWinFTitle', 'typeWinFTitle', 'menuBarBG', 'statusBG', 'menuBarSel',
+                                      'menuBarSelAccel', 'menuBarUnsel', 'menuBarUnselAccel', 'setWin', 'setWinBorder',
+                                      'setWinFBorder', 'setWinTitle', 'setWinFTitle', 'quitWin', 'quitWinBorder',
+                                      'quitWinFBorder', 'quitWinTitle', 'quitWinFTitle', 'switchWin', 'switchWinBorder',
+                                      'switchWinFBorder', 'switchWinTitle', 'switchWinFTitle', 'linkWin',
+                                      'linkWinBorder', 'linkWinFBorder', 'linkWinTitle', 'linkWinFTitle', 'regWin',
+                                      'regWinBorder', 'regWinFBorder', 'regWinTitle', 'regWinFTitle', 'keysWin',
+                                      'keysWinBorder', 'keysWinFBorder', 'keysWinTitle', 'keysWinTitle', 'aboutWin',
+                                      'aboutWinBorder', 'aboutWinFBorder', 'aboutWinTitle', 'aboutWinFTitle', 'verWin',
+                                      'verWinBorder', 'verWinFBorder', 'verWinTitle', 'verWinFTitle', 'quitWinText',
+                                      'quitWinSelText', 'quitWinSelAccelText', 'quitWinUnselText',
+                                      'quitWinUnselAccelText', 'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder',
+                                      'genMsgWinFBorder', 'genMsgWinTitle', 'genMsgWinFTitle', 'qrcodeWin',
+                                      'qrcodeWinBorder', 'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle',
+                                      'linkWinText', 'qrcodeText', 'statusCC', 'statusMouse',
                                       ]
 """Primary attribute theme keys."""
 
@@ -657,12 +656,15 @@ _TITLE_CHAR_PRIMARY_KEYS: list[str] = ['mainWinTitleChars', 'contWinTitleChars',
                                        ]
 """Title characters primary keys."""
 
-_MENU_SEL_PRIMARY_KEYS: list[str] = ['menuSelChars', 'fileMenuSelChars', 'acctMenuSelChars', 'helpMenuSelChars']
+_BUTTON_BORDER_CHAR_PRIMARY_KEYS: list[str] = ['linkWinBtnBorderChars',
+                                        ]
+"""Button border character primary keys."""
+_SELECTION_PRIMARY_KEYS: list[str] = ['menuBarSelChars', 'menuSelChars', 'buttonSelChars',
+                                      ]
 """Menu selection primary keys."""
 
 _BORDER_PRIMARY_KEYS: list[str] = ['mainBorderChars', 'contWinBorderChars', 'msgsWinBorderChars', 'typeWinBorderChars',
-                                   'fileMenuBorderChars', 'acctMenuBorderChars', 'helpMenuBorderChars',
-                                   'setWinBorderChars', 'quitWinBorderChars', 'switchWinBorderChars',
+                                   'menuBorderChars', 'setWinBorderChars', 'quitWinBorderChars', 'switchWinBorderChars',
                                    'keysWinBorderChars', 'verWinBorderChars', 'linkWinBorderChars', 'regWinBorderChars',
                                    'qrcodeWinBorderChars',
                                    ]
@@ -678,8 +680,14 @@ _BORDER_CHAR_KEYS: list[str] = ['ts', 'bs', 'ls', 'rs', 'tl', 'tr', 'bl', 'br']
 _TITLE_CHAR_KEYS: list[str] = ['start', 'end']
 """Title character keys."""
 
+_BUTTON_CHAR_KEYS: list[str] = ['start', 'end']
+"""Button character keys."""
+
 _MENU_SEL_CHAR_KEYS: list[str] = ['leadSel', 'leadUnsel', 'tailSel', 'tailUnsel']
 """Menu selection indicator character keys."""
+
+_BUTTON_BORDER_CHAR_KEYS: list[str] = ['lead', 'tail']
+"""Button border character keys."""
 
 
 def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, str]:
@@ -698,7 +706,9 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
             elif attr_key in ('fg', 'bg'):
                 if theme[main_key][attr_key] < 0 or theme[main_key][attr_key] >= curses.COLORS:
                     return False, "Value at ['%s']['%s'] out of range 0 -> %i." % (main_key, attr_key, curses.COLORS)
-
+            else:  # Rest must be boolean
+                if not isinstance(theme[main_key][attr_key], bool):
+                    return False, "Type error: ['%s']['%s'] is not a boolean." % (main_key, attr_key)
     # Border character keys:
     for border_key in _BORDER_PRIMARY_KEYS:
         if border_key not in theme.keys():
@@ -708,7 +718,7 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
                 return False, "Key '%s' missing from '%s'." % (border_char_key, border_key)
 
     # Menu selection character keys:
-    for menu_sel_primary_key in _MENU_SEL_PRIMARY_KEYS:
+    for menu_sel_primary_key in _SELECTION_PRIMARY_KEYS:
         if menu_sel_primary_key not in theme.keys():
             return False, "Primary key '%s' doesn't exist." % menu_sel_primary_key
         for menu_sel_key in _MENU_SEL_CHAR_KEYS:
@@ -722,6 +732,14 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
         for title_char_key in _TITLE_CHAR_KEYS:
             if title_char_key not in theme[title_char_primary_key].keys():
                 return False, "Key '%s' missing from '%s'." % (title_char_key, title_char_primary_key)
+
+    # Button border characters keys:
+    for button_border_primary_key in _BUTTON_BORDER_CHAR_PRIMARY_KEYS:
+        if button_border_primary_key not in theme.keys():
+            return False, "Primary key '%s' doesn't exist." % button_border_primary_key
+        for button_border_key in _BUTTON_BORDER_CHAR_KEYS:
+            if button_border_key not in theme[button_border_primary_key].keys():
+                return False, "Key '%s' missing from '%s'." % (button_border_key, button_border_primary_key)
 
     # Everything is good:
     return True, 'PASS'
@@ -794,37 +812,44 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.TYPING_WIN_FOCUS_TITLE, theme['typeWinFTitle']['fg'],
                      theme['typeWinFTitle']['bg'])
 
-    curses.init_pair(ThemeColours.MENU_BAR_EMPTY, theme['menuBG']['fg'], theme['menuBG']['bg'])
-    curses.init_pair(ThemeColours.MENU_SEL, theme['menuSel']['fg'], theme['menuSel']['bg'])
-    curses.init_pair(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel']['fg'], theme['menuSelAccel']['bg'])
-    curses.init_pair(ThemeColours.MENU_UNSEL, theme['menuUnsel']['fg'], theme['menuUnsel']['bg'])
-    curses.init_pair(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel']['fg'], theme['menuUnselAccel']['bg'])
+    curses.init_pair(ThemeColours.MENU_BAR_EMPTY, theme['menuBarBG']['fg'], theme['menuBarBG']['bg'])
+    curses.init_pair(ThemeColours.MENU_BAR_SEL, theme['menuBarSel']['fg'], theme['menuBarSel']['bg'])
+    curses.init_pair(ThemeColours.MENU_BAR_SEL_ACCEL, theme['menuBarSelAccel']['fg'], theme['menuBarSelAccel']['bg'])
+    curses.init_pair(ThemeColours.MENU_BAR_UNSEL, theme['menuBarUnsel']['fg'], theme['menuBarUnsel']['bg'])
+    curses.init_pair(ThemeColours.MENU_BAR_UNSEL_ACCEL, theme['menuBarUnselAccel']['fg'],
+                     theme['menuBarUnselAccel']['bg'])
 
     curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
     curses.init_pair(ThemeColours.STATUS_BAR_CC, theme['statusCC']['fg'], theme['statusCC']['bg'])
     curses.init_pair(ThemeColours.STATUS_BAR_MOUSE, theme['statusMouse']['fg'], theme['statusMouse']['bg'])
 
-    curses.init_pair(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder']['fg'], theme['fileMenuBorder']['bg'])
-    curses.init_pair(ThemeColours.FILE_MENU_SEL, theme['fileMenuSel']['fg'], theme['fileMenuSel']['bg'])
-    curses.init_pair(ThemeColours.FILE_MENU_UNSEL, theme['fileMenuUnsel']['fg'], theme['fileMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.FILE_MENU_SEL_ACCEL, theme['fileMenuSelAccel']['fg'], theme['fileMenuSelAccel']['bg'])
-    curses.init_pair(ThemeColours.FILE_MENU_UNSEL_ACCEL, theme['fileMenuUnselAccel']['fg'],
-                     theme['fileMenuUnselAccel']['bg'])
+    curses.init_pair(ThemeColours.MENU_BORDER, theme['menuBorder']['fg'], theme['menuBorder']['bg'])
+    curses.init_pair(ThemeColours.MENU_SEL, theme['menuSel']['fg'], theme['menuSel']['bg'])
+    curses.init_pair(ThemeColours.MENU_UNSEL, theme['menuUnsel']['fg'], theme['menuUnsel']['bg'])
+    curses.init_pair(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel']['fg'], theme['menuSelAccel']['bg'])
+    curses.init_pair(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel']['fg'], theme['menuUnselAccel']['bg'])
 
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder']['fg'], theme['acctMenuBorder']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel']['fg'], theme['acctMenuSel']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel']['fg'], theme['acctMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL_ACCEL, theme['acctMenuSelAccel']['fg'],
-                     theme['acctMenuSelAccel']['bg'])
-    curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL_ACCEL, theme['acctMenuUnselAccel']['fg'],
-                     theme['acctMenuUnselAccel']['bg'])
-
-    curses.init_pair(ThemeColours.HELP_MENU_BORDER, theme['helpMenuBorder']['fg'], theme['helpMenuBorder']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_SEL, theme['helpMenuSel']['fg'], theme['helpMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_UNSEL, theme['helpMenuUnsel']['fg'], theme['helpMenuUnsel']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_SEL_ACCEL, theme['helpMenuSelAccel']['fg'], theme['helpMenuSelAccel']['bg'])
-    curses.init_pair(ThemeColours.HELP_MENU_UNSEL_ACCEL, theme['helpMenuUnselAccel']['fg'],
-                     theme['helpMenuUnselAccel']['bg'])
+    # curses.init_pair(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder']['fg'], theme['fileMenuBorder']['bg'])
+    # curses.init_pair(ThemeColours.FILE_MENU_SEL, theme['fileMenuSel']['fg'], theme['fileMenuSel']['bg'])
+    # curses.init_pair(ThemeColours.FILE_MENU_UNSEL, theme['fileMenuUnsel']['fg'], theme['fileMenuUnsel']['bg'])
+    # curses.init_pair(ThemeColours.FILE_MENU_SEL_ACCEL, theme['fileMenuSelAccel']['fg'], theme['fileMenuSelAccel']['bg'])
+    # curses.init_pair(ThemeColours.FILE_MENU_UNSEL_ACCEL, theme['fileMenuUnselAccel']['fg'],
+    #                  theme['fileMenuUnselAccel']['bg'])
+    #
+    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder']['fg'], theme['acctMenuBorder']['bg'])
+    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel']['fg'], theme['acctMenuSel']['bg'])
+    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel']['fg'], theme['acctMenuUnsel']['bg'])
+    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL_ACCEL, theme['acctMenuSelAccel']['fg'],
+    #                  theme['acctMenuSelAccel']['bg'])
+    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL_ACCEL, theme['acctMenuUnselAccel']['fg'],
+    #                  theme['acctMenuUnselAccel']['bg'])
+    #
+    # curses.init_pair(ThemeColours.HELP_MENU_BORDER, theme['helpMenuBorder']['fg'], theme['helpMenuBorder']['bg'])
+    # curses.init_pair(ThemeColours.HELP_MENU_SEL, theme['helpMenuSel']['fg'], theme['helpMenuUnsel']['bg'])
+    # curses.init_pair(ThemeColours.HELP_MENU_UNSEL, theme['helpMenuUnsel']['fg'], theme['helpMenuUnsel']['bg'])
+    # curses.init_pair(ThemeColours.HELP_MENU_SEL_ACCEL, theme['helpMenuSelAccel']['fg'], theme['helpMenuSelAccel']['bg'])
+    # curses.init_pair(ThemeColours.HELP_MENU_UNSEL_ACCEL, theme['helpMenuUnselAccel']['fg'],
+    #                  theme['helpMenuUnselAccel']['bg'])
 
     curses.init_pair(ThemeColours.SETTINGS_WIN, theme['setWin']['fg'], theme['setWin']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_BORDER, theme['setWinBorder']['fg'], theme['setWinBorder']['bg'])
@@ -901,5 +926,10 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.QRCODE_WIN_FOCUS_TITLE, theme['qrcodeWinFTitle']['fg'],
                      theme['qrcodeWinFTitle']['bg'])
     curses.init_pair(ThemeColours.QRCODE_TEXT, theme['qrcodeText']['fg'], theme['qrcodeText']['bg'])
+
+    curses.init_pair(ThemeColours.BUTTON_SEL, theme['buttonSel']['fg'], theme['buttonSel']['bg'])
+    curses.init_pair(ThemeColours.BUTTON_UNSEL, theme['buttonUnsel']['fg'], theme['buttonUnsel']['bg'])
+    curses.init_pair(ThemeColours.BUTTON_SEL_ACCEL, theme['buttonSelAccel']['fg'], theme['buttonSelAccel']['bg'])
+    curses.init_pair(ThemeColours.BUTTON_UNSEL_ACCEL, theme['buttonUnselAccel']['fg'], theme['buttonUnselAccel']['bg'])
 
     return

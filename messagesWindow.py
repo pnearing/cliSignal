@@ -5,7 +5,8 @@ Messages list window handling.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, calc_attributes, STRINGS
+from common import ROW, COL, STRINGS
+from cursesFunctions import calc_attributes
 from themes import ThemeColours
 from window import Window
 
@@ -27,7 +28,7 @@ class MessagesWindow(Window):
         """
         # Set title and background character:
         title: str = STRINGS['titles']['messages']
-        bg_char: str = STRINGS['background']['messagesWin']
+        bg_char: str = theme['backgroundChars']['messagesWin']
 
         # Set theme attrs and strings:
         window_attrs: int = calc_attributes(ThemeColours.MESSAGES_WIN, theme['msgsWin'])
@@ -48,8 +49,17 @@ class MessagesWindow(Window):
 
     def process_key(self, char_code: int) -> bool:
         """
-        Process a key press:
+        Process a key press.
         :param char_code: int: The character code.
         :return: bool: True, character handled, False character not handled.
+        """
+        return False
+
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
+        """
+        Process the mouse events.
+        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :param button_state: int: The button state.
+        :return: bool: True, mouse was handled, False it was not.
         """
         return False

@@ -2,7 +2,8 @@
 from typing import Optional, Callable, Any
 from warnings import warn
 import curses
-from common import ROW, COL, CB_CALLABLE, CB_PARAM, CallbackStates, add_accel_text
+from common import ROW, COL, CBIndex, CBStates
+from cursesFunctions import add_accel_text
 from typeError import __type_error__
 from fileMenu import FileMenu
 from accountsMenu import AccountsMenu
@@ -105,14 +106,16 @@ class MenuBarItem(object):
         :return: Optional[Any]: The return value of the callback.
         """
         return_value: Optional[Any] = None
-        if self._callback[CB_CALLABLE] is not None:
+        if self._callback[CBIndex.CALLABLE] is not None:
             try:
-                if self._callback[CB_PARAM] is not None:
-                    return_value = self._callback[CB_CALLABLE](state, self._std_screen, self._callback[CB_PARAM])
+                if self._callback[CBIndex.PARAMS] is not None:
+                    return_value = self._callback[CBIndex.CALLABLE](state, self._std_screen,
+                                                                    self._callback[CBIndex.PARAMS])
                 else:
-                    return_value = self._callback[CB_CALLABLE](state, self._std_screen)
+                    return_value = self._callback[CBIndex.CALLABLE](state, self._std_screen)
             except TypeError as e:
-                warning_message: str = "Callback not callable[%s]: TypeError: %s" % (self._callback.__name__, e.args[0])
+                warning_message: str = "Callback not callable[%s]: TypeError: %s" \
+                                       % (self._callback[CBIndex.CALLABLE].__name__, e.args[0])
                 warn(warning_message, RuntimeWarning)
             except Exception as e:
                 warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
@@ -162,13 +165,13 @@ class MenuBarItem(object):
         :return: Optional[Any]: The return value of the callback
         """
         self.is_activated = True
-        self._run_callback(CallbackStates.ACTIVATED.value)
+        self._run_callback(CBStates.ACTIVATED.value)
         self.menu.is_activated = True
         return None
 
     def deactivate(self) -> None:
         self.is_activated = False
-        self._run_callback(CallbackStates.DEACTIVATED.value)
+        self._run_callback(CBStates.DEACTIVATED.value)
         self.menu.is_activated = False
         return
 

@@ -1,24 +1,28 @@
 #!/usr/bin/env python3
 """
 File: linkWindow.py
-Handle linking a phone number to this signal-cli instance.
+-> Handle linking messages while linking an existing account.
 """
 import curses
 from typing import Optional, Callable, Any
 from enum import Enum
-from common import ROW, ROWS, COL, COLS, STRINGS, calc_attributes, calc_center_top_left, center_string
+from common import ROW, HEIGHT, COL, WIDTH, STRINGS, KEYS_ENTER
+from cursesFunctions import calc_attributes, center_string, calc_center_top_left, calc_center_col
 from window import Window
 from themes import ThemeColours
 from typeError import __type_error__
+from button import Button
 
 
-class LinkMessageSelections(Enum):
+class LinkMessages(Enum):
     """
     Link message selection values.
     """
-    GENERATE = 'generate'
-    SUCCESS = 'success'
-    FAILURE = 'failure'
+    GENERATE = 'Generating and encoding link...'
+    SUCCESS = 'Successfully linked account.'
+    UNKNOWN = 'An unknown error occurred while linking account.'
+    EXISTS = 'The account is already linked.'
+    TIMEOUT = 'The link process timed-out.'
 
 
 class LinkWindow(Window):
@@ -36,7 +40,7 @@ class LinkWindow(Window):
         """
         # Set title and background character:
         title: str = STRINGS['titles']['link']
-        bg_char: str = STRINGS['background']['linkWin']
+        bg_char: str = theme['backgroundChars']['linkWin']
 
         # Set the theme attrs:
         window_attrs: int = calc_attributes(ThemeColours.LINK_WIN, theme['linkWin'])
@@ -47,19 +51,12 @@ class LinkWindow(Window):
         title_focus_attrs: int = calc_attributes(ThemeColours.LINK_WIN_FOCUS_TITLE, theme['linkWinFTitle'])
         title_chars: dict[str, str] = theme['linkWinTitleChars']
 
-        # Set window contents:
-        self._window_messages: dict[LinkMessageSelections, str] = {
-            LinkMessageSelections.GENERATE: STRINGS['messages']['linkGen'],
-            LinkMessageSelections.SUCCESS: STRINGS['messages']['linkOk'],
-            LinkMessageSelections.FAILURE: STRINGS['messages']['linkErr'],
-        }
-
-        self._current_message: LinkMessageSelections = LinkMessageSelections.GENERATE
-
+        self._current_message: LinkMessages = LinkMessages.GENERATE
+        """The current message to display."""
         # Calculate size:
         width: int = 0
-        for message in self._window_messages.values():
-            width = max(width, len(message))
+        for message in iter(LinkMessages):
+            width = max(width, len(message.value))
         width += 4
         height: int = 5
         top_left: tuple[int, int] = calc_center_top_left(std_screen.getmaxyx(), (height, width))
@@ -71,15 +68,33 @@ class LinkWindow(Window):
         Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
                         title_attrs, title_focus_attrs, title_chars, bg_char)
         self.is_visible = False
-
+        """Is this window visible?"""
         # Store the std_screen for resize:
         self._std_screen: curses.window = std_screen
-
+        """The std_screen curses.window object."""
         # Store the text attributes:
         self._text_attrs: int = calc_attributes(ThemeColours.LINK_WIN_TEXT, theme['linkWinText'])
-
+        """The text attributes."""
         # Store show button:
-        self.show_button: bool = False
+        self._show_button: bool = False
+        """Should we show the button?"""
+        button_border_chars = theme['linkWinBtnBorderChars']
+        button_label = STRINGS['buttonLabels']['okButton']
+        button_width = len(button_label) + 2
+        button_left: int = calc_center_col(self.size[WIDTH], button_width)
+        button_top_left: tuple[int, int] = (self.real_size[HEIGHT] - 1, button_left)
+        self._button = Button(window=self._window,
+                              top_left=button_top_left,
+                              label=button_label,
+                              theme=theme,
+                              border_lead_char=button_border_chars['lead'],
+                              border_tail_char=button_border_chars['tail'],
+                              border_attrs=border_focus_attrs,
+                              click_callback=None,
+                              double_click_callback=None,
+                              click_char_codes=[ord('O'), ord('o'), *KEYS_ENTER],
+                              double_click_char_codes=[]
+                              )
         return
 
     ############################
@@ -95,8 +110,9 @@ class LinkWindow(Window):
         # Draw the window and title:
         super().redraw()
         row: int = 2
-        text: str = self._window_messages[self._current_message]
+        text: str = self._current_message.value
         center_string(self._window, row, text, self._text_attrs)
+        self._button.redraw()
         self._window.noutrefresh()
         return
 
@@ -109,11 +125,21 @@ class LinkWindow(Window):
         super().resize((-1, -1), top_left)
         return
 
+    def process_key(self, char_code: int) -> bool:
+        """
+        Process a key press.
+        :param char_code: int: The character code of the key pressed.
+        :return: bool: True, the event was handled, False, it was not.
+        """
+        if self.show_button:
+            return self._button.process_key(char_code)
+        return False
+
 ##############################
 # Properties:
 ##############################
     @property
-    def current_message(self) -> LinkMessageSelections:
+    def current_message(self) -> LinkMessages:
         """
         The current message selection.
         :return: LinkMessageSelections: The current selection.
@@ -121,7 +147,7 @@ class LinkWindow(Window):
         return self._current_message
 
     @current_message.setter
-    def current_message(self, value: LinkMessageSelections | str) -> None:
+    def current_message(self, value: LinkMessages | str) -> None:
         """
         The current message selection.
         Setter.
@@ -130,6 +156,30 @@ class LinkWindow(Window):
         :raises ValueError: If value is not a valid LinkMessageSelections string value.
         :raises TypeError: If value is not a LinkMessageSelections item.
         """
-        if not isinstance(value, (LinkMessageSelections, str)):
+        if not isinstance(value, (LinkMessages, str)):
             __type_error__('value', 'LinkMessageSelections | str', value)
-        self._current_message = LinkMessageSelections(value)  # Raises ValueError
+        self._current_message = LinkMessages(value)  # Raises ValueError
+        return
+
+    @property
+    def show_button(self) -> bool:
+        """
+        Should we show the button?
+        :return: bool: True button is visible, False it is not.
+        """
+        return self._show_button
+
+    @show_button.setter
+    def show_button(self, value: bool) -> None:
+        """
+        Should we show the button?
+        Setter.
+        :param value: bool: The value to set to.
+        :return: None.
+        :raises TypeError: On invalid type.
+        """
+        if not isinstance(value, bool):
+            __type_error__('value', 'bool', value)
+        self._show_button = value
+        self._button.is_visible = value
+        return
