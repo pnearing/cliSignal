@@ -6,7 +6,7 @@ File: linkWindow.py
 import curses
 from typing import Optional, Callable, Any
 from enum import Enum
-from common import ROW, HEIGHT, COL, WIDTH, STRINGS, KEYS_ENTER
+from common import ROW, HEIGHT, COL, WIDTH, STRINGS, KEYS_ENTER, Focus
 from cursesFunctions import calc_attributes, center_string, calc_center_top_left, calc_center_col
 from window import Window
 from themes import ThemeColours
@@ -58,17 +58,15 @@ class LinkWindow(Window):
         for message in iter(LinkMessages):
             width = max(width, len(message.value))
         width += 4
-        height: int = 5
+        height: int = 6
         top_left: tuple[int, int] = calc_center_top_left(std_screen.getmaxyx(), (height, width))
 
         # Make a curses window:
         window = curses.newwin(height, width, top_left[ROW], top_left[COL])
 
         # Super the window:
-        Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
-                        title_attrs, title_focus_attrs, title_chars, bg_char)
-        self.is_visible = False
-        """Is this window visible?"""
+        Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
+                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.LINK)
         # Store the std_screen for resize:
         self._std_screen: curses.window = std_screen
         """The std_screen curses.window object."""
@@ -82,24 +80,21 @@ class LinkWindow(Window):
         button_label = STRINGS['buttonLabels']['okButton']
         button_width = len(button_label) + 2
         button_left: int = calc_center_col(self.size[WIDTH], button_width)
-        button_top_left: tuple[int, int] = (self.real_size[HEIGHT] - 1, button_left)
+        button_top_left: tuple[int, int] = (self.size[HEIGHT] - 1, button_left)
         self._button = Button(window=self._window,
                               top_left=button_top_left,
                               label=button_label,
                               theme=theme,
-                              border_lead_char=button_border_chars['lead'],
-                              border_tail_char=button_border_chars['tail'],
-                              border_attrs=border_focus_attrs,
-                              click_callback=None,
-                              double_click_callback=None,
-                              click_char_codes=[ord('O'), ord('o'), *KEYS_ENTER],
-                              double_click_char_codes=[]
+                              lead_char='[',
+                              tail_char=']',
+                              lead_tail_attrs=self._text_attrs,
+                              left_click_char_codes=[ord('O'), ord('o')],
                               )
         return
 
-    ############################
-    # Overrides:
-    ############################
+############################
+# Overrides:
+############################
     def redraw(self) -> None:
         """
         Redraw the link window.
@@ -121,19 +116,21 @@ class LinkWindow(Window):
         Resize the link window.
         :return: None
         """
-        top_left = calc_center_top_left(self._std_screen.getmaxyx(), self.real_size)
-        super().resize((-1, -1), top_left)
+        top_left: tuple[int, int] = calc_center_top_left(self._std_screen.getmaxyx(), self.real_size)
+        super().resize((-1, -1), top_left, False, True)
         return
 
-    def process_key(self, char_code: int) -> bool:
+    def process_key(self, char_code: int) -> Optional[bool]:
         """
         Process a key press.
         :param char_code: int: The character code of the key pressed.
         :return: bool: True, the event was handled, False, it was not.
         """
         if self.show_button:
-            return self._button.process_key(char_code)
-        return False
+            return_value: Optional[bool] = self._button.process_key(char_code)
+            if return_value is not None:
+                return False
+        return None
 
 ##############################
 # Properties:

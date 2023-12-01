@@ -17,23 +17,39 @@ class ThemeColours(IntEnum):
     # TODO: Clean up unused colours.
     # Main window:
     MAIN_WIN = auto()
+    """Main window text / background."""
     MAIN_WIN_BORDER = auto()
+    """Main window unfocused border."""
     MAIN_WIN_FOCUS_BORDER = auto()
+    """Main window focused border."""
     MAIN_WIN_TITLE = auto()
+    """Main window title."""
     MAIN_WIN_FOCUS_TITLE = auto()
+    """Main window focused title."""
     MAIN_WIN_ERROR_TEXT = auto()
+    """Main window error message text."""
 
     CONTACTS_WIN = auto()
+    """Contacts window background."""
     CONTACT_WIN_BORDER = auto()
+    """Contacts window border."""
     CONTACTS_WIN_FOCUS_BORDER = auto()
+    """Contact window focused border."""
     CONTACT_WIN_TITLE = auto()
+    """Contacts window title."""
     CONTACTS_WIN_FOCUS_TITLE = auto()
+    """Contact window focused title."""
 
     MESSAGES_WIN = auto()
+    """Messages window background."""
     MESSAGES_WIN_BORDER = auto()
+    """Messages window border."""
     MESSAGES_WIN_FOCUS_BORDER = auto()
+    """Messages window focused border."""
     MESSAGES_WIN_TITLE = auto()
+    """Messages window title."""
     MESSAGES_WIN_FOCUS_TITLE = auto()
+    """Messages window focused title."""
 
     TYPING_WIN = auto()
     TYPING_WIN_BORDER = auto()
@@ -48,15 +64,19 @@ class ThemeColours(IntEnum):
     MENU_BAR_SEL_ACCEL = auto()
 
     STATUS_BAR_EMPTY = auto()
-    STATUS_BAR_CC = auto()
+    STATUS_BAR_CHAR = auto()
     STATUS_BAR_MOUSE = auto()
+    STATUS_RECEIVE = auto()
 
     MENU_BORDER = auto()
     MENU_SEL = auto()
     MENU_SEL_ACCEL = auto()
     MENU_UNSEL = auto()
     MENU_UNSEL_ACCEL = auto()
-
+    MENU_ACCT_LABEL = auto()
+    MENU_ACCT_TEXT = auto()
+    # 'menuBarAccountLabel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': False},
+    # 'menuBarAccountText': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
     SETTINGS_WIN = auto()
     SETTINGS_WIN_BORDER = auto()
     SETTINGS_WIN_FOCUS_BORDER = auto()
@@ -109,7 +129,8 @@ class ThemeColours(IntEnum):
     VERSION_WIN_BORDER = auto()
     VERSION_WIN_FOCUS_BORDER = auto()
     VERSION_WIN_TITLE = auto()
-    VERSION_FOCUS_TITLE = auto()
+    VERSION_WIN_FOCUS_TITLE = auto()
+    VERSION_TEXT = auto()
 
     GEN_MESSAGE_WIN = auto()
     GEN_MESSAGE_WIN_BORDER = auto()
@@ -139,6 +160,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # BACKGROUND CHARACTERS, USUALLY SPACE:
         'backgroundChars': {'menuItem': ' ', 'mainWin': ' ', 'contactsWin': ' ', 'linkWin': ' ', 'messagesWin': ' ',
                             'qrcodeWin': ' ', 'quitWin': ' ', 'typingWin': ' ', 'menuBar': ' ', 'statusBar': ' ',
+                            'versionWin': ' ',
                             },
         # BORDER CHARACTERS:
         # Main window border characters:
@@ -216,6 +238,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Link window button start and end chars:
         'linkWinBtnBorderChars': {'lead': '\u2561', 'tail': '\u255E'},
 
+        # STATUS BAR CHARACTERS:
+        # Receive state:
+        'receiveStateChars': {'stopped': '\u2716', 'started': '\u2714'},
+
+
         # SELECTION INDICATOR CHARACTERS:
         # Menu bar selection indicator characters:
         'menuBarSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
@@ -233,7 +260,6 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'buttonSelAccel': {'fg': 7, 'bg': 18, 'bold': True, 'underline': True, 'reverse': False},
         # Button unselected accelerator text:
         'buttonUnselAccel': {'fg': 7, 'bg': 18, 'bold': False, 'underline': True, 'reverse': False},
-
 
         # MAIN WINDOW COLOUR ATTRIBUTES:
         # Main window centre:
@@ -392,7 +418,8 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'verWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # The version window focused title:
         'verWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
-
+        # The version window centre text:
+        'verWinText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
         # GENERAL MESSAGE WINDOW:
         # General message background window attributes:
         'genMsgWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
@@ -411,13 +438,13 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # QR Code border: NOTE: Not used.
         'qrcodeWinBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
         # QR Code focused border:
-        'qrcodeWinFBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinFBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': True},
         # QR Code title: NOTE: Not used.
         'qrcodeWinTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
         # QR COde focused title:
-        'qrcodeWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': False},
+        'qrcodeWinFTitle': {'fg': 7, 'bg': 21, 'bold': True, 'underline': True, 'reverse': True},
         # QRCODE text:
-        'qrcodeText': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeText': {'fg': 15, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
 
         # MENU BAR COLOUR ATTRIBUTES:
         # Menu bar background spaces:
@@ -430,7 +457,10 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'menuBarUnsel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
         # Menu bar item accelerator indicator when unselected.
         'menuBarUnselAccel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': True, 'reverse': False},
-
+        # Menu bar account label:
+        'menuBarAccountLabel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': False},
+        # Menu bar account text:
+        'menuBarAccountText': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
         # STATUS BAR COLOUR ATTRIBUTES:
         # Status bar background spaces:
         'statusBG': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
@@ -438,6 +468,8 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'statusCC': {'fg': 16, 'bg': 220, 'bold': False, 'underline': False, 'reverse': False},
         # Status bar mouse info:
         'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': False, 'reverse': False},
+        # Status bar receive state:
+        'statusReceive': {'fg': 16, 'bg': 70, 'bold': False, 'underline': False, 'reverse': False},
 
         # GENERAL MENU COLOUR ATTRIBUTES:
         # Menu border:
@@ -451,12 +483,12 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Unselected item accelerator:
         'menuUnselAccel': {'fg': 7, 'bg': 20, 'bold': False, 'underline': True, 'reverse': False},
 
-
     },
     # DARK THEME:
     'dark': {
         'backgroundChars': {'menuItem': ' ', 'mainWin': ' ', 'contactsWin': ' ', 'linkWin': ' ', 'messagesWin': ' ',
                             'qrcodeWin': ' ', 'quitWin': ' ', 'typingWin': ' ', 'menuBar': ' ', 'statusBar': ' ',
+                            'versionWin': ' ',
                             },
 
         'mainBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
@@ -503,6 +535,11 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
 
         'linkWinBtnBorderChars': {'lead': '\u2561', 'tail': '\u255E'},
+
+        'receiveStateChars': {'stopped': '\u23F8', 'started': '\u25B6'},
+
+
+
 
         'menuBarSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
@@ -591,6 +628,7 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'verWinFBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': True},
         'verWinTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': False},
         'verWinFTitle': {'fg': 7, 'bg': 240, 'bold': True, 'underline': True, 'reverse': True},
+        'verWinText': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
 
         'genMsgWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'genMsgWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
@@ -600,20 +638,23 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
 
         'qrcodeWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'qrcodeWinBorder': {'fg': 7, 'bg': 232, 'bold': False, 'underline': False, 'reverse': False},
-        'qrcodeWinFBorder': {'fg': 7, 'bg': 232, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinFBorder': {'fg': 7, 'bg': 232, 'bold': False, 'underline': False, 'reverse': True},
         'qrcodeWinTitle': {'fg': 7, 'bg': 232, 'bold': True, 'underline': True, 'reverse': False},
-        'qrcodeWinFTitle': {'fg': 7, 'bg': 232, 'bold': True, 'underline': True, 'reverse': False},
-        'qrcodeText': {'fg': 160, 'bg': 232, 'bold': False, 'underline': False, 'reverse': False},
+        'qrcodeWinFTitle': {'fg': 7, 'bg': 232, 'bold': True, 'underline': True, 'reverse': True},
+        'qrcodeText': {'fg': 15, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
 
         'menuBarBG': {'fg': 7, 'bg': 236, 'bold': False, 'underline': False, 'reverse': False},
         'menuBarSel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': False, 'reverse': True},
         'menuBarSelAccel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': True},
         'menuBarUnsel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
         'menuBarUnselAccel': {'fg': 7, 'bg': 16, 'bold': False, 'underline': True, 'reverse': False},
+        'menuBarAccountLabel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': False},
+        'menuBarAccountText': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
 
         'statusBG': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
         'statusCC': {'fg': 16, 'bg': 220, 'bold': False, 'underline': False, 'reverse': False},
         'statusMouse': {'fg': 16, 'bg': 196, 'bold': False, 'underline': True, 'reverse': False},
+        'statusReceive': {'fg': 16, 'bg': 70, 'bold': False, 'underline': False, 'reverse': False},
 
         'menuBorder': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
         'menuSel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': False, 'reverse': True},
@@ -644,7 +685,8 @@ _ATTRIBUTE_PRIMARY_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle'
                                       'quitWinUnselAccelText', 'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder',
                                       'genMsgWinFBorder', 'genMsgWinTitle', 'genMsgWinFTitle', 'qrcodeWin',
                                       'qrcodeWinBorder', 'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle',
-                                      'linkWinText', 'qrcodeText', 'statusCC', 'statusMouse',
+                                      'linkWinText', 'qrcodeText', 'statusCC', 'statusMouse', 'statusReceive',
+                                      'menuBarAccountLabel', 'menuBarAccountText'
                                       ]
 """Primary attribute theme keys."""
 
@@ -657,7 +699,7 @@ _TITLE_CHAR_PRIMARY_KEYS: list[str] = ['mainWinTitleChars', 'contWinTitleChars',
 """Title characters primary keys."""
 
 _BUTTON_BORDER_CHAR_PRIMARY_KEYS: list[str] = ['linkWinBtnBorderChars',
-                                        ]
+                                               ]
 """Button border character primary keys."""
 _SELECTION_PRIMARY_KEYS: list[str] = ['menuBarSelChars', 'menuSelChars', 'buttonSelChars',
                                       ]
@@ -689,6 +731,10 @@ _MENU_SEL_CHAR_KEYS: list[str] = ['leadSel', 'leadUnsel', 'tailSel', 'tailUnsel'
 _BUTTON_BORDER_CHAR_KEYS: list[str] = ['lead', 'tail']
 """Button border character keys."""
 
+_BACKGROUND_CHAR_KEYS: list[str] = ['menuItem', 'mainWin', 'contactsWin', 'linkWin', 'messagesWin', 'qrcodeWin',
+                                    'quitWin', 'typingWin', 'menuBar', 'statusBar', 'versionWin',
+                                    ]
+
 
 def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, str]:
     """
@@ -706,7 +752,7 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
             elif attr_key in ('fg', 'bg'):
                 if theme[main_key][attr_key] < 0 or theme[main_key][attr_key] >= curses.COLORS:
                     return False, "Value at ['%s']['%s'] out of range 0 -> %i." % (main_key, attr_key, curses.COLORS)
-            else:  # Rest must be boolean
+            else:  # The rest must be boolean
                 if not isinstance(theme[main_key][attr_key], bool):
                     return False, "Type error: ['%s']['%s'] is not a boolean." % (main_key, attr_key)
     # Border character keys:
@@ -741,6 +787,18 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
             if button_border_key not in theme[button_border_primary_key].keys():
                 return False, "Key '%s' missing from '%s'." % (button_border_key, button_border_primary_key)
 
+    # Background characters:
+    if 'backgroundChars' not in theme.keys():
+        return False, "Primary key 'backgroundChars' doesn't exist."
+    for bg_char_key in _BACKGROUND_CHAR_KEYS:
+        if bg_char_key not in theme['backgroundChars'].keys():
+            return False, "Key '%s' missing from 'backgroundChars'." % bg_char_key
+
+    if 'receiveStateChars' not in theme.keys():
+        return False, "Primary key 'receiveStateChars' doesn't exist."
+    for char_key in theme['receiveStateChars'].keys():
+        if char_key not in ('started', 'stopped'):
+            return False, "Key '%s' not in 'receiveStateChars'." % char_key
     # Everything is good:
     return True, 'PASS'
 
@@ -818,38 +876,19 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.MENU_BAR_UNSEL, theme['menuBarUnsel']['fg'], theme['menuBarUnsel']['bg'])
     curses.init_pair(ThemeColours.MENU_BAR_UNSEL_ACCEL, theme['menuBarUnselAccel']['fg'],
                      theme['menuBarUnselAccel']['bg'])
+    curses.init_pair(ThemeColours.MENU_ACCT_LABEL, theme['menuBarAccountLabel']['fg'], theme['menuBarAccountLabel']['bg'])
+    curses.init_pair(ThemeColours.MENU_ACCT_TEXT, theme['menuBarAccountText']['fg'], theme['menuBarAccountText']['bg'])
 
     curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
-    curses.init_pair(ThemeColours.STATUS_BAR_CC, theme['statusCC']['fg'], theme['statusCC']['bg'])
+    curses.init_pair(ThemeColours.STATUS_BAR_CHAR, theme['statusCC']['fg'], theme['statusCC']['bg'])
     curses.init_pair(ThemeColours.STATUS_BAR_MOUSE, theme['statusMouse']['fg'], theme['statusMouse']['bg'])
+    curses.init_pair(ThemeColours.STATUS_RECEIVE, theme['statusReceive']['fg'], theme['statusReceive']['bg'])
 
     curses.init_pair(ThemeColours.MENU_BORDER, theme['menuBorder']['fg'], theme['menuBorder']['bg'])
     curses.init_pair(ThemeColours.MENU_SEL, theme['menuSel']['fg'], theme['menuSel']['bg'])
     curses.init_pair(ThemeColours.MENU_UNSEL, theme['menuUnsel']['fg'], theme['menuUnsel']['bg'])
     curses.init_pair(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel']['fg'], theme['menuSelAccel']['bg'])
     curses.init_pair(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel']['fg'], theme['menuUnselAccel']['bg'])
-
-    # curses.init_pair(ThemeColours.FILE_MENU_BORDER, theme['fileMenuBorder']['fg'], theme['fileMenuBorder']['bg'])
-    # curses.init_pair(ThemeColours.FILE_MENU_SEL, theme['fileMenuSel']['fg'], theme['fileMenuSel']['bg'])
-    # curses.init_pair(ThemeColours.FILE_MENU_UNSEL, theme['fileMenuUnsel']['fg'], theme['fileMenuUnsel']['bg'])
-    # curses.init_pair(ThemeColours.FILE_MENU_SEL_ACCEL, theme['fileMenuSelAccel']['fg'], theme['fileMenuSelAccel']['bg'])
-    # curses.init_pair(ThemeColours.FILE_MENU_UNSEL_ACCEL, theme['fileMenuUnselAccel']['fg'],
-    #                  theme['fileMenuUnselAccel']['bg'])
-    #
-    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder']['fg'], theme['acctMenuBorder']['bg'])
-    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel']['fg'], theme['acctMenuSel']['bg'])
-    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel']['fg'], theme['acctMenuUnsel']['bg'])
-    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_SEL_ACCEL, theme['acctMenuSelAccel']['fg'],
-    #                  theme['acctMenuSelAccel']['bg'])
-    # curses.init_pair(ThemeColours.ACCOUNTS_MENU_UNSEL_ACCEL, theme['acctMenuUnselAccel']['fg'],
-    #                  theme['acctMenuUnselAccel']['bg'])
-    #
-    # curses.init_pair(ThemeColours.HELP_MENU_BORDER, theme['helpMenuBorder']['fg'], theme['helpMenuBorder']['bg'])
-    # curses.init_pair(ThemeColours.HELP_MENU_SEL, theme['helpMenuSel']['fg'], theme['helpMenuUnsel']['bg'])
-    # curses.init_pair(ThemeColours.HELP_MENU_UNSEL, theme['helpMenuUnsel']['fg'], theme['helpMenuUnsel']['bg'])
-    # curses.init_pair(ThemeColours.HELP_MENU_SEL_ACCEL, theme['helpMenuSelAccel']['fg'], theme['helpMenuSelAccel']['bg'])
-    # curses.init_pair(ThemeColours.HELP_MENU_UNSEL_ACCEL, theme['helpMenuUnselAccel']['fg'],
-    #                  theme['helpMenuUnselAccel']['bg'])
 
     curses.init_pair(ThemeColours.SETTINGS_WIN, theme['setWin']['fg'], theme['setWin']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_BORDER, theme['setWinBorder']['fg'], theme['setWinBorder']['bg'])
@@ -906,8 +945,10 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
 
     curses.init_pair(ThemeColours.VERSION_WIN, theme['verWin']['fg'], theme['verWin']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_BORDER, theme['verWinBorder']['fg'], theme['verWinBorder']['bg'])
+    curses.init_pair(ThemeColours.VERSION_WIN_FOCUS_BORDER, theme['verWinFBorder']['fg'], theme['verWinFBorder']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_TITLE, theme['verWinTitle']['fg'], theme['verWinTitle']['bg'])
-    curses.init_pair(ThemeColours.VERSION_FOCUS_TITLE, theme['verWinFTitle']['fg'], theme['verWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.VERSION_WIN_FOCUS_TITLE, theme['verWinFTitle']['fg'], theme['verWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.VERSION_TEXT, theme['verWinText']['fg'], theme['verWinText']['bg'])
 
     curses.init_pair(ThemeColours.GEN_MESSAGE_WIN, theme['genMsgWin']['fg'], theme['genMsgWin']['bg'])
     curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_BORDER, theme['genMsgWinBorder']['fg'],

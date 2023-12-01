@@ -33,25 +33,14 @@ class AccountsMenu(Menu):
         # Determine size:
         size = calc_size(STRINGS['acctMenuNames'].values())
 
-        # Determine border attrs and chars:
-        # border_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_BORDER, theme['acctMenuBorder'])
-        # border_chars: dict[str, str] = theme['acctMenuBorderChars']
-
-        # Determine attributes from the theme:
-        # sel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_SEL, theme['acctMenuSel'])
-        # sel_accel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_SEL_ACCEL, theme['acctMenuSelAccel'])
-        # sel_lead_indicator: str = theme['acctMenuSelChars']['leadSel']
-        # sel_tail_indicator: str = theme['acctMenuSelChars']['tailSel']
-        # unsel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_UNSEL, theme['acctMenuUnsel'])
-        # unsel_accel_attrs: int = calc_attributes(ThemeColours.ACCOUNTS_MENU_UNSEL_ACCEL, theme['acctMenuUnselAccel'])
-        # unsel_lead_indicator: str = theme['acctMenuSelChars']['leadUnsel']
-        # unsel_tail_indicator: str = theme['acctMenuSelChars']['tailUnsel']
+        window = curses.newwin(size[HEIGHT], size[WIDTH], top_left[ROW], top_left[COL])
 
         # Create switch account menu item:
         switch_label: str = STRINGS['acctMenuNames']['switch']
         switch_menu_item: MenuItem = MenuItem(std_screen=std_screen,
+                                              window=window,
                                               width=size[WIDTH] - 2,
-                                              top_left=(top_left[ROW] + 1, top_left[COL] + 1),
+                                              top_left=(1, 1),
                                               label=switch_label,
                                               theme=theme,
                                               callback=callbacks['switch'],
@@ -59,8 +48,9 @@ class AccountsMenu(Menu):
                                               )
         link_label: str = STRINGS['acctMenuNames']['link']
         link_menu_item: MenuItem = MenuItem(std_screen=std_screen,
+                                            window=window,
                                             width=size[WIDTH] - 2,
-                                            top_left=(top_left[ROW] + 2, top_left[COL] + 1),
+                                            top_left=(2, 1),
                                             label=link_label,
                                             theme=theme,
                                             callback=callbacks['link'],
@@ -68,8 +58,9 @@ class AccountsMenu(Menu):
                                             )
         register_label: str = STRINGS['acctMenuNames']['register']
         register_menu_item: MenuItem = MenuItem(std_screen=std_screen,
+                                                window=window,
                                                 width=size[WIDTH] - 2,
-                                                top_left=(top_left[ROW] + 3, top_left[COL] + 1),
+                                                top_left=(3, 1),
                                                 label=register_label,
                                                 theme=theme,
                                                 callback=callbacks['register'],
@@ -78,7 +69,7 @@ class AccountsMenu(Menu):
         menu_items: list[MenuItem] = [switch_menu_item, link_menu_item, register_menu_item]
 
         # Call super:
-        Menu.__init__(self, std_screen, size, top_left, menu_items, theme)
+        Menu.__init__(self, std_screen, window, size, top_left, menu_items, theme)
 
         # Internal Properties:
         self._selection = AccountsMenuSelection.SWITCH
@@ -87,5 +78,5 @@ class AccountsMenu(Menu):
         self._max_selection = AccountsMenuSelection.REGISTER
 
         # Set initial selection:
-        self._menu_items[AccountsMenuSelection.SWITCH].is_selected = True
+        self._menu_items[self._selection].is_selected = True
         return

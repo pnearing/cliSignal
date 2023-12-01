@@ -47,10 +47,18 @@ class ParameterError(Error):
 
     @property
     def param_name(self) -> str:
+        """
+        Parameter name that caused the conflict.
+        :return: str: The parameter name.
+        """
         return self._param_name
 
     @property
     def conflict_message(self) -> str:
+        """
+        The message associated with the conflict.
+        :return: str: The conflict message.
+        """
         return self._conflict_message
 
 
@@ -78,3 +86,20 @@ class CallbackCausedException(Error):
         :return: Exception: The Exception object.
         """
         return self._error
+
+
+class Quit(Error):
+    """
+    While not actually an error, here is the quit error.
+    """
+    def __init__(self, *args) -> None:
+        """
+        Initialize the Quit object.
+        :param args: Any additional arguments.
+        """
+        super().__init__("QUIT", *args)
+        return
+
+
+
+

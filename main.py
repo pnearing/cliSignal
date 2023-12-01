@@ -11,16 +11,23 @@ from enum import IntEnum
 import logging
 import socket
 
+
 from configFile import ConfigFile, ConfigFileError
 import prettyPrint
+from cursesFunctions import get_mouse, get_left_click
 from prettyPrint import print_coloured, print_info, print_error, print_debug, print_warning
 from terminal import Colours
 
+from SignalCliApi.signalLinkThread import LinkThread
+from SignalCliApi.signalCommon import LinkAccountCallbackStates
+from SignalCliApi.signalAccount import Account
 from SignalCliApi.signalCli import SignalCli
 from SignalCliApi.signalExceptions import SignalError
 from SignalCliApi.signalErrors import LinkError
 
 import common
+from common import Focus
+from cliExceptions import Quit
 from themes import load_theme, init_colours
 from mainWindow import MainWindow
 from contactsWindow import ContactsWindow
@@ -28,27 +35,17 @@ from messagesWindow import MessagesWindow
 from typingWindow import TypingWindow
 from linkWindow import LinkWindow, LinkMessages
 from menuBar import MenuBar
+from window import Window
 from quitWindow import QuitWindow
 from qrcodeWindow import QRCodeWindow
-
+from versionWindow import VersionWindow
+import runCallback
 import typeError
+from typeError import __type_error__
 
-typeError.USE_SYSLOG = False
-
-
-#########################################
-# Enums:
-#########################################
-class Focus(IntEnum):
-    """
-    Focused windows / elements. Indexes focus_windows list.
-    """
-    MAIN = 0
-    CONTACTS = 1
-    MESSAGES = 2
-    TYPING = 3
-    MENU_BAR = 4
-
+runCallback.set_suppress_error(True)  # Supress errors calling callbacks.
+typeError.set_use_syslog(False)  # Dont' log to syslog.
+typeError.set_use_logging(True)  # Use Logging.
 
 #########################################
 # Constants:
@@ -79,12 +76,19 @@ _HOST_NAME: Final[str] = socket.gethostname().split('.')[0]
 """The host name of the computer running cliSignal."""
 _DEVICE_NAME: Final[str] = _HOST_NAME + '-cliSignal'
 
+
+#########################################
+# Enums:
+#########################################
+
 #########################################
 # Vars:
 #########################################
-_CURRENT_FOCUS: Focus = Focus.MENU_BAR
+_CURRENT_FOCUS: Focus = Focus.CONTACTS
 """The currently focused window."""
-_FOCUS_WINDOWS: tuple[MainWindow, ContactsWindow, MessagesWindow, TypingWindow, MenuBar] = ()
+_LAST_FOCUS: Focus = Focus.MENU_BAR
+"""The last focused window."""
+_FOCUS_WINDOWS: Optional[tuple[Window | MenuBar]] = None
 """The list of windows that switch focus with tab / shift tab."""
 _MAIN_WINDOW: Optional[MainWindow] = None
 """The main window object."""
@@ -102,37 +106,14 @@ _IS_CURSES_STARTED: bool = False
 """Is curses started?"""
 _MOUSE_RESET_MASK: Optional[int] = None
 """The reset mouse mask."""
-
+_SIGNAL_LINK_THREAD: Optional[LinkThread] = None
+"""The signal link thread."""
+_RECEIVE_STARTED: bool = False
+"""Has receive started?"""
 
 #########################################
 # My menu callbacks:
 #########################################
-def main_menu_file_cb(status: str, window: curses.window, *args: list[Any]) -> None:
-    """
-    Main menu file callback.
-    :param status: str: The current status, either 'activated' or 'deactivated'.
-    :param window: curses.window: The std_screen object.
-    :return: None
-    """
-    return
-
-
-def main_menu_accounts_cb(status: str, window: curses.window, *args: tuple[Any]) -> None:
-    """
-    Main menu accounts callback.
-    :return: None
-    """
-    return
-
-
-def main_menu_help_cb(status: str, window: curses.window, *args: tuple[Any]) -> None:
-    """
-    Main menu help callback.
-    :return:
-    """
-    return
-
-
 def file_menu_settings_cb(status: str, window: curses.window, *args: tuple[Any]) -> None:
     """
     File menu settings callback.
@@ -141,12 +122,18 @@ def file_menu_settings_cb(status: str, window: curses.window, *args: tuple[Any])
     return
 
 
-def file_menu_quit_cb(status: str, window: curses.window, *args: tuple[Any]) -> None:
+def file_menu_quit_cb(status: str, std_screen: curses.window) -> None:
     """
     File menu quit callback.
     :return: None
     """
-    raise KeyboardInterrupt
+    global _MAIN_WINDOW
+    if not common.SETTINGS['quitConfirm']:
+        raise Quit()
+    _MAIN_WINDOW.hide_sub_windows()
+    _MAIN_WINDOW.quit_window.is_visible = True
+    set_current_focus(Focus.QUIT)
+    return
 
 
 def accounts_menu_switch_cb(status: str, window: curses.window, *args: tuple[Any]) -> None:
@@ -169,73 +156,29 @@ def accounts_menu_link_cb(status: str,
     :return: None
     """
     # Set vars:
-    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _DEVICE_NAME, _LOGGER
+    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _DEVICE_NAME, _LOGGER, _LAST_FOCUS, _SIGNAL_LINK_THREAD
     link_window: LinkWindow = _MAIN_WINDOW.link_window
     qr_window: QRCodeWindow = _MAIN_WINDOW.qr_window
 
-    # Unfocus currently focused window:
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-
-    # Focus, and make visible the link message window.
+    # Set the generating message, and hide the button:
     link_window.current_message = LinkMessages.GENERATE
-    link_window.is_focused = True
+    link_window.show_button = False
+
+    # Set the window as visible, and set the focus:
     link_window.is_visible = True
+    set_current_focus(Focus.LINK)
+    # Redraw:
     _MAIN_WINDOW.redraw()
-    # std_screen.refresh()
-    # Communicate with signal to start the link and get the qr code:
-    link, qr_code, _ = signal_cli.start_link(gen_text_qr=True)
-
-    # Split qr-code from a string to a list:
-    qr_list: list[str] = qr_code.splitlines(keepends=False)
-    qr_window.qrcode = qr_list
-
-    # Hide the link window:
-    link_window.is_focused = False
-    link_window.is_visible = False
-
-    # Show the qr code window:
-    qr_window.is_focused = True
-    qr_window.is_visible = True
-    _MAIN_WINDOW.redraw()
-
-    response = signal_cli.finish_link(_DEVICE_NAME)
-    if response[0]:  # Link successful.
-        link_window.current_message = LinkMessages.SUCCESS
-    else:
-        error: LinkError = response[1]
-        if error == LinkError.USER_EXISTS:
-            link_window.current_message = LinkMessages.EXISTS
-        elif error == LinkError.TIMEOUT:
-            link_window.current_message = LinkMessages.TIMEOUT
-        elif error == LinkError.UNKNOWN:
-            link_window.current_message = LinkMessages.UNKNOWN
-        else:
-            error_message: str = "An un-handled error occurred: %s" % repr(error)
-            _LOGGER.critical("Raising NotImplementedError(%s)." % error_message)
-            raise NotImplementedError(error_message)
-    qr_window.is_visible = False
-    qr_window.is_focused = False
-    link_window.is_focused = True
-    link_window.show_button = True
-    link_window.is_visible = True
-    _MAIN_WINDOW.redraw()
-    while True:
-        char_code: int = _MAIN_WINDOW.std_screen.getch()
-        handled: bool = _MAIN_WINDOW.link_window.process_key(char_code)
-        if handled:
-            break
-        if char_code == curses.KEY_MOUSE:
-            _, mouse_col, mouse_row, _, button_state = curses.getmouse()
-            mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
-            handled: bool = _MAIN_WINDOW.link_window.process_mouse(mouse_pos, button_state)
-            if handled:
-                break
-        elif char_code == curses.KEY_RESIZE:
-            do_resize(_MAIN_WINDOW)
-    link_window.is_focused = False
-    link_window.is_visible = False
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-    _MAIN_WINDOW.redraw()
+    # Start the link thread.
+    signal_cli.start_link_thread(
+        callback=(signal_link_cb, [signal_cli]),
+        gen_text_qr=True,
+        png_qr_file_path=None,
+        device_name=_DEVICE_NAME,
+        wait_time=0.1
+    )
+    # _SIGNAL_LINK_THREAD = signal_cli.generate_link_thread(callback, True, None, _DEVICE_NAME)
+    # _SIGNAL_LINK_THREAD.start()
     return
 
 
@@ -263,26 +206,20 @@ def help_menu_about_cb(status: str, window: curses.window, *args: tuple[Any]) ->
     return
 
 
-def help_menu_version_cb(status: str, window: curses.window, *args: tuple[Any]) -> None:
+def help_menu_version_cb(status: str, std_screen: curses.window, *args: tuple[Any, ...]) -> None:
     """
     The help menu, version callback.
     :return: None
     """
+    global _MAIN_WINDOW
+    set_current_focus(Focus.VERSION)
+    _MAIN_WINDOW.ver_window.is_visible = True
     return
 
 
 #########################################
 # Button callbacks:
 #########################################
-def link_button_clicked_cb(state: str, *args) -> None:
-    """
-    The link OK button was clicked.
-    :param state: str: The state will always be activated.
-    :param args: Extra arguments passed to the callback.
-    :return: None
-    """
-
-    return
 
 
 #########################################
@@ -299,6 +236,50 @@ def signal_start_up_cb(state: str) -> None:
         print_coloured("SIGNAL:", fg_colour=Colours.FG.blue, bold=True, end='')
         print(state)
     return
+
+
+def signal_link_cb(state: str,
+                   data: Optional[tuple[Optional[str], Optional[str]] | str | Account],
+                   signal_cli: SignalCli
+                   ) -> bool:
+    """
+    Link account signal callback.
+    :param state: str: The current state.
+    :param data: Optional[tuple[Optional[str], Optional[str]] | str | Account]
+    :param signal_cli: SignalCli: The signal_cli object.
+    :return: bool: If return True, cancel the link process.
+    """
+    global _SIGNAL_LINK_THREAD, _MAIN_WINDOW
+    logger: logging.Logger = logging.getLogger(__name__ + '.' + signal_link_cb.__name__)
+    if state == LinkAccountCallbackStates.LINK_WAITING.value:
+        return False
+    logger.debug("Called with state: %s" % state)
+    link_window: LinkWindow = _MAIN_WINDOW.link_window
+    qr_window: QRCodeWindow = _MAIN_WINDOW.qr_window
+    if state == LinkAccountCallbackStates.GENERATE_QR_STOP.value:
+        link_window.is_visible = False
+        qr_window.qrcode = data[0].splitlines(keepends=False)
+        qr_window.is_visible = True
+        set_current_focus(Focus.QR_CODE)
+        _MAIN_WINDOW.redraw()
+        return False
+    elif state == LinkAccountCallbackStates.LINK_SUCCESS.value:
+        link_window.current_message = LinkMessages.SUCCESS
+    elif state == LinkAccountCallbackStates.LINK_EXISTS_ERROR.value:
+        link_window.current_message = LinkMessages.EXISTS
+    elif state == LinkAccountCallbackStates.LINK_UNKNOWN_ERROR.value:
+        link_window.current_message = LinkMessages.UNKNOWN
+    elif state == LinkAccountCallbackStates.LINK_TIMEOUT_ERROR.value:
+        link_window.current_message = LinkMessages.TIMEOUT
+    else:
+        return False
+    qr_window.is_visible = False
+    link_window.show_button = True
+    link_window.is_visible = True
+    set_current_focus(Focus.LINK)
+    _MAIN_WINDOW.redraw()
+    signal_cli.stop_link_thread()
+    return False
 
 
 def signal_received_message_cb():
@@ -336,6 +317,7 @@ def signal_call_message_cb():
 #########################################
 # Functions:
 #########################################
+
 def out_info(message: str, force=False) -> None:
     """
     Output an info message to both the log file if logging started, and stdout if curses not started.
@@ -395,71 +377,110 @@ def out_warning(message) -> None:
     return
 
 
-def confirm_quit(main_window: MainWindow, quit_window: QuitWindow) -> bool:
-    """
-    Show an "are you sure message", and return users' input.
-    :return: bool: True, the user quits; False, the user doesn't quit.
-    """
-    quit_window.is_visible = True
-    quit_window.is_focused = True
-    while True:
-        quit_window.redraw()
-        curses.doupdate()
-        char_code: int = main_window.std_screen.getch()
-        if char_code == curses.KEY_RESIZE:
-            main_window.resize()
-            main_window.redraw()
-            continue
-        response: Optional[bool] = quit_window.process_key(char_code)
-        if isinstance(response, bool):
-            quit_window.is_focused = False
-            quit_window.is_visible = False
-            return response
-
-
-def do_resize(main_window: MainWindow) -> None:
+def __do_resize__() -> None:
     """
     Do the resize of the windows:
-    :param main_window: MainWindow: The main window object.
     :return: None
     """
-    global _RESIZING
+    global _RESIZING, _MAIN_WINDOW
     _RESIZING = True
-    main_window.resize()
-    main_window.redraw()
+    _MAIN_WINDOW.resize()
+    # _MAIN_WINDOW.redraw()
     _RESIZING = False
     return
 
 
-def parse_mouse(mouse_pos: tuple[int, int], button_state: int) -> None:
+def __set_hover_focus__(mouse_pos: tuple[int, int]) -> None:
     """
-    Parse the mouse actions.
-    :param mouse_pos: tuple[int, int]: The position of the mouse.
-    :param button_state: int: The current button state.
+    Set the focus based on mouse position.
+    :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
     :return: None
     """
-    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
-    # Check for button click and send it to the currently focused window:
-    if button_state & curses.BUTTON1_CLICKED != 0 or button_state & curses.BUTTON1_PRESSED != 0 or button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
-        handled: bool = _FOCUS_WINDOWS[_CURRENT_FOCUS].process_mouse(mouse_pos, button_state)
-        if handled:
-            return
+    global _FOCUS_WINDOWS, _CURRENT_FOCUS, _MAIN_WINDOW
+    # Do not switch focus if we're focusing on the status bar:
+    if _MAIN_WINDOW.status_bar.is_mouse_over(mouse_pos):
+        return
 
-        # Set the window focus:
+    # Check that a menu is active, and if not, don't switch focus.
+    if _MAIN_WINDOW.menu_bar.is_menu_activated:
+        return
+
+    # Check if the mouse is over one of the sub windows:
+    if _MAIN_WINDOW.is_sub_window_visible:
+        window = _MAIN_WINDOW.get_visible_sub_window()
+        if window.is_mouse_over(mouse_pos):
+            set_current_focus(window.focus_id)
+        else:
+            set_current_focus(Focus.MAIN)
+        return
+
+    # Check if the mouse is over the menu bar:
+    if _MAIN_WINDOW.menu_bar.is_mouse_over(mouse_pos):
+        set_current_focus(Focus.MENU_BAR)
+
+    # Check if the mouse is over one of the primary windows:
+    for window in _MAIN_WINDOW.primary_windows:
+        if window.is_mouse_over(mouse_pos):
+            set_current_focus(window.focus_id)
+    return
+
+
+def __parse_mouse__() -> Optional[bool]:
+    """
+    Parse the mouse actions.
+    :return: Optional[bool]: Return None: Char wasn't handled, processing should continue; Return True: char was
+        handled, and processing shouldn't continue; Return False: char wasn't handled, processing shouldn't continue.
+    """
+    global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
+    # Get the mouse position and button state:
+    mouse_pos, button_state = get_mouse()
+    # Update the status bar:
+    _MAIN_WINDOW.status_bar.mouse_pos = mouse_pos
+    _MAIN_WINDOW.status_bar.mouse_button_state = button_state
+
+    # Pass the mouse to the currently visible sub-window:
+    return_value: Optional[bool] = None
+    if _MAIN_WINDOW.is_sub_window_visible:
+        window = _MAIN_WINDOW.get_visible_sub_window()
+        return_value = window.process_mouse(mouse_pos, button_state)
+        if return_value is not None:
+            if return_value is False:
+                window.is_visible = False
+            return return_value
+
+    # Pass the mouse to the menu bar:
+    if _MAIN_WINDOW.menu_bar.is_mouse_over(mouse_pos):
+        return_value = _MAIN_WINDOW.menu_bar.process_mouse(mouse_pos, button_state)
+        if return_value is not None:
+            return return_value
+
+    # Pass the mouse to a main window if the mouse is over it:
+    for window in _MAIN_WINDOW.primary_windows:
+        if window.is_mouse_over(mouse_pos):
+            return_value = window.process_mouse(mouse_pos, button_state)
+            if return_value is not None:
+                return return_value
+
+    # Mouse move focus:
+    if common.SETTINGS['mouseMoveFocus']:
+        __set_hover_focus__(mouse_pos)
+    return False
+
+
+def set_current_focus(value: Focus) -> None:
+    """
+    Set the _CURRENT_FOCUS variable.
+    :param value: Focus: The focus enum value for the window.
+    :return: None
+    """
+    global _CURRENT_FOCUS, _LAST_FOCUS, _FOCUS_WINDOWS
+    if not isinstance(value, Focus):
+        __type_error__("value", "Focus", value)
+    if value != _CURRENT_FOCUS:
         _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-        if _FOCUS_WINDOWS[Focus.CONTACTS].is_mouse_over(mouse_pos):
-            _CURRENT_FOCUS = Focus.CONTACTS
-        elif _FOCUS_WINDOWS[Focus.MESSAGES].is_mouse_over(mouse_pos):
-            _CURRENT_FOCUS = Focus.MESSAGES
-        elif _FOCUS_WINDOWS[Focus.TYPING].is_mouse_over(mouse_pos):
-            _CURRENT_FOCUS = Focus.TYPING
-        elif _FOCUS_WINDOWS[Focus.MENU_BAR].is_mouse_over(mouse_pos):
-            _CURRENT_FOCUS = Focus.MENU_BAR
-            menu_bar: MenuBar = _FOCUS_WINDOWS[Focus.MENU_BAR]
-            menu_bar.process_mouse(mouse_pos, button_state)
-            _MAIN_WINDOW.redraw()
+        _LAST_FOCUS = _CURRENT_FOCUS
+        _CURRENT_FOCUS = value
         _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-    # TODO: Process button state.
     return
 
 
@@ -469,15 +490,13 @@ def inc_focus() -> None:
     :return: None
     """
     global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
-    # Un-focus current focus, and increment focus:
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-    _CURRENT_FOCUS += 1
+    # Increment focus:
+    next_focus: int = _CURRENT_FOCUS + 1
     # Wrap focus if needed:
-    if _CURRENT_FOCUS > Focus.MENU_BAR:
-        _CURRENT_FOCUS = Focus.CONTACTS
-    # Set the new focus and redraw:
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-    _MAIN_WINDOW.redraw()
+    if next_focus > Focus.MENU_BAR:
+        next_focus = Focus.CONTACTS
+    # Set new focus
+    set_current_focus(Focus(next_focus))
     return
 
 
@@ -487,19 +506,32 @@ def dec_focus() -> None:
     :return: None
     """
     global _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW
-    # Un-focus current focus, and decrement focus:
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-    _CURRENT_FOCUS -= 1
+    # Decrement focus:
+    next_focus: int = _CURRENT_FOCUS - 1
     # Wrap focus if necessary:
-    if _CURRENT_FOCUS < Focus.CONTACTS:
-        _CURRENT_FOCUS = Focus.MENU_BAR
-    # Set the focus and redraw:
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-    _MAIN_WINDOW.redraw()
+    if next_focus < Focus.CONTACTS:
+        next_focus = Focus.MENU_BAR
+    # Set the new focus:
+    set_current_focus(Focus(next_focus))
     return
 
 
-def stop_mouse() -> None:
+def __preprocess_key__(char_code: int) -> Optional[bool]:
+    """
+    Pre-process a key, catches resize.
+    :param char_code: int: The char code received.
+    :return: Optional[bool]: True if char handled and processing shouldn't continue. False if not handled and processing
+        shouldn't continue, return None key wasn't handled and processing should continue.
+    """
+    if char_code == curses.KEY_RESIZE:
+        __do_resize__()
+        return True
+    elif char_code == curses.KEY_MOUSE:
+        return __parse_mouse__()
+    return None
+
+
+def __stop_mouse__() -> None:
     """
     Stop the mouse support:
     :return: None
@@ -517,7 +549,7 @@ def stop_mouse() -> None:
     return
 
 
-def start_mouse() -> bool:
+def __start_mouse__() -> bool:
     """
     Start the mouse.
     :return: bool: True mouse was started, False it was not.
@@ -545,10 +577,17 @@ def start_mouse() -> bool:
 # Main:
 #########################################
 def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
-    global _DEBUG, _VERBOSE, _CURRENT_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _RESIZING, _EXIT_ERROR
+    """
+    Main.
+    :param std_screen: curses.window: The std_screen main window.
+    :param signal_cli: The SignalCli instance.
+    :return: None
+    """
+    global _DEBUG, _VERBOSE, _CURRENT_FOCUS, _LAST_FOCUS, _FOCUS_WINDOWS, _MAIN_WINDOW, _RESIZING, _EXIT_ERROR
 
-    # Setup extended key codes; And turn off the cursor:
+    # Set up extended key codes; And turn off the cursor:
     std_screen.keypad(True)
+    std_screen.nodelay(True)
     curses.curs_set(False)
 
     # Set up colour pairs according to theme:
@@ -560,26 +599,16 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
     theme: dict[str, dict[str, int | bool | str]] = load_theme()
     init_colours(theme)
 
-    # Setup the mouse:
+    # Set up the mouse:
     if common.SETTINGS['useMouse']:
-        if not start_mouse():
+        if not __start_mouse__():
             common.SETTINGS['useMouse'] = False
-
-    # Create sub-windows:
-    link_window: LinkWindow = LinkWindow(std_screen, theme)
-    quit_window: QuitWindow = QuitWindow(std_screen, theme)
-    qr_window: QRCodeWindow = QRCodeWindow(std_screen, theme)
 
     # Create the callback dict:
     callbacks: dict[str, dict[str, tuple[Optional[Callable], Optional[list[Any]]]]] = {
-        'main': {
-            'file': (main_menu_file_cb, None),
-            'accounts': (main_menu_accounts_cb, None),
-            'help': (main_menu_help_cb, None),
-        },
         'file': {
             'settings': (file_menu_settings_cb, None),
-            'quit': (file_menu_quit_cb, [quit_window]),
+            'quit': (file_menu_quit_cb, None),
         },
         'accounts': {
             'switch': (accounts_menu_switch_cb, None),
@@ -598,158 +627,89 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
         std_screen=std_screen,
         theme=theme,
         callbacks=callbacks,
-        quit_window=quit_window,
-        link_window=link_window,
-        qr_window=qr_window
     )
 
     # Store references to the windows for focus, and redrawing:
     _MAIN_WINDOW = main_window
     _FOCUS_WINDOWS = (
         main_window, main_window.contacts_window, main_window.messages_window, main_window.typing_window,
-        main_window.menu_bar
+        main_window.menu_bar, main_window.status_bar, main_window.quit_window, main_window.link_window,
+        main_window.qr_window, main_window.ver_window
     )
-
-    # Set initial focus
-    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-
+    # Call set_current_focus for the first time:
+    set_current_focus(Focus.CONTACTS)
+    main_window.contacts_window.is_focused = True
     # Set visible status items:
     if _DEBUG:
         main_window.status_bar.is_char_code_visible = True
         if common.SETTINGS['useMouse']:
             main_window.status_bar.is_mouse_visible = True
-    # Draw the window for the first time:
-    main_window.redraw()
-
-    # Main loop:
-    while True:
-        try:
-            while True:
-                char_code: int = std_screen.getch()
-                main_window.status_bar.char_code = char_code
-
-                # Pre-process char code:
-                if char_code == curses.KEY_RESIZE:  # Resize the windows:
-                    do_resize(main_window)
-                    continue
-                elif char_code == curses.KEY_MOUSE:  # Mouse move / button hit:
-                    if common.SETTINGS['useMouse']:
-                        _, mouse_col, mouse_row, _, button_state = curses.getmouse()
-                        mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
-                        main_window.status_bar.mouse_pos = mouse_pos
-                        parse_mouse(mouse_pos, button_state)
-                    continue
-
-                # Hand the char code to the appropriate window for handling.
-                char_handled: bool
-                if _CURRENT_FOCUS == Focus.MENU_BAR:
-                    char_handled = _FOCUS_WINDOWS[Focus.MENU_BAR].process_key(char_code)
-                    if char_handled:
-                        main_window.redraw()
+    # main_window.redraw()
+    try:
+        # Main loop:
+        while True:
+            try:
+                # Input loop:
+                while True:
+                    # Draw the main window:
+                    main_window.redraw()
+                    # Get the character and update the status bar if required.
+                    char_code: int = std_screen.getch()
+                    if _DEBUG:
+                        main_window.status_bar.char_code = char_code
+                    # If no char, continue:
+                    if char_code == -1:
                         continue
-                elif _CURRENT_FOCUS == Focus.CONTACTS:
-                    char_handled = _FOCUS_WINDOWS[Focus.CONTACTS].process_key(char_code)
-                    if char_handled:
-                        main_window.redraw()
-                        continue
-                elif _CURRENT_FOCUS == Focus.MESSAGES:
-                    char_handled = _FOCUS_WINDOWS[Focus.MESSAGES].process_key(char_code)
-                    if char_handled:
-                        main_window.redraw()
-                        curses.doupdate()
-                        continue
-                elif _CURRENT_FOCUS == Focus.TYPING:
-                    char_handled = _FOCUS_WINDOWS[Focus.TYPING].process_key(char_code)
-                    if char_handled:
-                        main_window.redraw()
-                        curses.doupdate()
+                    # Pre-process char code, catches mouse, and resize events:
+                    char_handled = __preprocess_key__(char_code)
+                    if char_handled is not None:
                         continue
 
-                # If the window didn't handle the character, we want to handle it:
-                if char_code == common.KEY_TAB:  # Tab hit switch focus.
-                    inc_focus()
-                    continue
-                elif char_code == common.KEY_SHIFT_TAB:  # Shift-Tab hit, switch focus backwards.
-                    dec_focus()
-                    continue
-                elif char_code == curses.KEY_F1:
-                    # Shift the focus to the menu bar:
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-                    _CURRENT_FOCUS = Focus.MENU_BAR
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-                    # Activate the file menu:
-                    menu_bar = main_window.menu_bar
-                    # If there is a menu currently active, deactivate it.
-                    if menu_bar.is_menu_activated:
-                        menu_bar.menu_bar_items[menu_bar.selection].deactivate()
-                    # Set the selection to the file menu, set the active menu and activate the file menu.:
-                    menu_bar.selection = common.MenuBarSelections.FILE
-                    menu_bar._active_menu = menu_bar.menus[menu_bar.selection]
-                    menu_bar.menu_bar_items[menu_bar.selection].activate()
-                    # Redraw the window:
-                    main_window.redraw()
-                    continue
-                elif char_code == curses.KEY_F2:
-                    # Shift the focus to the menu bar:
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-                    _CURRENT_FOCUS = Focus.MENU_BAR
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-                    # Activate the accounts menu:
-                    menu_bar = main_window.menu_bar
-                    # If there is an active menu, deactivate it.
-                    if menu_bar.is_menu_activated:
-                        menu_bar.menu_bar_items[menu_bar.selection].deactivate()
-                    # Set the selection to the accounts menu:
-                    menu_bar.selection = common.MenuBarSelections.ACCOUNTS
-                    menu_bar._active_menu = menu_bar.menus[menu_bar.selection]
-                    menu_bar.menu_bar_items[menu_bar.selection].activate()
-                    # Redraw the window:
-                    main_window.redraw()
-                    curses.doupdate()
-                    continue
-                elif char_code == curses.KEY_F3:
-                    # Shift focus to menu bar:
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-                    _CURRENT_FOCUS = Focus.MENU_BAR
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-                    # Activate the help menu:
-                    menu_bar = main_window.menu_bar
-                    # If there is an active menu, deactivate it:
-                    if menu_bar.is_menu_activated:
-                        menu_bar.menu_bar_items[menu_bar.selection].deactivate()
-                    menu_bar.selection = common.MenuBarSelections.HELP
-                    menu_bar._active_menu = menu_bar.menus[menu_bar.selection]
-                    menu_bar.menu_bar_items[menu_bar.selection].activate()
-                    # Redraw the window:
-                    main_window.redraw()
-                    curses.doupdate()
+                    # Check if a sub-window is visible, and if so, hand the key there:
+                    #   If it returns False, hide the window.
+                    if main_window.is_sub_window_visible:
+                        sub_window: Window = main_window.get_visible_sub_window()
+                        char_handled = sub_window.process_key(char_code)
+                        if char_handled is False:
+                            sub_window.is_visible = False
+                            set_current_focus(Focus.MENU_BAR)
+                            continue
+                        elif char_handled is True:
+                            continue
+
+                    # Secondly, check the menu bar for the key press:
+                    char_handled = main_window.menu_bar.process_key(char_code)
+                    if char_handled is not None:
+                        set_current_focus(Focus.MENU_BAR)
+                        continue
+
+                    # Finally, send the key to the focused primary window:
+                    char_handled = _FOCUS_WINDOWS[_CURRENT_FOCUS].process_key(char_code)
+                    if char_handled is not None:
+                        continue
+
+                    # Switch focus on Tab and Shift Tab.
+                    if char_code == common.KEY_TAB:
+                        inc_focus()
+                    elif char_code == common.KEY_SHIFT_TAB:
+                        dec_focus()
+                    # main_window.redraw()
+
+            except KeyboardInterrupt:
+                if not common.SETTINGS['quitConfirm']:
+                    raise Quit()
+                else:
+                    file_menu_quit_cb("", std_screen)
                     continue
 
-        except KeyboardInterrupt:
-            # Do quit confirmation if setting allows:
-            if common.SETTINGS['quitConfirm']:
-                # Remove current focus:
-                _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = False
-                main_window.redraw()
-                # Run quit window:
-                user_response: bool = confirm_quit(main_window, quit_window)
-                if not user_response:  # False, user doesn't quit.
-                    # Restore focus on the window:
-                    _FOCUS_WINDOWS[_CURRENT_FOCUS].is_focused = True
-                    main_window.redraw()
-                    # Don't quit:
-                    continue
-            # Do Quit            # self._window.refresh()
-            # time.sleep(.5):
-            break
-        except curses.error as e:
-            _EXIT_ERROR = e
-            break
-        except SignalError as e:
-            _EXIT_ERROR = e
-            break
+            except (curses.error, SignalError) as e:
+                _EXIT_ERROR = e
+                raise Quit
+
+    except Quit:
+        pass
     # Fix mouse mask:
-    stop_mouse()
+    __stop_mouse__()
     return
 
 
@@ -854,6 +814,25 @@ if __name__ == '__main__':
                               action='store_false',
                               dest='confirmQuit',
                               )
+    # Mouse movement focus:
+    mouse_focus = parser.add_mutually_exclusive_group()
+    mouse_focus.add_argument('--mouseFocus',
+                             help="Focus window on mouse movement.",
+                             action='store_true',
+                             default=None,
+                             )
+    mouse_focus.add_argument('--noMouseFocus',
+                             help="Don't focus on mouse movement.",
+                             action='store_false',
+                             dest='mouseFocus'
+                             )
+
+    # Account argument:
+    parser.add_argument('--account',
+                        help="The account to use.",
+                        type=str
+                        )
+
     # Parse args:
     _args: argparse.Namespace = parser.parse_args()
 
@@ -865,6 +844,7 @@ if __name__ == '__main__':
         prettyPrint.DEBUG = True
         prettyPrint.VERBOSE = True
         log_level = logging.DEBUG
+        runCallback.set_suppress_error(False)
     elif _args.verbose:
         _VERBOSE = True
         prettyPrint.VERBOSE = True
@@ -891,11 +871,11 @@ if __name__ == '__main__':
                                              create_default=True,
                                              do_load=True
                                              )
-    except ConfigFileError as e:
-        if e.error_number == 21:
+    except ConfigFileError as _e:
+        if _e.error_number == 21:
             out_error("Permissions of config file must be 600.")
         else:
-            out_error("ConfigFileError: %s" % e.error_message)
+            out_error("ConfigFileError: %s" % _e.error_message)
         exit(4)
 
     # Validate / act on arguments:
@@ -966,6 +946,15 @@ if __name__ == '__main__':
 
     if _args.confirmQuit is not None:
         common.SETTINGS['quitConfirm'] = _args.confirmQuit
+    out_debug("quitConfirm = %s" % str(common.SETTINGS['quitConfirm']))
+
+    if _args.mouseFocus is not None:
+        common.SETTINGS['mouseMoveFocus'] = _args.mouseFocus
+    out_debug("mouseMoveFocus = %s" % str(common.SETTINGS['mouseMoveFocus']))
+
+    # Parse --account:
+    if _args.account is not None:
+        common.SETTINGS['defaultAccount'] = _args.account
 
     # Parse: --store
     if _args.store:
@@ -994,7 +983,20 @@ if __name__ == '__main__':
         callback=(signal_start_up_cb, None),
     )
 
-    # Tell the terminal to report mouse movements:
+    # Load the account:
+    if common.SETTINGS['defaultAccount'] is not None:
+        try:
+            common.CURRENT_ACCOUNT = _signal_cli.accounts.get_by_number(common.SETTINGS['defaultAccount'])
+        except ValueError as e:
+            out_error("Invalid account, number not in right format.")
+            _signal_cli.stop_signal()
+            exit(14)
+        if common.CURRENT_ACCOUNT is None:
+            out_error("Account: %s not registered." % common.SETTINGS['defaultAccount'])
+            _signal_cli.stop_signal()
+            exit(15)
+    if len(_signal_cli.accounts) > 0:
+        common.CURRENT_ACCOUNT = _signal_cli.accounts[0]
 
     # Run main:
     _IS_CURSES_STARTED = True
@@ -1003,6 +1005,8 @@ if __name__ == '__main__':
 
     # Stop signal
     out_info("Stopping signal.", force=True)
+    if _signal_cli.link_thread is not None:
+        _signal_cli.stop_link_thread()
     _signal_cli.stop_signal()
 
     if _EXIT_ERROR is not None:

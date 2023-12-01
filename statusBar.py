@@ -7,7 +7,7 @@ import logging
 from typing import Optional
 import curses
 from themes import ThemeColours
-from common import ROW, COL, STRINGS
+from common import ROW, COL, STRINGS, Focus
 from cursesFunctions import calc_attributes
 from bar import Bar
 from typeError import __type_error__
@@ -20,24 +20,26 @@ class StatusBar(Bar):
 
     def __init__(self,
                  std_screen: curses.window,
-                 width: int,
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, bool | int | Optional[str]]]
                  ) -> None:
         """
         Initialize the status bar.
         :param std_screen: curses.window: The window to draw on.
-        :param width: int: The width of the bar.
         :param top_left: tuple[int, int]: The top left corner of the status bar.
         :param theme: dict[str, dict[str, int | bool | Optional[str]]]: The theme to use.
         """
         empty_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG'])
         bg_char: str = theme['backgroundChars']['statusBar']
 
-        Bar.__init__(self, std_screen, width, top_left, empty_attrs, bg_char)
+        Bar.__init__(self, std_screen, top_left[ROW], empty_attrs, bg_char, Focus.STATUS_BAR)
         # Status indicator attrs:
-        self._char_code_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_CC, theme['statusCC'])
+        self._char_code_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_CHAR, theme['statusCC'])
         self._mouse_attrs: int = calc_attributes(ThemeColours.STATUS_BAR_MOUSE, theme['statusMouse'])
+        self._receive_attrs: int = calc_attributes(ThemeColours.STATUS_RECEIVE, theme['statusReceive'])
+
+        self.receive_started_char = theme['receiveStateChars']['started']
+        self.receive_stopped_char = theme['receiveStateChars']['stopped']
 
         # Status indicator show / hide properties:
         self.is_char_code_visible: bool = False
@@ -46,6 +48,8 @@ class StatusBar(Bar):
         # Status indicator values to show:
         self._char_code: int = -1
         self._mouse_pos: tuple[int, int] = (-1, -1)
+        self._mouse_button_state: int = -1
+        self._receive_state: bool = False
         return
 
     def redraw(self) -> None:
@@ -56,22 +60,29 @@ class StatusBar(Bar):
         logger: logging.Logger = logging.getLogger(__name__ + '.' + self.redraw.__name__)
         if not self.is_visible:
             return
-
-        rows, cols = self._std_screen.getmaxyx()
-        # if self.top_left[ROW] >= rows - 1 or self.top_left[COL] + self.width >= cols - 1:
-        if self.top_left[ROW] >= rows - 1:
-            logger.debug("top_left[ROW]:%i >= max_row:%i or top_left[COL]+ self.width:%i >= max_col:%i"
-                         % (self.top_left[ROW], rows - 1, self.top_left[COL] + self.width, cols - 1))
-            return
-
         super().redraw()
-        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
+        # Move the cursor to the beginning of the window:
+        self._window.move(self.top_left[ROW], self.top_left[COL])
+
+        # Redraw the receive state:
+        self._window.addstr("Recv:", self._receive_attrs)
+        if self._receive_state:
+            self._window.addstr(self.receive_started_char, self._receive_attrs)
+        else:
+            self._window.addstr(self.receive_stopped_char, self._receive_attrs)
+        # Redraw the character code:
         if self.is_char_code_visible:
             char_code_str: str = f"-\U0001F5AE:{self.char_code:4d}-"
-            self._std_screen.addstr(char_code_str, self._char_code_attrs)
+            self._window.addstr(char_code_str, self._char_code_attrs)
+        # Redraw the mouse info:
         if self.is_mouse_visible:
-            self._std_screen.addstr("-\U0001f5b1(R,C):%s-" % str(self.mouse_pos), self._mouse_attrs)
-        self._std_screen.refresh()
+            mouse_row = self.mouse_pos[ROW]
+            mouse_col = self.mouse_pos[COL]
+            mouse_pos_string = f"({mouse_row:4d},{mouse_col:4d})"
+            mouse_button_string = f"{self.mouse_button_state:11d}"
+            self._window.addstr("-\U0001f5b1:%s:%s-" % (mouse_pos_string, mouse_button_string),
+                                self._mouse_attrs)
+        self._window.noutrefresh()
         return
 
     ###########################################
@@ -97,8 +108,9 @@ class StatusBar(Bar):
             raise __type_error__('value', 'int', value)
         old_value = self._char_code
         self._char_code = value
-        if old_value != value:
+        if old_value != value and self.is_visible:
             self.redraw()
+            curses.doupdate()
         return
 
     @property
@@ -110,7 +122,7 @@ class StatusBar(Bar):
         return self._mouse_pos
 
     @mouse_pos.setter
-    def mouse_pos(self, value):
+    def mouse_pos(self, value: tuple[int, int]) -> None:
         """
         Mouse position
         Setter.
@@ -127,6 +139,32 @@ class StatusBar(Bar):
             __type_error__('value[1]', 'int', value[1])
         old_value = self._mouse_pos
         self._mouse_pos = value
-        if old_value != value:
+        if old_value != value and self.is_visible:
             self.redraw()
+            curses.doupdate()
+        return
+
+    @property
+    def mouse_button_state(self) -> int:
+        """
+        Mouse button state.
+        :return: int: The button state.
+        """
+        return self._mouse_button_state
+
+    @mouse_button_state.setter
+    def mouse_button_state(self, value: int) -> None:
+        """
+        The mouse button state.
+        Setter.
+        :param value: int: The current button state.
+        :return: None.
+        """
+        if not isinstance(value, int):
+            __type_error__("value", 'int', value)
+        old_value: int = self._mouse_button_state
+        self._mouse_button_state = value
+        if old_value != value and self.is_visible:
+            self.redraw()
+            curses.doupdate()
         return

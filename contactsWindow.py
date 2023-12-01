@@ -5,7 +5,7 @@ Contacts window management.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, STRINGS
+from common import ROW, COL, STRINGS, Focus
 from cursesFunctions import calc_attributes
 from themes import ThemeColours
 from window import Window
@@ -18,12 +18,14 @@ class ContactsWindow(Window):
     _CONTACTS: list[dict[str, str]] = []
     """List of contacts to show."""
     def __init__(self,
+                 std_screen: curses.window,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]]
                  ) -> None:
         """
         Initialize the contacts' window.
+        :param std_screen: curses.window: The std_screen window object.
         :param size: tuple[int, int]: The size of the window, (rows, cols).
         :param top_left: tuple[int, int]: The co-ords of the top left corner, (ROW, COL)
         :param theme: dict[str, dict[str, int | bool]]: The theme to use.
@@ -46,23 +48,11 @@ class ContactsWindow(Window):
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
 
         # Super the window.
-        Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
-                        title_attrs, title_focus_attrs, title_chars, bg_char)
+        Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
+                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.CONTACTS)
+
+        # Set this window as always visible:
+        self.always_visible = True
+        self.is_static_size = False
         return
 
-    def process_key(self, char_code: int) -> bool:
-        """
-        Process a key press.
-        :param char_code: int: The character code.
-        :return: bool: True, character handled, False, character not handled.
-        """
-        return False
-
-    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
-        """
-        Process the mouse events.
-        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
-        :param button_state: int: The button state.
-        :return: bool: True, the mouse event was handled, False it was not.
-        """
-        return False

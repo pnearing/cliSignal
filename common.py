@@ -5,10 +5,11 @@ File: common.py
 """
 import logging
 from typing import Optional, Final, Callable, Any
+
+from SignalCliApi import Account
 from cliExceptions import CallbackCausedException
 from enum import IntEnum, Enum
-
-_VERSION: Final[str] = '1.0.0'
+APP_VERSION: Final[str] = '1.0.0'
 
 #####################################
 # String constants:
@@ -23,7 +24,7 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     'titles': {
         'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None,
         'settings': 'Settings', 'quit': 'Quit', 'switch': 'Switch Account', 'link': 'Link Account',
-        'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Version',
+        'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Versions',
         'qrcode': 'Scan QR-Code',
     },
     # Button labels:
@@ -59,15 +60,13 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
         'sizeError': 'Min window size: {cols:}x{rows:}',
         'quit': 'Are you sure you want to quit?',
     },
+    'menuBar': {
+        'accountLabel': 'Account:',
+    },
     # Other:
     'other': {
-        'yesOrNo': {
-            'yes': f'{_ACCEL_INDICATOR}Y{_ACCEL_INDICATOR}es',
-            'no': f'{_ACCEL_INDICATOR}N{_ACCEL_INDICATOR}o',
-            'leadChars': '[ ',
-            'midChars': ' | ',
-            'tailChars': ' ]'
-        },
+        'yes': f'{_ACCEL_INDICATOR}Y{_ACCEL_INDICATOR}es',
+        'no': f'{_ACCEL_INDICATOR}N{_ACCEL_INDICATOR}o',
     },
 }
 """Common strings."""
@@ -86,45 +85,85 @@ SETTINGS: dict[str, Optional[str | bool]] = {
     'themePath': None,
     'useMouse': False,
     'quitConfirm': True,
+    'mouseMoveFocus': False,
+    'defaultAccount': None,
 }
 """The settings for cliSignal."""
 
 #####################################
 # Minimum size of the terminal.
 #####################################
-MIN_SIZE: Final[tuple[int, int]] = (22, 50)
+MIN_SIZE: Final[tuple[int, int]] = (22, 80)
 """The minimum size of the terminal to display."""
 
 #####################################
 # Key character code constants:
 #####################################
-KEY_ESC: int = 27
+KEY_ESC: Final[int] = 27
 """Escape key code."""
-KEYS_ENTER: tuple[int, int] = (10, 77)
+KEYS_ENTER: Final[tuple[int, int]] = (10, 77)
 """Main enter and keypad enter key codes."""
-KEY_TAB: int = ord('\t')
+KEY_TAB: Final[int] = ord('\t')
 """TAB key code."""
-KEY_SHIFT_TAB: int = 353
+KEY_SHIFT_TAB: Final[int] = 353
 """Shift TAB key code."""
-KEY_BACKSPACE: int = 263
+KEY_BACKSPACE: Final[int] = 263
 """Backspace key code."""
 
+#####################################
+# Button code constants:
+#####################################
+BUTTON_SCROLL_UP: Final[int] = 0x00200000
+"""Mouse scroll up button code."""
+BUTTON_SCROLL_DOWN: Final[int] = 0x00010000
+"""Mouse scroll down button code."""
+BUTTON_SCRAP: Final[int] = 0x10000000
 #####################################
 # Index Constants:
 #####################################
 ROW: Final[int] = 0
 """The tuple index for row.."""
-HEIGHT: Final[int] = 0
-"""The tuple index for height, or rows."""
 COL: Final[int] = 1
 """The tuple index for col."""
-WIDTH: Final[int] = 1
+HEIGHT: Final[int] = ROW
+"""The tuple index for height, or rows."""
+WIDTH: Final[int] = COL
 """The tuple index for width, or cols."""
+TOP: Final[int] = ROW
+"""The tuple index for top, or row of top_left."""
+LEFT: Final[int] = COL
+"""The tuple index for left, or col of top_left."""
+BOTTOM: Final[int] = ROW
+"""The tuple index for bottom, or row of bottom_right."""
+RIGHT: Final[int] = COL
+"""The tuple index for right, or col of bottom_right."""
+
+###################################
+# Variables:
+###################################
+CURRENT_ACCOUNT: Optional[Account] = None
+"""The current signal account."""
 
 
 ###################################
 # Enumerations:
 ###################################
+class Focus(IntEnum):
+    """
+    Focused windows / elements. Indexes focus_windows list.
+    """
+    MAIN = 0
+    CONTACTS = 1
+    MESSAGES = 2
+    TYPING = 3
+    MENU_BAR = 4
+    STATUS_BAR = 5
+    QUIT = 6
+    LINK = 7
+    QR_CODE = 8
+    VERSION = 9
+
+
 class ButtonCBKeys(Enum):
     """
     Button callback dict keys.
@@ -149,6 +188,14 @@ class CBStates(Enum):
     """Callback activated state."""
     DEACTIVATED = 'deactivated'
     """Callback deactivated state."""
+    LEFT_CLICK = 'left_click'
+    """Callback left click state."""
+    LEFT_DOUBLE_CLICK = 'left_double_click'
+    """Callback left double click state."""
+    RIGHT_CLICK = 'right_click'
+    """Callback right click state."""
+    RIGHT_DOUBLE_CLICK = 'right_double_click'
+    """Callback right double click state."""
 
 
 class MenuBarSelections(IntEnum):
@@ -189,20 +236,19 @@ class HelpMenuSelection(IntEnum):
     """Version window menu item."""
 
 
-####################################
-# Functions:
-####################################
+def __type_check_position_or_size__(position: tuple[int, int]) -> bool:
+    """
+    Type-check a position tuple.
+    :param position: tuple[int, int]: The position to check.
+    :return: bool: True passes type-checks, False fails type-checks.
+    """
 
-def __run_callback__(callback: Optional[tuple[Callable, Optional[list[Any]]]], status: str) -> Optional[Any]:
-    params: tuple[Any, ...] = ()
-    if callback is not None:
-        if callback[CBIndex.PARAMS] is not None:
-            params = tuple(callback[CBIndex.PARAMS])
-        try:
-            return callback[CBIndex.CALLABLE](status, *params)
-        except Exception as e:
-            logger: logging.Logger = logging.getLogger(__name__ + '.' + __run_callback__.__name__)
-            exception_to_raise = CallbackCausedException(callback[CBIndex.CALLABLE].__name__, e)
-            logger.critical(exception_to_raise.message)
-            raise exception_to_raise
-    return None
+    if not isinstance(position, tuple):
+        return False
+    if len(position) != 2:
+        return False
+    if not isinstance(position[0], int):
+        return False
+    if not isinstance(position[1], int):
+        return False
+    return True

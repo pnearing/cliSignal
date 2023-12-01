@@ -6,12 +6,17 @@ File: button.py
 
 import curses
 import logging
-from typing import Optional, Callable, Any, Final
+from typing import Optional, Callable, Any, Final, Iterable
 from themes import ThemeColours
-from common import ROW, HEIGHT, COL, WIDTH, ButtonCBKeys, CBStates, __run_callback__
-from cursesFunctions import add_accel_text, calc_attributes
+from common import ROW, HEIGHT, COL, WIDTH, CBStates, __type_check_position_or_size__, KEYS_ENTER
+from cursesFunctions import add_accel_text, calc_attributes, get_left_click, get_left_double_click, get_right_click, \
+    get_right_double_click
+import typeError
 from typeError import __type_error__
+from runCallback import __run_callback__, __type_check_callback__, type_string
 from cliExceptions import ParameterError
+
+typeError.use_logging = True
 
 
 class Button(object):
@@ -20,17 +25,19 @@ class Button(object):
     """
 
     def __init__(self,
-                 window: curses.window,
+                 window,  # Type: curses._CursesWindow | curses.window
                  top_left: tuple[int, int],
                  label: str,
                  theme: dict[str, dict[str, int | bool | str]],
-                 border_lead_char: Optional[str],
-                 border_tail_char: Optional[str],
-                 border_attrs: Optional[int],
-                 click_callback: Optional[tuple[Callable, Optional[list[Any]] | tuple[Any, ...]]],
-                 double_click_callback: Optional[tuple[Callable, Optional[list[Any] | tuple[Any, ...]]]],
-                 click_char_codes: Optional[list[int]],
-                 double_click_char_codes: Optional[list[int]],
+                 lead_char: Optional[str] = None,
+                 tail_char: Optional[str] = None,
+                 lead_tail_attrs: Optional[int] = None,
+                 callback: Optional[tuple[Callable, Optional[list[Any]] | tuple[Any, ...]]] = None,
+                 left_click_char_codes: Optional[Iterable[int]] = None,
+                 left_double_click_char_codes: Optional[Iterable[int]] = None,
+                 right_click_char_codes: Optional[Iterable[int]] = None,
+                 right_double_click_char_codes: Optional[Iterable[int]] = None,
+                 enter_runs_callback_state: CBStates = CBStates.LEFT_CLICK,
                  ) -> None:
         """
         Initialize a button.
@@ -38,46 +45,88 @@ class Button(object):
         :param top_left: tuple[int, int]: The top left corner of the button: (ROW, COL).
         :param label: str: The accelerator-enabled text.
         :param theme: dict[str, dict[str, int | bool | str]]: The current theme in use.
-        :param border_lead_char: Optional[str]: The start character, if None, it's not printed.
-        :param border_tail_char: Optional[str]: The end character, if None it's not printed.
-        :param border_attrs: Optional[int]: The attributes to use for the start and end characters.
-        :param click_callback: Optional[tuple[Callable, Optional[list[Any] | tuple[Any]]]]: The on_click callback.
+        :param lead_char: Optional[str]: The start character, if None, it's not printed.
+        :param tail_char: Optional[str]: The end character, if None it's not printed.
+        :param lead_tail_attrs: Optional[int]: The attributes to use for the start and end characters.
+        :param callback: Optional[tuple[Callable, Optional[list[Any] | tuple[Any]]]]: The callback.
             If it is None, no callback is run, otherwise it's a tuple where the first element is the Callable abject,
             and the second element is Optionally a list or tuple of any params to the callback. The callback should
-            return a boolean where if True, the handling of the key / mouse is stopped, and if False, the handling of
-            the key / mouse continues.
-        :param double_click_callback:Optional[tuple[Callable, Optional[list[Any]]]]: The on_double_click callback.
-            If it is None, no callback is run, otherwise it's a tuple where the first element is the Callable abject,
-            and the second element is Optionally a list or tuple of any params to the callback. The callback should
-            return a boolean where if True, the handling of the key / mouse is stopped, and if False, the handling of
-            the key / mouse continues.
-        :param click_char_codes: Optional[list[int]]: Character codes that cause the 'on_click' action to be activated.
-        :param double_click_char_codes: Optional[list[int]]: Character codes that cause the 'on_double_click' action
-            to be activated.
+            return an Optional[bool]; Which has multiple meanings depending on where it's called. The return value of
+            the callback will be returned through to process_key or process_mouse accordingly. The signature of the
+            callback should be: some_callback(state: str, *args)
+        :param left_click_char_codes: Optional[list[int]]: Character codes that cause the 'on_left_click' action to be
+            activated.
+        :param left_double_click_char_codes: Optional[list[int]]: Character codes that cause the 'on_left_double_click'
+            action to be activated.
+        :param right_click_char_codes: Optional[list[int]]: Character codes that cause the 'on_right_click' action to
+            be activated.
+        :param right_double_click_char_codes: Optional[list[int]]: Character codes that cause the
+            'on_right_double_click' action to be activated.
+        :param enter_runs_callback_state: Optional[CBStates]: The callback state that enter runs, defaults to CBState.LEFT_CLICK.
+        :raises TypeError: If a parameter is of the wrong type.
+        :raises ParameterError: If a parameter conflict occurs.
         """
         # Setup logging:
         logger: logging.Logger = logging.getLogger(__name__ + '.' + self.__init__.__name__)
-        if border_lead_char is not None and border_tail_char is None:
-            raise ParameterError('border_lead_char', "If not None, border_tail_char must not be None.")
-        elif border_tail_char is not None and border_lead_char is None:
-            raise ParameterError('border_tail_char', "If not None border_lead_char must not be None.")
-        if border_attrs is not None:
-            if border_lead_char is None and border_tail_char is None:
-                raise ParameterError('border_attrs', 'If using border characters, border_attrs must not be None.')
+
+        # Type Checks:
+        if not isinstance(window, curses.window):
+            logger.critical("Raising TypeError:")
+            __type_error__('window', 'curses.window', window)
+        if not __type_check_position_or_size__(top_left):
+            logger.critical("Raising TypeError:")
+            __type_error__('top_left', 'tuple[int, int]', top_left)
+        if not isinstance(label, str):
+            logger.critical("Raising TypeError:")
+            __type_error__('label', 'str', label)
+        if lead_char is not None and not isinstance(lead_char, str):
+            logger.critical("Raising TypeError:")
+            __type_error__('lead_char', 'str', lead_char)
+        if tail_char is not None and not isinstance(tail_char, str):
+            logger.critical("Raising TypeError:")
+            __type_error__('tail_char', 'str', tail_char)
+        if lead_tail_attrs is not None and not isinstance(lead_tail_attrs, int):
+            logger.critical("Raising TypeError:")
+            __type_error__('lead_tail_attrs', 'Optional[int]', lead_tail_attrs)
+        if callback is not None and not __type_check_callback__(callback)[0]:
+            logger.critical("Raising TypeError:")
+            __type_error__('left_click_callback', type_string(), callback)
+        if left_click_char_codes is not None and not isinstance(left_click_char_codes, Iterable):
+            logger.critical("Raising TypeError:")
+            __type_error__('left_click_char_codes', 'Optional[Iterable[int]]', left_click_char_codes)
+        if left_double_click_char_codes is not None and not isinstance(left_double_click_char_codes, Iterable):
+            logger.critical("Raising TypeError:")
+            __type_error__("left_double_click_char_codes", "Optional[Iterable[int]]", left_double_click_char_codes)
+        if right_click_char_codes is not None and not isinstance(right_click_char_codes, Iterable):
+            logger.critical("Raising TypeError:")
+            __type_error__('right_click_char_codes', 'Optional[Iterable[int]]', right_click_char_codes)
+        if right_double_click_char_codes is not None and not isinstance(right_double_click_char_codes, Iterable):
+            logger.critical("Raising TypeError:")
+            __type_error__("right_double_click_char_codes", "Optional[Iterable[int]]", right_double_click_char_codes)
+        if not isinstance(enter_runs_callback_state, CBStates):
+            logger.critical("Raising TypeError:")
+            __type_error__('enter_runs_callback_state', 'CBStates', enter_runs_callback_state)
+        # Parameter Checks:
+        if lead_char is not None and tail_char is None:
+            raise ParameterError('lead_char', "If not None, tail_char must not be None.")
+        elif tail_char is not None and lead_char is None:
+            raise ParameterError('tail_char', "If not None lead_char must not be None.")
+        if lead_tail_attrs is None:
+            if lead_char is not None or tail_char is not None:
+                raise ParameterError('border_attrs', 'If using lead / tail characters, lead_tail_attrs must not be '
+                                                     'None.')
 
         # Private properties:
         self._window: Final[curses.window] = window
         """The curses window to draw on."""
         self._label: Final[str] = label
         """The accelerated label text."""
-        self._click_callback: Final[Optional[tuple[Callable, Optional[list[Any]]]]] = click_callback
-        """The on_click callback of the button."""
-        self._double_click_callback: Final[Optional[tuple[Callable, Optional[list[Any]]]]] = double_click_callback
-        self._border_lead_char: Final[Optional[str]] = border_lead_char
+
+        self._lead_char: Final[Optional[str]] = lead_char
         """The border lead character of the button."""
-        self._border_tail_char: Final[Optional[str]] = border_tail_char
+        self._tail_char: Final[Optional[str]] = tail_char
         """The border tail character of the button."""
-        self._border_attrs: Final[Optional[int]] = border_attrs
+        self._lead_tail_attrs: Final[Optional[int]] = lead_tail_attrs
         """The border attributes to use."""
         self._sel_attrs: Final[int] = calc_attributes(ThemeColours.BUTTON_SEL, theme['buttonSel'])
         """The selected text attributes."""
@@ -94,10 +143,30 @@ class Button(object):
         """Is this button selected?"""
         self._is_visible: bool = False
         """Is this button visible?"""
-        self._click_chars_codes: Optional[list[int]] = click_char_codes
+
+        self._callback: Final[Optional[tuple[Callable, Optional[list[Any] | tuple[Any, ...]]]]] = callback
+        """The on_left_click callback of the button."""
+
+        self._left_click_chars_codes: Optional[tuple[int, ...]] = None
         """Character codes that cause the 'on_click' action to be fired in process_key."""
-        self._double_click_char_codes: Optional[list[int]] = double_click_char_codes
+        if left_click_char_codes is not None:
+            self._left_click_chars_codes = (*left_click_char_codes,)
+        self._left_double_click_char_codes: Optional[list[int]] = None
         """Character codes that cause the 'on_double_click' action to be fired in process key."""
+        if left_double_click_char_codes is not None:
+            self._left_double_click_char_codes = (*left_double_click_char_codes,)
+
+        self._right_click_chars_codes: Optional[tuple[int, ...]] = None
+        """Character codes that cause the 'on_click' action to be fired in process_key."""
+        if right_click_char_codes is not None:
+            self._right_click_chars_codes = (*right_click_char_codes,)
+        self._right_double_click_char_codes: Optional[list[int]] = None
+        """Character codes that cause the 'on_double_click' action to be fired in process key."""
+        if right_double_click_char_codes is not None:
+            self._right_double_click_char_codes = (*right_double_click_char_codes,)
+
+        self._enter_runs_cb_state: CBStates = enter_runs_callback_state
+        """What callback state the enter key runs with."""
 
         # Public properties:
         self.real_top_left: tuple[int, int] = (-1, -1)
@@ -115,6 +184,9 @@ class Button(object):
         self.resize(top_left)
         return
 
+#####################################
+# External methods:
+#####################################
     def redraw(self) -> None:
         """
         Redraw this button.
@@ -142,8 +214,8 @@ class Button(object):
         # Move the cursor:
         self._window.move(self.top_left[ROW], self.top_left[COL])
         # Add the border lead char:
-        if self._border_lead_char is not None:
-            self._window.addstr(self._border_lead_char, self._border_attrs)
+        if self._lead_char is not None:
+            self._window.addstr(self._lead_char, self._lead_tail_attrs)
         # Add the lead indicator char:
         self._window.addstr(indicator_lead, text_attrs)
         # Add the label:
@@ -151,8 +223,8 @@ class Button(object):
         # Add the tail indicator char:
         self._window.addstr(indicator_tail, text_attrs)
         # Add the border tail char:
-        if self._border_tail_char is not None:
-            self._window.addstr(self._border_tail_char, self._border_attrs)
+        if self._tail_char is not None:
+            self._window.addstr(self._tail_char, self._lead_tail_attrs)
         return
 
     def resize(self, top_left: tuple[int, int]) -> None:
@@ -163,13 +235,13 @@ class Button(object):
         """
         # Calculate top-left and real top-left:
         self.real_top_left = top_left
-        if self._border_lead_char is not None:
+        if self._lead_char is not None:
             self.top_left = (top_left[ROW], top_left[COL] + 1)
         else:
             self.top_left = top_left
 
         # Calculate width:
-        if self._border_lead_char is not None:
+        if self._lead_char is not None:
             real_width = (len(self._label) - 2) + 4
             width = real_width - 2
         else:
@@ -186,59 +258,83 @@ class Button(object):
         self.bottom_right = (self.top_left[ROW], self.top_left[COL] + width)
         return
 
-    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+    def is_mouse_over(self, rel_mouse_pos: tuple[int, int]) -> bool:
         """
         Is the mouse over this button?
-        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :param rel_mouse_pos: tuple[int, int]: The current relative mouse position: (ROW, COL).
         :return: bool: True the given mouse position is over this button, False it's not.
         """
-        if self.top_left[ROW] <= mouse_pos[ROW] <= self.bottom_right[ROW]:
-            if self.top_left[COL] <= mouse_pos[COL] <= self.bottom_right[COL]:
+        if self.top_left[ROW] <= rel_mouse_pos[ROW] <= self.bottom_right[ROW]:
+            if self.top_left[COL] <= rel_mouse_pos[COL] <= self.bottom_right[COL]:
                 return True
         return False
 
-    def process_key(self, char_code: int) -> bool:
+    def process_key(self, char_code: int) -> Optional[bool]:
         """
         Process a key press.
         :param char_code: int: The character code of the key pressed.
         :return: bool: True this has been handled, False it has not been handled.
         """
-        if self._click_chars_codes is not None and char_code in self._click_chars_codes:
-            if self._click_callback is not None:
-                return __run_callback__(self._click_callback, CBStates.ACTIVATED.value)
+        # Setup logging:
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.process_key.__name__)
+        # On left click:
+        if self._left_click_chars_codes is not None and char_code in self._left_click_chars_codes:
+            if self._callback is not None:
+                logger.debug("Running callback 'on left click' ...")
+                return __run_callback__(self._callback, CBStates.LEFT_CLICK.value)
             return True
-        elif self._double_click_char_codes is not None and char_code in self._double_click_char_codes:
-            # Run 'on_double_click' callback:
-            if self._double_click_callback is not None:
-                return __run_callback__(self._double_click_callback, CBStates.ACTIVATED.value)
+        # On left double-click:
+        elif self._left_double_click_char_codes is not None and char_code in self._left_double_click_char_codes:
+            if self._callback is not None:
+                logger.debug("Running callback 'on left double click' ...")
+                return __run_callback__(self._callback, CBStates.LEFT_DOUBLE_CLICK.value)
             return True
-        return False
+        # On right click:
+        elif self._right_click_chars_codes is not None and char_code in self._right_click_chars_codes:
+            if self._callback is not None:
+                logger.debug("Running callback 'on right click' ...")
+                return __run_callback__(self._callback, CBStates.RIGHT_CLICK.value)
+            return True
+        # On right double-click:
+        elif self._right_double_click_char_codes is not None and char_code in self._right_double_click_char_codes:
+            if self._callback is not None:
+                logger.debug("Running callback 'on right double click' ...")
+                return __run_callback__(self._callback, CBStates.RIGHT_DOUBLE_CLICK.value)
+            return None
+        elif char_code in KEYS_ENTER:
+            if self._callback is not None:
+                logger.debug("Enter hit running callback '%s'..." % self._enter_runs_cb_state.value)
+                return __run_callback__(self._callback, self._enter_runs_cb_state.value)
+        return None
 
-    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> Optional[bool]:
         """
         Process a mouse event.
         :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
         :param button_state: int: The button state.
         :return: bool: True the mouse event has been handled, False it has not.
         """
-
-        clicked: bool = bool(button_state & (curses.BUTTON1_CLICKED | curses.BUTTON1_PRESSED | curses.BUTTON3_CLICKED
-                                             | curses.BUTTON3_PRESSED))
-        double_clicked: bool = bool(button_state & (curses.BUTTON1_DOUBLE_CLICKED | curses.BUTTON3_DOUBLE_CLICKED))
-
-        if clicked or double_clicked and self.is_mouse_over(mouse_pos):
-            logger: logging.Logger = logging.getLogger(__name__ + '.' + self.process_mouse.__name__)
-            if clicked:
-                if self._click_callback is not None:
-                    logger.debug("Running callback 'on_click'...")
-                    return __run_callback__(self._click_callback, CBStates.ACTIVATED.value)
-                return True  # Assume if no callback, the mouse was handled.
-            elif double_clicked:
-                if self._double_click_callback is not None:
-                    logger.debug("Running callback 'on_double_click'...")
-                    return_value: Any = __run_callback__(self._double_click_callback, CBStates.ACTIVATED.value)
-                return True  # Assume if no callback, the mouse was handled.
-        return False  # The mouse was not handled.
+        # Setup logging:
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.process_mouse.__name__)
+        if self.is_mouse_over(mouse_pos):
+            if self._callback is not None:
+                # On left click:
+                if get_left_click(button_state):
+                    logger.debug("Running callback 'on left click'...")
+                    return __run_callback__(self._callback, CBStates.LEFT_CLICK.value)
+                # On left double click:
+                elif get_left_double_click(button_state):
+                    logger.debug("Running callback 'on left double click'...")
+                    return __run_callback__(self._callback, CBStates.LEFT_DOUBLE_CLICK.value)
+                # On right click:
+                elif get_right_click(button_state):
+                    logger.debug("Running callback 'on right click' ...")
+                    return __run_callback__(self._callback, CBStates.RIGHT_CLICK.value)
+                # On right double click:
+                elif get_right_double_click(button_state):
+                    logger.debug("Running callback 'on right double click' ...")
+                    return __run_callback__(self._callback, CBStates.RIGHT_DOUBLE_CLICK.value)
+        return None  # The mouse was not handled.
 
     ##############################
     # Properties:

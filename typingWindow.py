@@ -5,7 +5,7 @@ Message typing area window.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, STRINGS
+from common import ROW, COL, STRINGS, Focus
 from cursesFunctions import calc_attributes
 from themes import ThemeColours
 from window import Window
@@ -16,6 +16,7 @@ class TypingWindow(Window):
     Message typing window. You know, where you type your message. I didn't know what else to call it.
     """
     def __init__(self,
+                 std_screen: curses.window,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | Optional[str]]]
@@ -43,23 +44,9 @@ class TypingWindow(Window):
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
 
         # Super the window:
-        Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
-                        title_attrs, title_focus_attrs, title_chars, bg_char)
+        Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
+                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.TYPING)
+        # Set this window as always visible:
+        self.always_visible = True
+        self.is_static_size = False
         return
-
-    def process_key(self, char_code: int) -> bool:
-        """
-        Process a key press.
-        :param char_code: int: The character code.
-        :return: bool: True, the character was handled, False it was not.
-        """
-        return False
-
-    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
-        """
-        Process a mouse event.
-        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
-        :param button_state: int: The button state.
-        :return: bool: True, mouse event handled, False it was not.
-        """
-        return False

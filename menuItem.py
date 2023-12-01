@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import logging
 from typing import Optional, Callable, Any
 from warnings import warn
 import curses
-from common import ROW, COL, STRINGS, CBStates, CBIndex
-from cursesFunctions import calc_attributes, add_accel_text
+from common import ROW, COL, STRINGS, CBStates, CBIndex, WIDTH, HEIGHT
+from cursesFunctions import calc_attributes, add_accel_text, get_left_click, get_left_double_click
+from runCallback import __run_callback__, __type_check_callback__
 from themes import ThemeColours
 from typeError import __type_error__
 
@@ -17,6 +19,7 @@ class MenuItem(object):
 #######################################
     def __init__(self,
                  std_screen: curses.window,
+                 window,  # Type: curses._CursesWindow
                  width: int,
                  top_left: tuple[int, int],
                  label: str,
@@ -26,7 +29,8 @@ class MenuItem(object):
                  ) -> None:
         """
         Initialize a single menu item.
-        :param std_screen: curses.window: The window to draw on.
+        :param std_screen: curses.window: The std_screen object.
+        :param window: curses._CursesWindow: The window to draw on.
         :param width: int: The width of the menu item.
         :param top_left: tuple[int, int]: The top left corner of this item.
         :param label: str: The label to apply to this item.
@@ -36,6 +40,8 @@ class MenuItem(object):
 
         # Internal properties:
         self._std_screen: curses.window = std_screen
+        """The std_screen curses.window object."""
+        self._window: curses.window = window  # Real Type curses._CursesWindow
         """The curses window to draw on."""
         self._bg_char: str = theme['backgroundChars']['menuItem']
         """The character to use for drawing the background."""
@@ -63,39 +69,15 @@ class MenuItem(object):
         # External properties:
         self.top_left: tuple[int, int] = top_left
         """Top left corner of this menu item."""
-        self.width: int = width
-        """Width of this menu item."""
-        self.size: tuple[int, int] = (1, self.width)
+        self.size: tuple[int, int] = (1, width)
         """The size of this menu item."""
-        self.bottom_right: tuple[int, int] = (top_left[ROW], top_left[COL] + self.width)
+        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[HEIGHT] - 1,
+                                              self.top_left[COL] + self.width - 1)
         """The bottom right of this menu item."""
         self.label: str = label
         """The label with accel indicators."""
         self.char_codes: list[int] = char_codes
         """The character codes this menu item should react to."""
-        return
-
-#######################################
-# Internal methods:
-#######################################
-    def _run_callback(self, state: str) -> None:
-        """
-        Run the callback.
-        :param state: str: The status string.
-        :return: None
-        """
-        if self._callback is not None:
-            try:
-                if self._callback[CBIndex.PARAMS] is not None:
-                    self._callback[CBIndex.CALLABLE](state, self._std_screen, *self._callback[CBIndex.PARAMS])
-                else:
-                    self._callback[CBIndex.CALLABLE](state, self._std_screen)
-            except KeyboardInterrupt as e:
-                raise e
-            except Exception as e:
-                warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
-                warn(warning_message, RuntimeWarning)
-                raise e
         return
 
 #######################################
@@ -106,37 +88,39 @@ class MenuItem(object):
         Redraw this menu item.
         :return: None
         """
-        # draw background.
-        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
-        bg_attrs: int
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.redraw.__name__)
+        # Determine attrs and indicators:
+        text_attrs: int
+        accel_attrs: int
+        lead_indicator: str
+        tail_indicator: str
         if self.is_selected:
-            bg_attrs = self._sel_attrs
+            text_attrs = self._sel_attrs
+            accel_attrs = self._sel_accel_attrs
+            lead_indicator = self._sel_lead_indicator
+            tail_indicator = self._sel_tail_indicator
         else:
-            bg_attrs = self._unsel_attrs
-        for col in range(self.top_left[COL], self.top_left[COL] + self.width):
-            self._std_screen.addstr(self._bg_char, bg_attrs)
+            text_attrs = self._unsel_attrs
+            accel_attrs = self._unsel_accel_attrs
+            lead_indicator = self._unsel_lead_indicator
+            tail_indicator = self._unsel_tail_indicator
 
-        # Draw label, start by moving the cursor to start:
-        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
-
+        # Move to start:
+        self._window.move(self.top_left[ROW], self.top_left[COL])
+        # Draw the background:
+        num_row, num_col = self._window.getmaxyx()
+        for col in range(self.top_left[COL], self.bottom_right[COL] + 1):
+            self._window.addstr(self._bg_char, text_attrs)
+        # Move back to the start:
+        self._window.move(self.top_left[ROW], self.top_left[COL])
         # Put start selection indicator:
-        indicator: str
-        if self.is_selected:
-            self._std_screen.addstr(self._sel_lead_indicator, self._sel_attrs)
-        else:
-            self._std_screen.addstr(self._unsel_lead_indicator, self._unsel_attrs)
-
+        self._window.addstr(lead_indicator, text_attrs)
         # Put the label:
-        if self.is_selected:
-            add_accel_text(self._std_screen, self.label, self._sel_attrs, self._sel_accel_attrs)
-        else:
-            add_accel_text(self._std_screen, self.label, self._unsel_attrs, self._unsel_accel_attrs)
-
+        add_accel_text(self._window, self.label, text_attrs, accel_attrs)
         # Put the trailing selection indicator:
-        if self.is_selected:
-            self._std_screen.addstr(self._sel_tail_indicator, self._sel_attrs)
-        else:
-            self._std_screen.addstr(self._unsel_tail_indicator, self._unsel_attrs)
+        self._window.addstr(tail_indicator, text_attrs)
+        # Update the window:
+        self._window.noutrefresh()
         return
 
     def activate(self) -> None:
@@ -144,17 +128,17 @@ class MenuItem(object):
         Activate this menu item.
         :return: None
         """
-        self._run_callback(CBStates.ACTIVATED.value)
+        __run_callback__(self._callback, CBStates.ACTIVATED.value, self.std_screen)
         return
 
-    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+    def is_mouse_over(self, rel_mouse_pos: tuple[int, int]) -> bool:
         """
         Is the mouse over this menu item?
-        :param mouse_pos: tuple[int, int]: The current mouse position: (ROW, COL)
+        :param rel_mouse_pos: tuple[int, int]: The relative mouse position: (ROW, COL)
         :return: bool: True if the mouse is over this menu item, False it is not.
         """
-        if mouse_pos[ROW] == self.top_left[ROW]:
-            if self.top_left[COL] <= mouse_pos[COL] <= self.bottom_right[COL]:
+        if rel_mouse_pos[ROW] == self.top_left[ROW]:
+            if self.top_left[COL] <= rel_mouse_pos[COL] <= self.bottom_right[COL]:
                 return True
         return False
 
@@ -185,3 +169,27 @@ class MenuItem(object):
         if old_value != value:
             self.redraw()
         return
+
+    @property
+    def width(self) -> int:
+        """
+        The width of the menu item
+        :return: int: The width.
+        """
+        return self.size[WIDTH]
+
+    @property
+    def height(self) -> int:
+        """
+        THe height of the menu item.
+        :return: int: The height.
+        """
+        return self.size[HEIGHT]
+
+    @property
+    def std_screen(self) -> curses.window:
+        """
+        Get the std_screen curses.window object.
+        :return: curses.window: The std_screen.
+        """
+        return self._std_screen

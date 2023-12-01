@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-from typing import Optional, Callable, Any
+import logging
+from typing import Optional, Callable, Any, Iterable
 from warnings import warn
 import curses
-from common import ROW, COL, CBIndex, CBStates
-from cursesFunctions import add_accel_text
+from common import ROW, COL, WIDTH, HEIGHT, KEYS_ENTER
+from cursesFunctions import calc_attributes, add_accel_text, get_rel_mouse_pos
 from typeError import __type_error__
-from fileMenu import FileMenu
-from accountsMenu import AccountsMenu
-from helpMenu import HelpMenu
+from menu import Menu
+from themes import ThemeColours
+# from fileMenu import FileMenu
+# from accountsMenu import AccountsMenu
+# from helpMenu import HelpMenu
 
 
 class MenuBarItem(object):
@@ -20,110 +23,68 @@ class MenuBarItem(object):
 #################################
     def __init__(self,
                  std_screen: curses.window,
+                 window,  # Type: curses._CursesWindow
                  top_left: tuple[int, int],
                  label: str,
-                 sel_attrs: int,
-                 sel_accel_attrs: int,
-                 sel_lead_indicator: str,
-                 sel_tail_indicator: str,
-                 unsel_attrs: int,
-                 unsel_accel_attrs: int,
-                 unsel_lead_indicator: str,
-                 unsel_tail_indicator: str,
-                 menu: FileMenu | AccountsMenu | HelpMenu,
-                 callback: tuple[Optional[Callable], Optional[list[Any]]],
-                 selection: int,
+                 theme: dict[str, dict[str, int | bool | str]],
+                 menu: Optional[Menu],
+                 activate_char_codes: Iterable[int],
+                 deactivate_char_codes: Iterable[int],
                  ) -> None:
         """
         Initialize a menu item.
-        :param std_screen: curses.window: The window to draw on.
+        :param std_screen: curses.window: The std_screen window object.
+        :param window: curses.window: The window to draw on.
         :param top_left: tuple[int, int]: The top left corner of this menu item.
         :param label: str: The text of the menu item.
-        :param sel_attrs: int: The attributes to use when selected.
-        :param sel_accel_attrs: int: The attributes to use for the selected accelerator.
-        :param sel_lead_indicator: str: The string to append to the beginning of the label when selected.
-        :param sel_tail_indicator: str: The string to append to the end of the label when selected.
-        :param unsel_attrs: int: The attributes to use when unselected.
-        :param unsel_accel_attrs: int: The attributes to use for the unselected accelerator
-        :param unsel_lead_indicator: str: The string to append to the beginning of the label when unselected.
-        :param unsel_tail_indicator: str The string to append to the end of the label when unselected.
-        :param menu: FileMenu | AccountsMenu | HelpMenu: The menu this item holds.
-        :param callback: Optional[Callable]: The call back to call when activated.
-        :param selection: int: The selection int representation; One of MenuBarSelections.
+        :param theme: dict[str, dict[str, int | bool | str]]: The current theme.
+        :param menu: Menu: The menu this item holds.
+        :param activate_char_codes: Iterable[int]: The character codes that activate the menu.
+        :param deactivate_char_codes: Iterable[int]: The character codes that deactivate the menu.
         """
         # Super:
         object.__init__(self)
         # Private properties
         self._std_screen: curses.window = std_screen
+        """The std_screen window object."""
+        self._window: curses.window = window  # Real type: curses._CursesWindow
         """The curses window object to draw on."""
-        self._sel_attrs: int = sel_attrs
+        self._sel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_SEL, theme['menuBarSel'])
         """The attributes to use when this item is selected."""
-        self._sel_accel_attrs: int = sel_accel_attrs
+        self._sel_accel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_SEL_ACCEL, theme['menuBarSelAccel'])
         """The attributes to use for the accelerator."""
-        self._sel_lead_indicator: str = sel_lead_indicator
-        """The string to append to the beginning of the label when selected."""
-        self._sel_tail_indicator: str = sel_tail_indicator
-        """The string to append to the end of the label when selected."""
-        self._unsel_attrs: int = unsel_attrs
+        self._unsel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_UNSEL, theme['menuBarUnsel'])
         """The attributes to use when this item is unselected."""
-        self._unsel_accel_attrs: int = unsel_accel_attrs
+        self._unsel_accel_attrs: int = calc_attributes(ThemeColours.MENU_BAR_UNSEL_ACCEL, theme['menuBarUnselAccel'])
         """The attributes to use for the accelerator when item is unselected."""
-        self._unsel_lead_indicator: str = unsel_lead_indicator
+        self._sel_lead_indicator: str = theme['menuBarSelChars']['leadSel']
+        """The string to append to the beginning of the label when selected."""
+        self._sel_tail_indicator: str = theme['menuBarSelChars']['tailSel']
+        """The string to append to the end of the label when selected."""
+        self._unsel_lead_indicator: str = theme['menuBarSelChars']['leadUnsel']
         """The string to append to the beginning of the label when unselected."""
-        self._unsel_tail_indicator: str = unsel_tail_indicator
+        self._unsel_tail_indicator: str = theme['menuBarSelChars']['tailUnsel']
         """The string to append to the end of the label when unselected."""
-        self._callback: tuple[Optional[Callable], Optional[list[Any]]] = callback
-        """The callback to call when activated."""
-        self.menu: FileMenu | AccountsMenu | HelpMenu = menu
-        """The menu object this menu bar item holds."""
         self._is_selected: bool = False
         """If this item is selected."""
-        self._is_activated: bool = False
-        """If this item is activated."""
+        self._menu: Menu = menu
+        """The menu object this menu bar item holds."""
 
         # Public properties:
         self.top_left: tuple[int, int] = top_left
         """This items top left corner."""
-        self.width: int = len(label)  # This is 2 chars longer than the actual width of the title due to accel chars.
-        """This items actual width, including leading and trailing spaces."""
-        self.size: tuple[int, int] = (1, self.width)
+        width: int = len(label)  # This is 2 chars longer than the actual width of the title due to accel chars.
+        self.size: tuple[int, int] = (1, width)
         """The size of this item in ROW, COL format."""
-        self.bottom_right: tuple[int, int] = (top_left[ROW], top_left[COL] + self.width)
+        self.bottom_right: tuple[int, int] = (top_left[ROW], top_left[COL] + width - 1)
         """The bottom right of this menu item."""
         self.label: str = label
         """The label to display."""
-        self.selection: int = selection
-        """The selection of this menu bar item."""
+        self.activate_char_codes: tuple[int] = (*activate_char_codes,)
+        """Character codes that activate this menu."""
+        self.deactivate_char_codes: tuple[int] = (*deactivate_char_codes,)
+        """Character codes that deactivate this menu."""
         return
-
-#################################
-# Internal methods:
-#################################
-    def _run_callback(self, state: str) -> Optional[Any]:
-        """
-        Run the callback.
-        :param state: str: The current state of the menu.
-        :return: Optional[Any]: The return value of the callback.
-        """
-        return_value: Optional[Any] = None
-        if self._callback[CBIndex.CALLABLE] is not None:
-            try:
-                if self._callback[CBIndex.PARAMS] is not None:
-                    return_value = self._callback[CBIndex.CALLABLE](state, self._std_screen,
-                                                                    self._callback[CBIndex.PARAMS])
-                else:
-                    return_value = self._callback[CBIndex.CALLABLE](state, self._std_screen)
-            except TypeError as e:
-                warning_message: str = "Callback not callable[%s]: TypeError: %s" \
-                                       % (self._callback[CBIndex.CALLABLE].__name__, e.args[0])
-                warn(warning_message, RuntimeWarning)
-            except Exception as e:
-                warning_message: str = "Callback caused Exception: %s(%s)." % (str(type(e)), str(e.args))
-                warn(warning_message, RuntimeWarning)
-                raise e
-            except KeyboardInterrupt as e:  # Catch and re-raise keyboard interrupt for quit.
-                raise e
-        return return_value
 
 #################################
 # Methods:
@@ -133,58 +94,71 @@ class MenuBarItem(object):
         Redraw this menu item.
         :return: None
         """
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.redraw.__name__)
+        # Determine attrs, and lead / tail characters:
+        text_attrs: int
+        accel_attrs: int
+        lead_indicator: str
+        tail_indicator: str
+        if self.is_selected:
+            text_attrs = self._sel_attrs
+            accel_attrs = self._sel_accel_attrs
+            lead_indicator = self._sel_lead_indicator
+            tail_indicator = self._sel_tail_indicator
+        else:
+            text_attrs = self._unsel_attrs
+            accel_attrs = self._unsel_accel_attrs
+            lead_indicator = self._unsel_lead_indicator
+            tail_indicator = self._unsel_tail_indicator
+
+        # logger.debug("menuBarItem: %s: top_left: %s" % (self.label, self.top_left))
         # Move the cursor to the top left corner:
-        self._std_screen.move(self.top_left[ROW], self.top_left[COL])
-
+        self._window.move(self.top_left[ROW], self.top_left[COL])
         # Write the leading indicator character:
-        if self.is_selected:
-            self._std_screen.addstr(self._sel_lead_indicator, self._sel_attrs)
-        else:
-            self._std_screen.addstr(self._unsel_lead_indicator, self._unsel_attrs)
-
+        self._window.addstr(lead_indicator, text_attrs)
         # Write the label, parsing the _ as accel indicator start / stop char.
-        if self.is_selected:
-            add_accel_text(self._std_screen, self.label, self._sel_attrs, self._sel_accel_attrs)
-        else:
-            add_accel_text(self._std_screen, self.label, self._unsel_attrs, self._unsel_accel_attrs)
-
+        add_accel_text(self._window, self.label, text_attrs, accel_attrs)
         # Add the trailing selection indicator:
-        if self.is_selected:
-            self._std_screen.addstr(self._sel_tail_indicator, self._sel_attrs)
-        else:
-            self._std_screen.addstr(self._unsel_tail_indicator, self._unsel_attrs)
-
-        # If the menu is active, redraw it:
-        if self.is_activated:
-            self.menu.redraw()
+        self._window.addstr(tail_indicator, text_attrs)
+        # Redraw the menu:
+        self._menu.redraw()
+        # Refresh the window:
+        self._window.noutrefresh()
         return
 
-    def activate(self) -> Optional[Any]:
-        """
-        Activate this menu bar item, show the menu and pass the keys to it.
-        :return: Optional[Any]: The return value of the callback
-        """
-        self.is_activated = True
-        self._run_callback(CBStates.ACTIVATED.value)
-        self.menu.is_activated = True
-        return None
-
-    def deactivate(self) -> None:
-        self.is_activated = False
-        self._run_callback(CBStates.DEACTIVATED.value)
-        self.menu.is_activated = False
-        return
-
-    def is_mouse_over(self, mouse_pos: tuple[int, int]) -> bool:
+    def is_mouse_over(self, rel_mouse_pos: tuple[int, int]) -> bool:
         """
         Return True if the mouse is over this menu item.
-        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+        :param rel_mouse_pos: tuple[int, int]: The relative mouse position: (ROW, COL).
         :return: bool: True if the mouse is over this menu bar item, False it is not.
         """
-        if mouse_pos[ROW] == self.top_left[ROW]:
-            if self.top_left[COL] <= mouse_pos[COL] <= self.bottom_right[COL]:
+        if rel_mouse_pos[ROW] == self.top_left[ROW]:
+            if self.top_left[COL] <= rel_mouse_pos[COL] <= self.bottom_right[COL]:
                 return True
         return False
+
+    def process_key(self, char_code: int) -> Optional[bool]:
+        """
+        Process a key press.
+        :param char_code: int: The character code of the pressed key.
+        :return: Optional[bool]: If None, the character wasn't handled, processing should continue.
+        If False, the character wasn't handled and processing shouldn't continue.
+        If True, the character was handled and processing shouldn't continue.
+        """
+        # If the menu is active, send the key press there:
+        if self._menu.is_activated:
+            handled: Optional[bool] = self._menu.process_key(char_code)
+            if handled is not None:
+                return handled
+        # Handle activate char codes:
+        if char_code in self.activate_char_codes:
+            self.is_activated = True
+            return True
+        # Handle deactivate char codes:
+        if char_code in self.deactivate_char_codes:
+            self.is_activated = False
+            return True
+        return None
 
 #################################
 # Properties:
@@ -208,10 +182,10 @@ class MenuBarItem(object):
         """
         if not isinstance(value, bool):
             __type_error__('value', 'bool', value)
-        # old_value = self._is_selected
+        old_value = self._is_selected
         self._is_selected = value
-        # if value != old_value:
-        #     self.redraw()
+        if value != old_value and value:
+            self.redraw()
         return
 
     @property
@@ -220,7 +194,7 @@ class MenuBarItem(object):
         Is this menu bar item activated?
         :return: bool: True, this menu bar is activated, False, it is not.
         """
-        return self._is_activated
+        return self._menu.is_activated
 
     @is_activated.setter
     def is_activated(self, value: bool) -> None:
@@ -233,14 +207,37 @@ class MenuBarItem(object):
         """
         if not isinstance(value, bool):
             __type_error__('value', 'bool', value)
-        self._is_activated = value
-        self.menu.is_activated = value
+        self._menu.is_activated = value
         return
 
     @property
     def std_screen(self) -> curses.window:
         """
-        The std screen curses.window object.
-        :return: curses.window: The std screen.
+        Return the std_screen window object..
+        :return: curses.window: The std_screen window object.
         """
         return self._std_screen
+
+    @property
+    def width(self) -> int:
+        """
+        The width of the menu bar item.
+        :return: int: The width.
+        """
+        return self.size[WIDTH]
+
+    @property
+    def height(self) -> int:
+        """
+        The height of the menu bar item.
+        :return: int: The height.
+        """
+        return self.size[HEIGHT]
+
+    @property
+    def menu(self) -> Menu:
+        """
+        Return the menu associated with this menu bar item.
+        :return: Menu: The menu object.
+        """
+        return self._menu

@@ -3,11 +3,17 @@
 File: quitWindow.py
 Quit "are you sure?" message.
 """
-from typing import Optional
+import logging
+from typing import Optional, Final
 import curses
-from common import ROW, HEIGHT, COL, WIDTH, STRINGS, KEYS_ENTER, KEY_ESC, KEY_BACKSPACE
-from cursesFunctions import calc_center_top_left, calc_attributes, center_string, add_accel_text
+
+import common
+from button import Button
+from cliExceptions import Quit
+from common import ROW, COL, STRINGS, KEYS_ENTER, KEY_ESC, KEY_BACKSPACE, Focus
+from cursesFunctions import calc_center_top_left, calc_attributes, center_string, get_rel_mouse_pos
 from themes import ThemeColours
+from typeError import __type_error__
 from window import Window
 
 
@@ -41,13 +47,11 @@ class QuitWindow(Window):
         title_chars: dict[str, str] = theme['quitWinTitleChars']
 
         # Window contents:
-        self._window_contents: tuple[str, dict[str, str]] = (
-            STRINGS['messages']['quit'], STRINGS['other']['yesOrNo']
-        )
+        self._confirm_message: str = STRINGS['messages']['quit']
 
         # Calculate window size:
-        width: int = len(self._window_contents[0]) + 2
-        height: int = len(self._window_contents) + 4
+        width: int = len(self._confirm_message) + 4
+        height: int = 6
 
         # Calculate top_left:
         containing_size: tuple[int, int] = std_screen.getmaxyx()
@@ -56,34 +60,43 @@ class QuitWindow(Window):
         window = curses.newwin(height, width, top_left[ROW], top_left[COL])
 
         # Super the window:
-        Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
-                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char)
-        # Set this by default as invisible.
-        self.is_visible = False
+        Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
+                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.QUIT)
 
-        # Store the containing window for resize.
-        self._std_screen: curses.window = std_screen
-        """The window that contains this window."""
         # Set the text attributes:
         self._text_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_TEXT, theme['quitWinText'])
         """Quit window text attributes."""
-        self._sel_text_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_SEL_TEXT, theme['quitWinSelText'])
-        """Quit window selected text attributes."""
-        self._sel_accel_text_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_SEL_ACCEL_TEXT,
-                                                          theme['quitWinSelAccelText'])
-        """Quit window accelerator text attributes."""
-        self._unsel_text_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_UNSEL_TEXT, theme['quitWinUnselText'])
-        """Quit window unselected text attributes."""
-        self._unsel_accel_text_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_UNSEL_ACCEL_TEXT,
-                                                            theme['quitWinUnselAccelText'])
-        """Quit window unselected accelerator text attributes."""
+        center_col = int(width / 2)
+        # Create the yes button:
+        self._yes_button: Final[Button] = Button(
+            window=window,
+            top_left=(4, center_col - 7),
+            label=STRINGS['other']['yes'],
+            theme=theme,
+            callback=(self._yes_click_cb, None),
+            left_click_char_codes=(ord('y'), ord('Y'))
+            )
+        """The yes button object."""
+        self._no_button: Final[Button] = Button(
+            window=window,
+            top_left=(4, center_col + 1),
+            label=STRINGS['other']['no'],
+            theme=theme,
+            lead_tail_attrs=self._text_attrs,
+            callback=(self._no_click_cb, None),
+            left_click_char_codes=(ord('n'), ord('N'))
+        )
+        """The no button object."""
 
-        # Store the std_screen for resize:
-        self._std_screen: curses.window = std_screen
+        # Set the buttons visible:
+        self._yes_button.is_visible = True
+        self._no_button.is_visible = True
 
-        # Current selection between yes and no for are you sure message:
+        # Current default selection between yes and no for are you sure message:
+        self._yes_button.is_selected = True
         self._yes_selected: bool = True
         """If yes is selected."""
+
         return
 
     #####################################
@@ -99,33 +112,11 @@ class QuitWindow(Window):
         # Draw the border, title, and background:
         super().redraw()
 
-        # Get yes / no characters:
-        lead_chars: str = self._window_contents[1]['leadChars']
-        yes_label: str = self._window_contents[1]['yes']
-        mid_chars: str = self._window_contents[1]['midChars']
-        no_label: str = self._window_contents[1]['no']
-        tail_chars: str = self._window_contents[1]['tailChars']
-
-        # Determine yes / no position:
-        width = len(lead_chars) + (len('yes') - 2) + len(mid_chars) + (len('no') - 2) + len(tail_chars)
-        col: int = int(self.size[WIDTH] // 2) - int(width // 2)
-        row: int = 3
-
-        # Add the message to the window:
-        self._window.addstr(2, 1, self._window_contents[0], self._text_attrs)
-        self._window.move(row, col)
-        self._window.addstr(lead_chars, self._text_attrs)
-        if self._yes_selected:
-            add_accel_text(self._window, yes_label, self._sel_text_attrs, self._sel_accel_text_attrs)
-        else:
-            add_accel_text(self._window, yes_label, self._unsel_text_attrs, self._unsel_accel_text_attrs)
-        self._window.addstr(mid_chars, self._text_attrs)
-        if self._yes_selected:
-            add_accel_text(self._window, no_label, self._unsel_text_attrs, self._unsel_accel_text_attrs)
-        else:
-            add_accel_text(self._window, no_label, self._sel_text_attrs, self._sel_accel_text_attrs)
-        self._window.addstr(tail_chars, self._text_attrs)
-        self._window.refresh()
+        # # Add the message to the window:
+        center_string(self._window, 2, self._confirm_message, self._text_attrs)
+        self._yes_button.redraw()
+        self._no_button.redraw()
+        self._window.noutrefresh()
         return
 
     def resize(self) -> None:
@@ -134,7 +125,7 @@ class QuitWindow(Window):
         :return: None
         """
         top_left: tuple[int, int] = calc_center_top_left(self._std_screen.getmaxyx(), self.real_size)
-        super().resize((-1, -1), top_left)
+        super().resize((-1, -1), top_left, False, True)
         return
 
     def process_key(self, char_code: int) -> Optional[bool]:
@@ -143,11 +134,108 @@ class QuitWindow(Window):
         :param char_code: int: The character code of the key pressed.
         :return: bool: True, the user wants to quit, False, the user doesn't want to quit, and None if not handled.
         """
+        return_value: Optional[bool]
+        # Pass the key to the yes button:
+        return_value = self._yes_button.process_key(char_code)
+        if return_value is True:  # User wants to quit.
+            raise Quit()
+        # Pass the key to the no button:
+        return_value = self._no_button.process_key(char_code)
+        if return_value is False:  # User doesn't want to quit.
+            return False
+
+        # Process the key press:
         if char_code in KEYS_ENTER:
-            return self._yes_selected
+            if self._yes_selected:
+                raise Quit()
+            else:
+                return False
         elif char_code in (KEY_ESC, KEY_BACKSPACE):
             return False
         elif char_code in (curses.KEY_LEFT, curses.KEY_RIGHT):
-            self._yes_selected = not self._yes_selected
+            self.yes_selected = not self.yes_selected
+            return True
         return None
 
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> Optional[bool]:
+        """
+        Process a mouse event.
+        :param mouse_pos: tuple[int, int]: The current mouse position: (ROW, COL).
+        :param button_state: int: The current button state.
+        :return: Optional[bool]: Return True, mouse handled, processing should stop, Return False, close the window, and
+            processing should stop, return None, the character wasn't handled, and processing should continue.
+        """
+        # Declare vars:
+        return_value: Optional[bool]
+
+        # Get the relative mouse position:
+        rel_mouse_pos = get_rel_mouse_pos(mouse_pos, self.real_top_left)
+
+        # Pass the mouse to the yes button:
+        return_value = self._yes_button.process_mouse(rel_mouse_pos, button_state)
+        if return_value is True:
+            raise Quit()
+
+        # Pass the mouse to the no button:
+        return_value = self._no_button.process_mouse(rel_mouse_pos, button_state)
+        if return_value is False:
+            return False
+
+        # Parse mouse movement:
+        if common.SETTINGS['mouseMoveFocus']:
+            if self._yes_button.is_mouse_over(rel_mouse_pos):
+                self.yes_selected = True
+            elif self._no_button.is_mouse_over(rel_mouse_pos):
+                self.yes_selected = False
+        return None
+
+    def _yes_click_cb(self, *args) -> Optional[bool]:
+        """
+        The callback for the yes button.
+        :param state: str: The button state, one of 'common.CBStates'.
+        :param args: Any additional arguments.
+        :return: Optional[bool]
+        """
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self._yes_click_cb.__name__)
+        logger.debug(args[0])
+        return True
+
+    def _no_click_cb(self, *args) -> Optional[bool]:
+        """
+        The callback for the no button.
+        :param state: The button state, one of 'common.CBStates'.
+        :param args: Any additional arguments
+        :return: Optional[bool]:
+        """
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self._no_click_cb.__name__)
+        logger.debug(args[0])
+        return False
+
+##########################################
+# Properties:
+##########################################
+    @property
+    def yes_selected(self) -> bool:
+        """
+        Is the 'yes' button selected?
+        :return: bool: True the 'yes' button is selected, False it is not.
+        """
+        return self._yes_selected
+
+    @yes_selected.setter
+    def yes_selected(self, value: bool) -> None:
+        """
+        Is the 'yes' button selected?
+        :param value: bool: The value to set.
+        :return: None.
+        :raises TypeError: If value is not a bool.
+        """
+        if not isinstance(value, bool):
+            __type_error__('value', 'bool', value)
+        self._yes_selected = value
+        if value:
+            self._yes_button.is_selected = True
+            self._no_button.is_selected = False
+        else:
+            self._yes_button.is_selected = False
+            self._no_button.is_selected = True

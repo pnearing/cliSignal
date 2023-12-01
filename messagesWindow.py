@@ -5,7 +5,7 @@ Messages list window handling.
 """
 from typing import Optional
 import curses
-from common import ROW, COL, STRINGS
+from common import ROW, COL, STRINGS, Focus
 from cursesFunctions import calc_attributes
 from themes import ThemeColours
 from window import Window
@@ -16,6 +16,7 @@ class MessagesWindow(Window):
     Class to store the messages' window.
     """
     def __init__(self,
+                 std_screen: curses.window,
                  size: tuple[int, int],
                  top_left: tuple[int, int],
                  theme: dict[str, dict[str, int | bool | str]]
@@ -43,23 +44,11 @@ class MessagesWindow(Window):
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
 
         # Run Super:
-        Window.__init__(self, window, title, top_left, window_attrs, border_attrs, border_focus_attrs, border_chars,
-                        title_attrs, title_focus_attrs, title_chars, bg_char)
+        Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
+                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.MESSAGES)
+
+        # Set this window as always visible:
+        self.always_visible = True
+        self.is_static_size = False
         return
 
-    def process_key(self, char_code: int) -> bool:
-        """
-        Process a key press.
-        :param char_code: int: The character code.
-        :return: bool: True, character handled, False character not handled.
-        """
-        return False
-
-    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> bool:
-        """
-        Process the mouse events.
-        :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
-        :param button_state: int: The button state.
-        :return: bool: True, mouse was handled, False it was not.
-        """
-        return False

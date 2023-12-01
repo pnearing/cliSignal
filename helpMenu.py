@@ -31,12 +31,13 @@ class HelpMenu(Menu):
         """
         # Determine size:
         size: tuple[int, int] = calc_size(STRINGS['helpMenuNames'].values())
-
+        window = curses.newwin(size[HEIGHT], size[WIDTH], top_left[ROW], top_left[COL])
         # Build the menu items:
         shortcut_label: str = STRINGS['helpMenuNames']['shortcuts']
         shortcut_menu_item: MenuItem = MenuItem(std_screen=std_screen,
+                                                window=window,
                                                 width=size[WIDTH] - 2,
-                                                top_left=(top_left[ROW] + 1, top_left[COL] + 1),
+                                                top_left=(1, 1),
                                                 label=shortcut_label,
                                                 theme=theme,
                                                 callback=callbacks['shortcuts'],
@@ -44,8 +45,9 @@ class HelpMenu(Menu):
                                                 )
         about_label: str = STRINGS['helpMenuNames']['about']
         about_menu_item: MenuItem = MenuItem(std_screen=std_screen,
+                                             window=window,
                                              width=size[WIDTH] - 2,
-                                             top_left=(top_left[ROW] + 2, top_left[COL] + 1),
+                                             top_left=(2, 1),
                                              label=about_label,
                                              theme=theme,
                                              callback=callbacks['about'],
@@ -53,8 +55,9 @@ class HelpMenu(Menu):
                                              )
         version_label: str = STRINGS['helpMenuNames']['version']
         version_menu_item: MenuItem = MenuItem(std_screen=std_screen,
+                                               window=window,
                                                width=size[WIDTH] - 2,
-                                               top_left=(top_left[ROW] + 3, top_left[COL] + 1),
+                                               top_left=(3, 1),
                                                label=version_label,
                                                theme=theme,
                                                callback=callbacks['version'],
@@ -64,7 +67,7 @@ class HelpMenu(Menu):
         menu_items: list[MenuItem] = [shortcut_menu_item, about_menu_item, version_menu_item]
 
         # Call super:
-        Menu.__init__(self, std_screen, size, top_left, menu_items, theme)
+        Menu.__init__(self, std_screen, window, size, top_left, menu_items, theme)
 
         # Set internal properties:
         self._selection = HelpMenuSelection.KEYS

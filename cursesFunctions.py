@@ -5,7 +5,7 @@ File: cursesFunctions.py
 """
 from typing import Optional
 import curses
-from common import HEIGHT, WIDTH, ROW, COL, _ACCEL_INDICATOR
+from common import HEIGHT, WIDTH, ROW, COL, _ACCEL_INDICATOR, BUTTON_SCROLL_UP, BUTTON_SCROLL_DOWN, BUTTON_SCRAP
 
 
 ##################################
@@ -28,7 +28,7 @@ def calc_attributes(colour_pair: int, attrs: dict[str, int | bool]) -> int:
     return attributes
 
 
-def draw_border_on_win(window: curses.window,
+def draw_border_on_win(window,  # Type: curses.window | curses._CursesWindow
                        border_attrs: int,
                        ts: str, bs: str, ls: str, rs: str,
                        tl: str, tr: str, bl: str, br: str,
@@ -37,7 +37,7 @@ def draw_border_on_win(window: curses.window,
                        ) -> None:
     """
     Draw a border around a window.
-    :param window: curses.window: The window to draw on.
+    :param window: curses.window | curses._CursesWindow: The window to draw on.
     :param border_attrs: int: The border attributes, i.e. colour, bold, etc.
     :param ts: str: Top side character.
     :param bs: str: Bottom side character.
@@ -212,3 +212,134 @@ def calc_center_top_left(containing_size: tuple[int, int], window_size: tuple[in
     if left < 0:
         left = 0
     return top, left
+
+
+def get_rel_mouse_pos(mouse_pos: tuple[int, int], real_top_left: tuple[int, int]) -> tuple[int, int]:
+    """
+    Get the relative mouse position over the window; IE: If the mouse is at top_left, then mouse_pos = (0, 0)
+    :param mouse_pos: tuple[int, int]: The mouse position: (ROW, COL).
+    :param real_top_left: tuple[int, int]: The real top left corner of the window: (ROW, COL).
+    :return: tuple[int, int]: The relative position: (ROW, COL).
+    """
+    relative_row: int = mouse_pos[ROW] - real_top_left[ROW]
+    relative_col: int = mouse_pos[COL] - real_top_left[COL]
+    return relative_row, relative_col
+
+
+def get_mouse() -> tuple[tuple[int, int], int]:
+    """
+    Get the mouse properties.
+    :return: tuple[tuple[int, int], int]: The first element of the outer tuple is the mouse position, as a
+        tuple[ROW, COL]; The second element of the outer tuple is an int representing the button state.
+    """
+    _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+    button_state &= ~BUTTON_SCRAP
+    mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
+    return mouse_pos, button_state
+
+
+def get_left_click(button_state: int) -> bool:
+    """
+    Return True if the left button was clicked.
+    :param button_state: int: The current button state.
+    :return: bool: True if the left button was clicked, False, it was not.
+    """
+    if (button_state & curses.BUTTON1_CLICKED != 0) or (button_state & curses.BUTTON1_PRESSED != 0):
+        return True
+    return False
+
+
+def get_left_double_click(button_state: int) -> bool:
+    """
+    Return True if the left button was double-clicked.
+    :param button_state: int: The current button state.
+    :return: True if the left button was double-clicked, False it was not.
+    """
+    if button_state & curses.BUTTON1_DOUBLE_CLICKED != 0:
+        return True
+    return False
+
+
+def get_middle_click(button_state: int) -> bool:
+    """
+    Return True if the middle button was clicked.
+    :param button_state: int: The current button state.
+    :return: bool: True the middle button was clicked, False it was not.
+    """
+    if (button_state & curses.BUTTON2_CLICKED != 0) or (button_state & curses.BUTTON2_PRESSED != 0):
+        return True
+    return False
+
+
+def get_middle_double_click(button_state: int) -> bool:
+    """
+    Return True if the middle button was double-clicked.
+    :param button_state: int: The current button state.
+    :return: bool: True the middle button was double-clicked, False it was not.
+    """
+    if button_state & curses.BUTTON2_DOUBLE_CLICKED != 0:
+        return True
+    return False
+
+
+def get_right_click(button_state: int) -> bool:
+    """
+    Return True if the right button was clicked.
+    :param button_state: int: The current button state.
+    :return:
+    """
+    if (button_state & curses.BUTTON3_CLICKED != 0) or (button_state & curses.BUTTON3_PRESSED != 0):
+        return True
+    return False
+
+
+def get_right_double_click(button_state: int) -> bool:
+    """
+    Return True if the right button was double-clicked.
+    :param button_state: int: The current button state.
+    :return: bool: True the right button was double-clicked, False it was not.
+    """
+    if button_state & curses.BUTTON3_DOUBLE_CLICKED != 0:
+        return True
+    return False
+
+
+def get_scroll_up(button_state: int) -> bool:
+    """
+    Return True if the scroll up has been hit.
+    :param button_state: int: The current button state.
+    :return: bool: True the scroll up button has been hit, False, it was not.
+    """
+    if button_state == BUTTON_SCROLL_UP:
+        return True
+    return False
+
+
+def get_scroll_down(button_state: int) -> bool:
+    """
+    Return True if the scroll down was hit.
+    :param button_state: int: The current button state.
+    :return: bool: True scroll down was hit, False, it was not.
+    """
+    if button_state == BUTTON_SCROLL_DOWN:
+        return True
+    return False
+
+
+def get_alt_pressed(button_state: int) -> bool:
+    """
+    Return True if ALT is being held down.
+    :param button_state: int: The current button state.
+    :return: bool: True alt is being pressed, False it is not.
+    """
+    return button_state & curses.BUTTON_ALT != 0
+
+
+def get_ctrl_pressed(button_state: int) -> bool:
+    """
+    Return True if the CTRL key is being held down.
+    :param button_state: int: The current button state.
+    :return: bool: True if ctrl is being pressed, False, it is not.
+    """
+    return button_state & curses.BUTTON_CTRL != 0
+
