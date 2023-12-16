@@ -1,0 +1,6 @@
+F1 = File menu
+F2 = Accounts menu
+F3 = Help menu
+
+'C' = Contacts sub window
+'G' = Groups sub window

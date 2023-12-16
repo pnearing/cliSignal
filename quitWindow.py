@@ -42,9 +42,11 @@ class QuitWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_BORDER, theme['quitWinBorder'])
         border_focus_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_FOCUS_BORDER, theme['quitWinFBorder'])
         border_chars: dict[str, str] = theme['quitWinBorderChars']
+        border_focus_chars: dict[str, str] = theme['quitWinFBorderChars']
         title_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_TITLE, theme['quitWinTitle'])
         title_focus_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_FOCUS_TITLE, theme['quitWinFTitle'])
         title_chars: dict[str, str] = theme['quitWinTitleChars']
+        title_focus_chars: dict[str, str] = theme['quitWinFTitleChars']
 
         # Window contents:
         self._confirm_message: str = STRINGS['messages']['quit']
@@ -61,7 +63,8 @@ class QuitWindow(Window):
 
         # Super the window:
         Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
-                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.QUIT)
+                        border_chars, border_focus_chars, title_attrs, title_focus_attrs, title_chars,
+                        title_focus_chars, bg_char, Focus.QUIT)
 
         # Set the text attributes:
         self._text_attrs: int = calc_attributes(ThemeColours.QUIT_WIN_TEXT, theme['quitWinText'])
@@ -74,7 +77,7 @@ class QuitWindow(Window):
             label=STRINGS['other']['yes'],
             theme=theme,
             callback=(self._yes_click_cb, None),
-            left_click_char_codes=(ord('y'), ord('Y'))
+            left_click_char_codes=(ord('y'), ord('Y')),
             )
         """The yes button object."""
         self._no_button: Final[Button] = Button(
@@ -125,7 +128,7 @@ class QuitWindow(Window):
         :return: None
         """
         top_left: tuple[int, int] = calc_center_top_left(self._std_screen.getmaxyx(), self.real_size)
-        super().resize((-1, -1), top_left, False, True)
+        super().resize(None, top_left, False, True)
         return
 
     def process_key(self, char_code: int) -> Optional[bool]:
@@ -136,13 +139,15 @@ class QuitWindow(Window):
         """
         return_value: Optional[bool]
         # Pass the key to the yes button:
-        return_value = self._yes_button.process_key(char_code)
-        if return_value is True:  # User wants to quit.
-            raise Quit()
+        if self.yes_selected:
+            return_value = self._yes_button.process_key(char_code)
+            if return_value is True:  # User wants to quit.
+                raise Quit()
         # Pass the key to the no button:
-        return_value = self._no_button.process_key(char_code)
-        if return_value is False:  # User doesn't want to quit.
-            return False
+        else:
+            return_value = self._no_button.process_key(char_code)
+            if return_value is False:  # User doesn't want to quit.
+                return False
 
         # Process the key press:
         if char_code in KEYS_ENTER:

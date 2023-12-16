@@ -14,7 +14,7 @@ from menu import Menu
 from themes import ThemeColours
 from common import ROW, COL, STRINGS, KEY_ESC, KEYS_ENTER, MenuBarSelections, KEY_TAB, KEY_SHIFT_TAB, KEY_BACKSPACE, \
     Focus
-from cursesFunctions import calc_attributes, get_rel_mouse_pos, get_left_click, get_left_double_click
+from cursesFunctions import calc_attributes, get_rel_mouse_pos, get_left_click, get_left_double_click, add_str
 from typeError import __type_error__
 from menuBarItem import MenuBarItem
 from fileMenu import FileMenu
@@ -150,8 +150,9 @@ class MenuBar(Bar):
         total_len = len(self._acct_label) + len(current_account)
         acct_col = (num_cols - 1) - total_len - 1
         self._window.move(0, acct_col)
-        self._window.addstr(self._acct_label, self._acct_label_attrs)
-        self._window.addstr(current_account, self._acct_text_attrs)
+        add_str(self._window, self._acct_label, self._acct_label_attrs)
+        add_str(self._window, ': ', self._acct_text_attrs)
+        add_str(self._window, current_account, self._acct_text_attrs)
 
         # Refresh the window:
         self._window.noutrefresh()
@@ -186,33 +187,38 @@ class MenuBar(Bar):
         :param char_code: int: The character code of the key pressed.
         :return: bool: True if this character has been handled.
         """
-        # Pass the key code to the active menu before processing:
-        return_value: Optional[bool] = None
-        if self.is_menu_activated:
-            return_value = self.active_menu.process_key(char_code)
-            if return_value is not None:
-                return return_value
-
+        # Check for key in activate / deactivate keys:
         for i, menu_bar_item in enumerate(self.menu_bar_items):
             if not menu_bar_item.is_activated and char_code in menu_bar_item.activate_char_codes:
                 self.selection = i
                 menu_bar_item.is_activated = True
                 return True
             elif menu_bar_item.is_activated and char_code in menu_bar_item.deactivate_char_codes:
+                self.selection = i
                 menu_bar_item.is_activated = False
                 return True
-        # Handle Enter:
-        if char_code in KEYS_ENTER:
-            self.selected_menu_bar_item.is_activated = True
-            return True
-        # Handle KEY LEFT:
-        elif char_code == curses.KEY_LEFT:
-            self.dec_selection()
-            return True
-        # Handle KEY RIGHT
-        elif char_code == curses.KEY_RIGHT:
-            self.inc_selection()
-            return True
+
+        # Process the rest of the keys, only if we're focused since this is run every key press.
+        if self.is_focused:
+            # Pass the key code to the active menu before processing:
+            return_value: Optional[bool] = None
+            if self.is_menu_activated:
+                return_value = self.active_menu.process_key(char_code)
+                if return_value is not None:
+                    return return_value
+
+            # Handle Enter:
+            if char_code in KEYS_ENTER:
+                self.selected_menu_bar_item.is_activated = True
+                return True
+            # Handle KEY LEFT:
+            elif char_code == curses.KEY_LEFT:
+                self.dec_selection()
+                return True
+            # Handle KEY RIGHT
+            elif char_code == curses.KEY_RIGHT:
+                self.inc_selection()
+                return True
         # Character wasn't handled:
         return None
 

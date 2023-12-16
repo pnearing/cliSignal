@@ -45,9 +45,11 @@ class MainWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.MAIN_WIN_BORDER, theme['mainWinBorder'])
         border_focus_attrs: int = calc_attributes(ThemeColours.MAIN_WIN_FOCUS_BORDER, theme['mainWinFBorder'])
         border_chars: dict[str, str] = theme['mainBorderChars']
+        border_focus_chars: dict[str, str] = theme['mainFBorderChars']
         title_attrs: int = calc_attributes(ThemeColours.MAIN_WIN_TITLE, theme['mainWinTitle'])
         title_focus_attr: int = calc_attributes(ThemeColours.MAIN_WIN_FOCUS_TITLE, theme['mainWinFTitle'])
         title_chars: dict[str, str] = theme['mainWinTitleChars']
+        title_focus_chars: dict[str, str] = theme['mainWinFTitleChars']
 
         # Run super.__init__:
         Window.__init__(self,
@@ -59,9 +61,11 @@ class MainWindow(Window):
                         border_attrs=border_attrs,
                         border_focus_attrs=border_focus_attrs,
                         border_chars=border_chars,
+                        border_focus_chars=border_focus_chars,
                         title_attrs=title_attrs,
                         title_focus_attrs=title_focus_attr,
                         title_chars=title_chars,
+                        title_focus_chars=title_focus_chars,
                         bg_char=bg_char,
                         focus_id=Focus.MAIN
                         )
@@ -217,14 +221,14 @@ class MainWindow(Window):
         self.contacts_window.redraw()
         self.messages_window.redraw()
         self.typing_window.redraw()
-        # # Draw the menu and status bars:
+        # Draw the menu and status bars:
         self.menu_bar.redraw()
         self.status_bar.redraw()
-        # # Draw the sub-windows last, only one should be visible at a time.
-        self.quit_window.redraw()
+        # Draw the sub-windows last, only one should be visible at a time.
         self.link_window.redraw()
         self.qr_window.redraw()
         self.ver_window.redraw()
+        self.quit_window.redraw()
         curses.doupdate()
         return
 

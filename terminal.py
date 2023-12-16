@@ -64,9 +64,11 @@ class Terminal(object):
         :returns: Tuple[int, int]: Element 0, columns; Element 1, rows;
         """
         if file_descriptor is not None:
-            return tuple(os.get_terminal_size(file_descriptor))
+            cols, rows = os.get_terminal_size(file_descriptor)
+            return cols, rows
         else:
-            return tuple(os.get_terminal_size())
+            cols, rows = os.get_terminal_size()
+            return cols, rows
 
     @staticmethod
     def columns(file_descriptor: Optional[int] = None) -> int:

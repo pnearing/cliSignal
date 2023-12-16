@@ -1,11 +1,13 @@
 #!/usr/bin/env pyton3
 """
 File: statusBar.py
-Maintain and control the status bar.
+    Maintain and control the status bar.
 """
 import logging
 from typing import Optional
 import curses
+
+import common
 from themes import ThemeColours
 from common import ROW, COL, STRINGS, Focus
 from cursesFunctions import calc_attributes
@@ -66,22 +68,26 @@ class StatusBar(Bar):
 
         # Redraw the receive state:
         self._window.addstr("Recv:", self._receive_attrs)
-        if self._receive_state:
-            self._window.addstr(self.receive_started_char, self._receive_attrs)
-        else:
+        if common.RECEIVE_THREAD is None:
             self._window.addstr(self.receive_stopped_char, self._receive_attrs)
+        else:
+            self._window.addstr(self.receive_started_char, self._receive_attrs)
+
         # Redraw the character code:
         if self.is_char_code_visible:
-            char_code_str: str = f"-\U0001F5AE:{self.char_code:4d}-"
+            char_code_str: str = f"-\U0001F5AE:{common.CHAR_CODE:4d}-"
             self._window.addstr(char_code_str, self._char_code_attrs)
+
         # Redraw the mouse info:
         if self.is_mouse_visible:
-            mouse_row = self.mouse_pos[ROW]
-            mouse_col = self.mouse_pos[COL]
+            mouse_row = common.MOUSE_POS[ROW]
+            mouse_col = common.MOUSE_POS[COL]
             mouse_pos_string = f"({mouse_row:4d},{mouse_col:4d})"
-            mouse_button_string = f"{self.mouse_button_state:11d}"
+            mouse_button_string = f"{common.BUTTON_STATE:11d}"
             self._window.addstr("-\U0001f5b1:%s:%s-" % (mouse_pos_string, mouse_button_string),
                                 self._mouse_attrs)
+
+        # Refresh the window:
         self._window.noutrefresh()
         return
 

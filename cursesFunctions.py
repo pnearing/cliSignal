@@ -5,12 +5,17 @@ File: cursesFunctions.py
 """
 from typing import Optional
 import curses
+
+import common
 from common import HEIGHT, WIDTH, ROW, COL, _ACCEL_INDICATOR, BUTTON_SCROLL_UP, BUTTON_SCROLL_DOWN, BUTTON_SCRAP
 
+CURSOR_POS: tuple[int, int] = (0, 0)
+"""The current known cursor position."""
 
-##################################
-# Curses Functions:
-##################################
+
+#########################################
+# Misc functions:
+#########################################
 def calc_attributes(colour_pair: int, attrs: dict[str, int | bool]) -> int:
     """
     Calculate the int attribute given the theme and desired attributes in a dict.
@@ -28,6 +33,108 @@ def calc_attributes(colour_pair: int, attrs: dict[str, int | bool]) -> int:
     return attributes
 
 
+def terminal_bell() -> None:
+    """
+    Ring the terminal bell, only if the current config allows it.
+    :return: None
+    """
+    if common.SETTINGS['useSound']:
+        curses.beep()
+    if common.SETTINGS['flashScreen']:
+        curses.flash()
+    return
+
+
+###########################################
+# My versions of addstr and addch with cursor tracking.
+###########################################
+def move_cursor(window, row: int, col: int):
+    global CURSOR_POS
+    window.move(row, col)
+    CURSOR_POS = (row, col)
+    return
+
+
+def add_str(window,  # Type _CursesWindow | curses.window
+            string: str,
+            attrs: int,
+            row: Optional[int] = None,
+            col: Optional[int] = None,
+            ) -> None:
+    """
+    Sensible version of add str.
+    :param window: _CursesWindow: The window or pad to add the string to.
+    :param string: str: The string to add.
+    :param attrs: int: The attributes to use.
+    :param row: Optional[int]: The row to add string at.
+    :param col: Optional[int]: The colum to add string at.
+    :return: None
+    """
+    # Parameter checks:
+    param_error_msg: str = "Either both 'row': %s and 'col': %s must be defined, or None." % (str(row), str(col))
+    if row is not None and col is None:
+        raise RuntimeError(param_error_msg)
+    elif row is None and col is not None:
+        raise RuntimeError(param_error_msg)
+
+    # Add the string specifying the co-ords:
+    if row is None and col is None:
+        try:
+            window.addstr(string, attrs)
+        except curses.error as e:
+            if e.args[0] != 'addwstr() returned ERR':
+                raise e
+    # Add the string not specifying co-ords
+    else:
+        try:
+            window.addstr(row, col, string, attrs)
+        except curses.error as e:
+            if e.args[0] != 'addwstr() returned ERR':
+                raise e
+    return
+
+
+def add_ch(window,  # Type: curses.window | _CursesWindow.
+           char: str,
+           attrs: int,
+           row: Optional[int] = None,
+           col: Optional[int] = None,
+           ) -> None:
+    """
+    Sensible version of addch.
+    :param window: _CursesWindow | curses.window: The window or pad to draw on.
+    :param char: str: The character to add.
+    :param attrs: int: The attributes to use.
+    :param row: Optional[int]: The row to add the string at.
+    :param col: Optional[int]: The col to add the string at.
+    :return:
+    """
+    # window: curses.window = _window
+    # Check parameters:
+    param_error_message: str = "Either both 'row' and 'col' must defined, or both must be None."
+    if row is None and col is not None:
+        raise RuntimeError(param_error_message)
+    elif row is not None and col is None:
+        raise RuntimeError(param_error_message)
+    # Add the string without doing the move:
+    if row is None and col is None:
+        try:
+            window.addch(char, attrs)
+        except curses.error as e:
+            if e.args[0] != 'add_wch() returned ERR':
+                raise e
+    elif row is not None and col is not None:
+        try:
+            window.addch(row, col, char, attrs)
+        except curses.error as e:
+            if e.args[0] != 'add_wch() returned ERR':
+                raise e
+    return
+
+
+###########################################
+# Drawing functions:
+###########################################
 def draw_border_on_win(window,  # Type: curses.window | curses._CursesWindow
                        border_attrs: int,
                        ts: str, bs: str, ls: str, rs: str,
@@ -36,7 +143,7 @@ def draw_border_on_win(window,  # Type: curses.window | curses._CursesWindow
                        top_left: Optional[tuple[int, int]] = None,
                        ) -> None:
     """
-    Draw a border around a window.
+    Draw a border on a window.
     :param window: curses.window | curses._CursesWindow: The window to draw on.
     :param border_attrs: int: The border attributes, i.e. colour, bold, etc.
     :param ts: str: Top side character.
@@ -53,84 +160,104 @@ def draw_border_on_win(window,  # Type: curses.window | curses._CursesWindow
     """
     # Determine the size of the box:
     if size is None:
-        max_xy: tuple[int, int] = window.getmaxyx()
-        num_rows: int = max_xy[HEIGHT]
-        num_cols: int = max_xy[WIDTH]
+        height, width = window.getmaxyx()
     else:
-        num_rows: int = size[HEIGHT]
-        num_cols: int = size[WIDTH]
+        height: int = size[HEIGHT]
+        width: int = size[WIDTH]
 
     # Determine the top left corner of the box:
     if top_left is None:
-        start_row: int = 0
-        start_col: int = 0
+        top: int = 0
+        left: int = 0
     else:
-        start_row: int = top_left[ROW]
-        start_col: int = top_left[COL]
+        top: int = top_left[ROW]
+        left: int = top_left[COL]
 
     # Determine the bottom right of the box:
-    end_row: int = start_row + num_rows - 1
-    end_col: int = start_col + num_cols - 1
+    bottom: int = top + height - 1
+    right: int = left + width - 1
 
     # Top and bottom sides:
-    for col in range(start_col + 1, end_col):
-        window.addstr(start_row, col, ts, border_attrs)
-        window.addstr(end_row, col, bs, border_attrs)
+    for col in range(left + 1, right):
+        add_ch(window, ts, border_attrs, top, col)
+        add_ch(window, bs, border_attrs, bottom, col)
 
     # Left and right sides:
-    for row in range(start_row + 1, end_row):
-        window.addstr(row, start_col, ls, border_attrs)
-        window.addstr(row, end_col, rs, border_attrs)
+    for row in range(top + 1, bottom):
+        add_ch(window, ls, border_attrs, row, left)
+        add_ch(window, rs, border_attrs, row, right)
 
     # Top left corner:
-    window.addstr(start_row, start_col, tl, border_attrs)
+    add_ch(window, tl, border_attrs, top, left)
 
     # Top right corner:
-    try:
-        window.addstr(start_row, end_col, tr, border_attrs)
-    except curses.error:
-        pass
+    add_ch(window, tr, border_attrs, top, right)
 
     # Bottom left corner:
-    window.addstr(end_row, start_col, bl, border_attrs)
+    add_ch(window, bl, border_attrs, bottom, left)
 
     # Bottom right corner, causes exception:
-    try:
-        window.addstr(end_row, end_col, br, border_attrs)
-    except curses.error:
-        pass
+    add_ch(window, br, border_attrs, bottom, right)
     return
 
 
 def add_title_to_win(window: curses.window,
                      title: Optional[str],
-                     border_attrs: int,
+                     lead_tail_attrs: int,
                      title_attrs: int,
-                     start_char: str,
-                     end_char: str
+                     lead_char: str,
+                     tail_char: str,
+                     justify: str = 'centre',
+                     top_row: Optional[int] = None,
+                     win_width: Optional[int] = None,
                      ) -> None:
     """
     Add a provided title to a given window.
     :param window: curses.window: The curses window to draw on.
     :param title: Optional[str]: The title to add, if None, no title is added.
-    :param border_attrs: int: The attributes of the border.
+    :param lead_tail_attrs: int: The attributes of the border.
     :param title_attrs: int: The attributes of the title.
-    :param start_char: str: The start character.
-    :param end_char: str: The end character.
+    :param lead_char: str: The start character.
+    :param tail_char: str: The end character.
+    :param justify: str: Either 'centre', 'left', or 'right'
+    :param top_row: Optional[int]: Override the row to put the title on.
+    :param win_width: Optional[int]: Override the width of the window.
     :return: None
     """
-    if title is not None:
-        # Set Vars:
-        num_rows, num_cols = window.getmaxyx()
-        col: int = int(num_cols / 2) - int((len(title) + 4) / 2)
-        # Put the border start char:
-        start_str: str = start_char + ' '
-        window.addstr(0, col, start_str, border_attrs)
-        # Put the title:
-        window.addstr(title, title_attrs)
-        # Put the end border char:
-        end_str: str = ' ' + end_char
-        window.addstr(end_str, border_attrs)
+    if title is None:
+        return
+
+    # Set Vars:
+    if win_width is None:
+        _, width = window.getmaxyx()
+    else:
+        width = win_width
+
+    if top_row is None:
+        row = 0
+    else:
+        row = top_row
+
+    col: int
+    if justify == 'center' or justify == 'centre':
+        col = int(width / 2) - int((len(title) + 4) / 2)
+    elif justify == 'left':
+        col = 2
+    elif justify == 'right':
+        col = width - (len(title) + 4) - 3
+    else:
+        raise ValueError("'justify' must be one of 'centre', 'left', or 'right', not '%s'" % justify)
+    # Put the border start char:
+    start_str: str = lead_char + ' '
+    add_str(window, start_str, lead_tail_attrs, row, col)
+    # window.addstr(0, col, start_str, lead_tail_attrs)
+    # Put the title:
+    add_str(window, title, title_attrs)
+    # window.addstr(title, title_attrs)
+    # Put the end border char:
+    end_str: str = ' ' + tail_char
+    add_str(window, end_str, lead_tail_attrs)
+    # window.addstr(end_str, lead_tail_attrs)
     return
 
 
@@ -178,6 +305,9 @@ def add_accel_text(window: curses.window,
     return
 
 
+########################################
+# Row / column calculations:
+########################################
 def calc_center_row(containing_height: int, element_height) -> int:
     """
     Calculate the centre row; Assumes top-most row = 0.
@@ -214,6 +344,9 @@ def calc_center_top_left(containing_size: tuple[int, int], window_size: tuple[in
     return top, left
 
 
+#######################################
+# Mouse functions:
+#######################################
 def get_rel_mouse_pos(mouse_pos: tuple[int, int], real_top_left: tuple[int, int]) -> tuple[int, int]:
     """
     Get the relative mouse position over the window; IE: If the mouse is at top_left, then mouse_pos = (0, 0)
@@ -232,7 +365,11 @@ def get_mouse() -> tuple[tuple[int, int], int]:
     :return: tuple[tuple[int, int], int]: The first element of the outer tuple is the mouse position, as a
         tuple[ROW, COL]; The second element of the outer tuple is an int representing the button state.
     """
-    _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+    try:
+        _, mouse_col, mouse_row, _, button_state = curses.getmouse()
+    except curses.error:
+        mouse_col = mouse_row = 0
+        button_state = 0
     button_state &= ~BUTTON_SCRAP
     mouse_pos: tuple[int, int] = (mouse_row, mouse_col)
     return mouse_pos, button_state
@@ -342,4 +479,3 @@ def get_ctrl_pressed(button_state: int) -> bool:
     :return: bool: True if ctrl is being pressed, False, it is not.
     """
     return button_state & curses.BUTTON_CTRL != 0
-

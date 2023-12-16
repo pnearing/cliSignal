@@ -3,13 +3,33 @@
 File: common.py
 -> Store common constants variables, Enums, etc.
 """
+import curses
+import datetime
 import logging
-from typing import Optional, Final, Callable, Any
+import os
+import socket
+from typing import Optional, Final, Callable, Any, TypeVar
 
-from SignalCliApi import Account
+import pytz
+
+from SignalCliApi import SignalAccount, SignalReceiveThread, SignalGroup, SignalContact
+from SignalCliApi.signalLinkThread import SignalLinkThread
 from cliExceptions import CallbackCausedException
 from enum import IntEnum, Enum
-APP_VERSION: Final[str] = '1.0.0'
+
+# from mainWindow import MainWindow
+# from menuBar import MenuBar
+from prettyPrint import print_coloured, print_debug, print_error, print_info, print_warning
+# from window import Window
+
+Window = TypeVar("Window", bound='window.Window')
+MainWindow = TypeVar("MainWindow", bound='mainWindow.MainWindow')
+MenuBar = TypeVar("MenuBar", bound='menuBar.MenuBar')
+
+#####################################
+# cliSignal version:
+#####################################
+APP_VERSION: Final[str] = '0.5.0'
 
 #####################################
 # String constants:
@@ -25,7 +45,27 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
         'main': 'cliSignal', 'messages': 'Messages', 'contacts': 'Contacts & Groups', 'typing': None,
         'settings': 'Settings', 'quit': 'Quit', 'switch': 'Switch Account', 'link': 'Link Account',
         'register': 'Register Account', 'keys': 'Shortcut Keys', 'about': 'About', 'version': 'Versions',
-        'qrcode': 'Scan QR-Code',
+        'qrcode': 'Scan QR-Code', 'contactsSubWin': 'Contacts', 'groupsSubWin': 'Groups'
+    },
+    # Group Item labels:
+    'groupItemLabels': {
+        'numMembers': 'Members',
+        'lastSeen': 'Last seen',
+        'groupId': 'Group ID',
+        'description': 'Description',
+        'unknown': 'Unknown',
+        'notSet': 'Not set',
+
+    },
+    # Contact Item labels:
+    'contactItemLabels': {
+        'lastSeen': 'Last seen',
+        'number': 'Number',
+        'uuid': 'UUID',
+        'emoji': 'Emoji',
+        'about': 'About',
+        'unknown': 'Unknown',
+        'notSet': 'Not set',
     },
     # Button labels:
     'buttonLabels': {
@@ -61,7 +101,7 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
         'quit': 'Are you sure you want to quit?',
     },
     'menuBar': {
-        'accountLabel': 'Account:',
+        'accountLabel': 'Account',
     },
     # Other:
     'other': {
@@ -81,12 +121,16 @@ SETTINGS: dict[str, Optional[str | bool]] = {
     'startSignal': True,
     'workingDir': None,
     'logPath': None,
+    'doExpunge': True,
     'theme': 'light',
     'themePath': None,
     'useMouse': False,
     'quitConfirm': True,
     'mouseMoveFocus': False,
     'defaultAccount': None,
+    'useSound': True,
+    'flashScreen': True,
+    'hideUnknownContacts': True,
 }
 """The settings for cliSignal."""
 
@@ -95,6 +139,35 @@ SETTINGS: dict[str, Optional[str | bool]] = {
 #####################################
 MIN_SIZE: Final[tuple[int, int]] = (22, 80)
 """The minimum size of the terminal to display."""
+
+#########################################
+# Constants:
+#########################################
+WORKING_DIR_NAME: Final[str] = '.cliSignal'
+"""Name of the working directory under $HOME."""
+CONFIG_NAME: Final[str] = 'cliSignal'
+"""Name to give our config file configuration."""
+CONFIG_FILE_NAME: Final[str] = 'cliSignal.config'
+"""Name of the cliSignal config file."""
+SIGNAL_CONFIG_DIR_NAME: Final[str] = 'signal-cli'
+"""Name to give the signal-cli config directory. (where signal-cli stores it's files)."""
+SIGNAL_LOG_FILE_NAME: Final[str] = 'signal-cli.log'
+"""Name of the signal-cli log file."""
+CLI_SIGNAL_LOG_FILE_NAME: Final[str] = 'cliSignal.log'
+"""Name of the cliSignal log file."""
+WORKING_DIR: Final[str] = os.path.join(os.environ.get("HOME"), WORKING_DIR_NAME)
+"""The full path to the working directory."""
+SIGNAL_LOG_PATH: Final[str] = os.path.join(WORKING_DIR, SIGNAL_LOG_FILE_NAME)
+"""The full path to the log file."""
+SIGNAL_CONFIG_DIR: Final[str] = os.path.join(WORKING_DIR, SIGNAL_CONFIG_DIR_NAME)
+"""The full path to the default signal-cli config directory."""
+CLI_SIGNAL_CONFIG_FILE_PATH: Final[str] = os.path.join(WORKING_DIR, CONFIG_FILE_NAME)
+"""The full path to the cliSignal config file."""
+CLI_SIGNAL_LOG_PATH: Final[str] = os.path.join(WORKING_DIR, CLI_SIGNAL_LOG_FILE_NAME)
+"""The full path to the cliSignal log file."""
+HOST_NAME: Final[str] = socket.gethostname().split('.')[0]
+"""The host name of the computer running cliSignal."""
+DEVICE_NAME: Final[str] = HOST_NAME + '-cliSignal'
 
 #####################################
 # Key character code constants:
@@ -109,6 +182,10 @@ KEY_SHIFT_TAB: Final[int] = 353
 """Shift TAB key code."""
 KEY_BACKSPACE: Final[int] = 263
 """Backspace key code."""
+KEYS_PG_UP: Final[tuple[int, int]] = (339, 57)
+"""Page up keys."""
+KEYS_PG_DOWN: Final[tuple[int, int]] = (338, 51)
+"""Page down keys."""
 
 #####################################
 # Button code constants:
@@ -141,8 +218,6 @@ RIGHT: Final[int] = COL
 ###################################
 # Variables:
 ###################################
-CURRENT_ACCOUNT: Optional[Account] = None
-"""The current signal account."""
 
 
 ###################################
@@ -162,6 +237,14 @@ class Focus(IntEnum):
     LINK = 7
     QR_CODE = 8
     VERSION = 9
+
+
+class ContactsFocus(IntEnum):
+    """Contact sub window focus indexes"""
+    CONTACTS = 0
+    """The contact sub window."""
+    GROUPS = 1
+    """The groups sub window."""
 
 
 class ButtonCBKeys(Enum):
@@ -236,13 +319,67 @@ class HelpMenuSelection(IntEnum):
     """Version window menu item."""
 
 
+#########################################
+# Vars:
+#########################################
+TIME_STARTED: datetime.datetime = pytz.utc.localize(datetime.datetime.utcnow())
+"""The time the app started."""
+CURRENT_FOCUS: Focus = Focus.CONTACTS
+"""The currently focused window."""
+LAST_FOCUS: Focus = Focus.MENU_BAR
+"""The last focused window."""
+FOCUS_WINDOWS: Optional[tuple[Window | MenuBar]] = None
+"""The list of windows that switch focus with tab / shift tab."""
+MAIN_WINDOW: Optional[MainWindow] = None
+"""The main window object."""
+EXIT_ERROR: Optional[Exception] = None
+"""If we're exiting due to an error, this is the error."""
+DEBUG: bool = False
+"""True if we should produce debug output."""
+VERBOSE: bool = False
+"""True if we should produce verbose output."""
+RESIZING: bool = False
+"""True if we are currently resizing the window."""
+
+MOUSE_RESET_MASK: Optional[int] = None
+"""The reset mouse mask."""
+SIGNAL_LINK_THREAD: Optional[SignalLinkThread] = None
+"""The signal link thread."""
+RECEIVE_STARTED: bool = False
+"""Has receive started?"""
+IS_CURSES_STARTED: bool = False
+"""Is curses started?"""
+LOGGER: Optional[logging.Logger] = None
+"""The logger for this module."""
+LOG_LEVEL: Optional[int] = None
+CURRENT_ACCOUNT: Optional[SignalAccount] = None
+"""The current signal account."""
+CURRENT_ACCOUNT_CHANGED: bool = False
+"""Has the current account changed?"""
+RECEIVE_THREAD: Optional[SignalReceiveThread] = None
+"""Has the receive thread been started?"""
+CURRENT_RECIPIENT: Optional[SignalGroup | SignalContact] = None
+"""The current message recipient to display and send to."""
+CURRENT_RECIPIENT_CHANGED: bool = False
+"""Has the current recipient changed?"""
+
+###################################
+# Status bar variables:
+###################################
+CHAR_CODE: int = -1
+"""The last pressed character code."""
+MOUSE_POS: tuple[int, int] = (-1, -1)
+"""The last known mouse position."""
+BUTTON_STATE: int = -1
+"""The last known button state."""
+
+
 def __type_check_position_or_size__(position: tuple[int, int]) -> bool:
     """
     Type-check a position tuple.
     :param position: tuple[int, int]: The position to check.
     :return: bool: True passes type-checks, False fails type-checks.
     """
-
     if not isinstance(position, tuple):
         return False
     if len(position) != 2:
@@ -252,3 +389,101 @@ def __type_check_position_or_size__(position: tuple[int, int]) -> bool:
     if not isinstance(position[1], int):
         return False
     return True
+
+
+def out_info(message: str, force=False) -> None:
+    """
+    Output an info message to both the log file if logging started, and stdout if curses not started.
+    :param message: The message to output
+    :param force: Override _VERBOSE
+    :return: None
+    """
+    global IS_CURSES_STARTED, LOGGER
+    if not IS_CURSES_STARTED:
+        print_info(message, force=True)
+    if LOGGER is not None:
+        LOGGER.info(message)
+    return
+
+
+def out_error(message) -> None:
+    """
+    Output an error message to both the log file if logging started and stdout if curses not started.
+    :param message: The message to output.
+    :return: None
+    """
+    global IS_CURSES_STARTED, LOGGER
+    if not IS_CURSES_STARTED:
+        print_error(message)
+    if LOGGER is not None:
+        LOGGER.error(message)
+    return
+
+
+def out_debug(message) -> None:
+    """
+    Output a debug message to both the log file if logging started, and stdout if curses not started.
+    :param message: The message to output.
+    :return: None
+    """
+    global IS_CURSES_STARTED, LOGGER
+    if not IS_CURSES_STARTED:
+        print_debug(message)
+    if LOGGER is not None:
+        LOGGER.debug(message)
+    return
+
+
+def out_warning(message) -> None:
+    """
+    Output a warning message to both the log file if logging started and stdout if curses is not started.
+    :param message: The message to output.
+    :return: None
+    """
+    global IS_CURSES_STARTED, LOGGER
+    if not IS_CURSES_STARTED:
+        print_warning(message)
+    if LOGGER is not None:
+        LOGGER.warning(message)
+    return
+
+
+def get_unread_char(num_unread: int) -> str:
+    match num_unread:
+        case 0: return ' '
+        case 1: return '\u2460'
+        case 2: return '\u2461'
+        case 3: return '\u2462'
+        case 4: return '\u2463'
+        case 5: return '\u2464'
+        case 6: return '\u2465'
+        case 7: return '\u2466'
+        case 8: return '\u2467'
+        case 9: return '\u2468'
+        case 10: return '\u2469'
+        case 11: return '\u246A'
+        case 12: return '\u246B'
+        case 13: return '\u246C'
+        case 14: return '\u246D'
+        case 15: return '\u246E'
+        case 16: return '\u246F'
+        case 17: return '\u2470'
+        case 18: return '\u2471'
+        case 19: return '\u2472'
+        case 20: return '\u2473'
+        case 21: return '\u3251'
+        case 22: return '\u3252'
+        case 23: return '\u3253'
+        case 24: return '\u3254'
+        case 25: return '\u3255'
+        case 26: return '\u3256'
+        case 27: return '\u3257'
+        case 28: return '\u3258'
+        case 29: return '\u3259'
+        case 30: return '\u325A'
+        case 31: return '\u325B'
+        case 32: return '\u325C'
+        case 33: return '\u325D'
+        case 34: return '\u325E'
+        case 35: return '\u325F'
+        case _: return '\u267E'

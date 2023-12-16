@@ -36,9 +36,11 @@ class VersionWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.VERSION_WIN_BORDER, theme['verWinBorder'])
         border_focus_attrs: int = calc_attributes(ThemeColours.VERSION_WIN_FOCUS_BORDER, theme['verWinFBorder'])
         border_chars: dict[str, str] = theme['verWinBorderChars']
+        border_focus_chars: dict[str, str] = theme['verWinFBorderChars']
         title_attrs: int = calc_attributes(ThemeColours.VERSION_WIN_TITLE, theme['verWinTitle'])
         title_focus_attrs: int = calc_attributes(ThemeColours.VERSION_WIN_FOCUS_TITLE, theme['verWinFTitle'])
         title_chars: dict[str, str] = theme['verWinTitleChars']
+        title_focus_chars: dict[str, str] = theme['verWinFTitleChars']
 
         self._app_version_string: str = "cliSignal: V%s" % CLISIGNAL_VERSION
         self._api_version_string: str = "SignalCliApi: V%s" % SIGNAL_API_VERSION
@@ -53,7 +55,8 @@ class VersionWindow(Window):
 
         # Super the window:
         super().__init__(std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
-                         border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.VERSION)
+                         border_chars, border_focus_chars, title_attrs, title_focus_attrs, title_chars,
+                         title_focus_chars, bg_char, Focus.VERSION)
 
         # Set text attrs:
         self._text_attrs: int = calc_attributes(ThemeColours.VERSION_TEXT, theme['verWinText'])

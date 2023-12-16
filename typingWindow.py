@@ -36,16 +36,19 @@ class TypingWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder'])
         border_focus_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_FOCUS_BORDER, theme['typeWinFBorder'])
         border_chars: dict[str, str] = theme['typeWinBorderChars']
+        border_focus_chars: dict[str, str] = theme['typeWinFBorderChars']
         title_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle'])
         title_focus_attrs: int = calc_attributes(ThemeColours.TYPING_WIN_FOCUS_TITLE, theme['typeWinFTitle'])
         title_chars: dict[str, str] = theme['typeWinTitleChars']
+        title_focus_chars: dict[str, str] = theme['typeWinFTitleChars']
 
         # Create the curses window:
         window = curses.newwin(size[ROW], size[COL], top_left[ROW], top_left[COL])
 
         # Super the window:
         Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
-                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.TYPING)
+                        border_chars, border_focus_chars, title_attrs, title_focus_attrs, title_chars,
+                        title_focus_chars, bg_char, Focus.TYPING)
         # Set this window as always visible:
         self.always_visible = True
         self.is_static_size = False

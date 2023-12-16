@@ -6,8 +6,8 @@
 import logging
 from typing import Optional
 import curses
-from cursesFunctions import add_title_to_win, draw_border_on_win
-from common import ROW, COL, HEIGHT, WIDTH, TOP, LEFT, BOTTOM, RIGHT, Focus
+from cursesFunctions import add_title_to_win, draw_border_on_win, add_ch
+from common import ROW, COL, HEIGHT, WIDTH, TOP, LEFT, Focus, ContactsFocus
 from typeError import __type_error__
 
 
@@ -28,11 +28,14 @@ class Window(object):
                  border_attrs: Optional[int],
                  border_focus_attrs: Optional[int],
                  border_chars: Optional[dict[str, str]],
+                 border_focus_chars: Optional[dict[str, str]],
                  title_attrs: Optional[int],
                  title_focus_attrs: Optional[int],
                  title_chars: Optional[dict[str, str]],
+                 title_focus_chars: Optional[dict[str, str]],
                  bg_char: str,
-                 focus_id: Focus,
+                 focus_id: Focus | ContactsFocus,
+                 title_justify: str = 'center',
                  ) -> None:
         """
         Initialize the window.
@@ -44,11 +47,13 @@ class Window(object):
         :param border_attrs: Optional[int]: The colours and attributes to use for the border of this window.
         :param border_focus_attrs: Optional[int]: The colours and attributes to use for the border when focused.
         :param border_chars: Optional[dict[str, str]]: The characters to use for the border of the window.
+        :param border_focus_chars: Optional[dict[str, str]]: The characters to use for the border when focused.
         :param title_attrs: Optional[int]: The colours and attributes to use for the title of this window.
         :param title_focus_attrs: Optional[int]: The colours and attributes to use for the title when focused.
         :param title_chars: Optional[dict[str, str]]: The dict of title start and end chars.
+        :param title_focus_chars: Optional[dict[str, str]: The dict of title focused start and end chars.
         :param bg_char: str: The background character.
-        :param focus_id: Focus: The focus id of this window.
+        :param focus_id: Focus | ContactsFocus: The focus id of this window.
         """
         # Super init:
         object.__init__(self)
@@ -58,7 +63,7 @@ class Window(object):
         """The std_screen window object."""
         self._window: curses.window = window
         """The curses window object to draw on."""
-        self._window_attrs: int = window_attrs
+        self._bg_attrs: int = window_attrs
         """The colour pair number and attributes for the centre of this window."""
         self._border_attrs: Optional[int] = border_attrs
         """The colour pair number and attributes for the border of this window."""
@@ -66,12 +71,16 @@ class Window(object):
         """The colour pair number and attributes for the border when focused."""
         self._border_chars: Optional[dict[str, str]] = border_chars
         """The characters to use for the border of the window."""
+        self._border_focus_chars: Optional[dict[str, str]] = border_focus_chars
+        """The characters to use for the border of the window when focused."""
         self._title_attrs: Optional[int] = title_attrs
         """The colour pair number and attributes for the title of this window."""
         self._title_focus_attrs: Optional[int] = title_focus_attrs
         """The colour pair number and attributes for the title when focused."""
         self._title_chars: Optional[dict[str, str]] = title_chars
         """The characters to use to start and end the title."""
+        self._title_focus_chars: Optional[dict[str, str]] = title_focus_chars
+        """The characters to use to start and end the title when focused."""
         self._bg_char: str = bg_char
         """The character to use for drawing the center of the screen."""
         self._is_static_size: bool = True
@@ -86,23 +95,18 @@ class Window(object):
         # Set external properties:
         self.title: str = title
         """The title of this window."""
-        self.focus_id: Focus = focus_id
+        self.focus_id: Focus | ContactsFocus = focus_id
         """The focus ID of this window."""
-        self.real_size: tuple[int, int] = window.getmaxyx()
+        self._title_justify: str = title_justify
+        """The justification of the title on the window."""
+        self._real_size: tuple[int, int] = window.getmaxyx()
         """The real size of the window, not taking the border into account. (rows, cols)."""
-        self.size: tuple[int, int] = (self.real_size[HEIGHT] - 2, self.real_size[WIDTH] - 2)
+        self._size: tuple[int, int] = (self._real_size[HEIGHT] - 2, self._real_size[WIDTH] - 2)
         """The drawable size of the window, taking the border into account. (rows, cols)."""
-        self.real_top_left: tuple[int, int] = top_left
+        self._real_top_left: tuple[int, int] = top_left
         """The real top left of this window, not taking the border into account. (row, col)."""
-        # self.top_left: tuple[int, int] = (self.real_top_left[ROW] + 1, self.real_top_left[COL] + 1)
-        self.top_left: tuple[int, int] = (1, 1)
+        self._top_left: tuple[int, int] = (1, 1)
         """The drawable top left of this window, taking the border into account. (row, col)."""
-        self.real_bottom_right: tuple[int, int] = (self.real_top_left[ROW] + self.real_size[HEIGHT] - 1,
-                                                   self.real_top_left[COL] + self.real_size[WIDTH] - 1)
-        """The real bottom right of the window, not taking the border into account. (row, col)."""
-        self.bottom_right: tuple[int, int] = (self.top_left[ROW] + self.size[HEIGHT] - 1,
-                                              self.top_left[COL] + self.size[WIDTH] - 1)
-        """The drawable bottom right of the window, taking the border into account. (row, col)."""
         return
 
 #########################################
@@ -149,47 +153,44 @@ class Window(object):
         # Clear the window without calling refresh.
         # self._window.erase()
 
-        # Determine attributes:
-        border_attrs: int
-        title_attrs: int
-        if self.is_focused:
-            border_attrs = self._border_focus_attrs
-            title_attrs = self._title_focus_attrs
-        else:
-            border_attrs = self._border_attrs
-            title_attrs = self._title_attrs
-
         # Draw the border:
-        draw_border_on_win(window=self._window, border_attrs=border_attrs,
-                           ts=self._border_chars['ts'], bs=self._border_chars['bs'],
-                           ls=self._border_chars['ls'], rs=self._border_chars['rs'],
-                           tl=self._border_chars['tl'], tr=self._border_chars['tr'],
-                           bl=self._border_chars['bl'], br=self._border_chars['br']
+        draw_border_on_win(window=self._window, border_attrs=self.border_attrs,
+                           ts=self.border_chars['ts'], bs=self.border_chars['bs'],
+                           ls=self.border_chars['ls'], rs=self.border_chars['rs'],
+                           tl=self.border_chars['tl'], tr=self.border_chars['tr'],
+                           bl=self.border_chars['bl'], br=self.border_chars['br'],
                            )
 
         # Add the title to the border:
-        add_title_to_win(self._window, self.title, border_attrs, title_attrs,
-                         self._title_chars['start'], self._title_chars['end'])
+        add_title_to_win(window=self._window,
+                         title=self.title,
+                         lead_tail_attrs=self.border_attrs,
+                         title_attrs=self.title_attrs,
+                         lead_char=self.title_chars['lead'],
+                         tail_char=self.title_chars['tail'],
+                         justify=self._title_justify
+                         )
 
         # Fill the centre with background colour, and character:
         for row in range(1, self.size[HEIGHT] + 1):
             for col in range(1, self.size[WIDTH] + 1):
-                self._window.addch(row, col, self._bg_char, self._window_attrs)
+                add_ch(self._window, self._bg_char, self._bg_attrs, row, col)
+                # self._window.addch(row, col, self._bg_char, self._bg_attrs)
 
         # Refresh the window:
         self._window.noutrefresh()
         return
 
     def resize(self,
-               size: tuple[int, int],
-               real_top_left: tuple[int, int],
+               size: Optional[tuple[int, int]],
+               real_top_left: Optional[tuple[int, int]],
                do_resize: bool = True,
                do_move: bool = True,
                ) -> None:
         """
         Recalculate size variables when the window is resized.
-        :param size: tuple[int, int]: The new size of the window: (ROWS, COLS).
-        :param real_top_left: tuple[int, int]: The new top left corner of the window: (ROW, COL).
+        :param size: Optional[tuple[int, int]]: The new size of the window: (ROWS, COLS).
+        :param real_top_left: Optional[tuple[int, int]]: The new top left corner of the window: (ROW, COL).
         :param do_resize: bool: Should we run the window resize method?
         :param do_move: bool: Should we run the window move method?
         :return: None
@@ -200,20 +201,17 @@ class Window(object):
         logger.debug("Screen size: %s" % str(screen_size))
         logger.debug("New top_left: %s" % str(real_top_left))
         # Resize and move the window if required:
-        if do_resize:
+        if do_resize and size is not None:
             self._window.resize(size[HEIGHT], size[WIDTH])
-        if do_move:
+        if do_move and real_top_left is not None:
             self._window.mvwin(real_top_left[ROW], real_top_left[COL])
 
         num_rows, num_cols = self._window.getmaxyx()
-        self.real_top_left = real_top_left
-        self.top_left = (1, 1)
-        self.real_size = (num_rows, num_cols)
-        self.size = (num_rows - 2, num_cols - 2)
-        self.real_bottom_right = (self.real_top_left[ROW] + self.real_size[ROW] - 1,
-                                  self.real_top_left[COL] + self.real_size[COL] - 1)
-        self.bottom_right = (self.top_left[ROW] + self.size[HEIGHT] - 1,
-                             self.top_left[COL] + self.size[WIDTH] - 1)
+        self._real_top_left = real_top_left
+        self._real_size = (num_rows, num_cols)
+        self._size = (num_rows - 2, num_cols - 2)
+        # self.bottom_right = (self.top_left[ROW] + self.size[HEIGHT] - 1,
+        #                      self.top_left[COL] + self.size[WIDTH] - 1)
         return
 
     def process_key(self, char_code: int) -> Optional[bool]:
@@ -236,6 +234,8 @@ class Window(object):
 #########################################
 # Properties:
 #########################################
+###########
+# Std screen:
     @property
     def std_screen(self) -> curses.window:
         """
@@ -244,12 +244,17 @@ class Window(object):
         """
         return self._std_screen
 
+##########
+# Is Focused:
     @property
     def is_focused(self) -> bool:
         """
         True if the mouse is over this window. IE: Focused.
         :return: bool: True if this window is focused, False if not.
         """
+        return_value: Optional[bool] = self.__is_focused_hook__(True, self._is_focused)
+        if return_value is not None:
+            return return_value
         return self._is_focused
 
     @is_focused.setter
@@ -261,12 +266,12 @@ class Window(object):
         """
         if not isinstance(value, bool):
             __type_error__("value", "bool", value)
-        old_value: bool = self._is_focused
         self._is_focused = value
-        # if value != old_value and value:
-        #     self.is_visible = True
+        self.__is_focused_hook__(False, value)
         return
 
+############
+# Is static size:
     @property
     def is_static_size(self) -> bool:
         """
@@ -288,6 +293,8 @@ class Window(object):
         self._is_static_size = value
         return
 
+#############
+# Is visible:
     @property
     def is_visible(self) -> bool:
         """
@@ -313,6 +320,8 @@ class Window(object):
             self.redraw()
         return
 
+##########
+# Always visible:
     @property
     def always_visible(self) -> bool:
         """
@@ -334,13 +343,15 @@ class Window(object):
         self._always_visible = value
         return
 
+###########
+# Real sizes:
     @property
-    def is_main_window(self) -> bool:
+    def real_size(self) -> tuple[int, int]:
         """
-        Is this the main window?
-        :return: True this window is the main window, False it is not.
+        Return the real size of the window.
+        :return: tuple[int, int]: The size: (ROWS, COLS).
         """
-        return self._std_screen == self._window
+        return self._real_size
 
     @property
     def real_width(self) -> int:
@@ -348,7 +359,7 @@ class Window(object):
         The real width of the window.
         :return: int: The width.
         """
-        return self.real_size[WIDTH]
+        return self._real_size[WIDTH]
 
     @property
     def real_height(self) -> int:
@@ -356,7 +367,43 @@ class Window(object):
         The real height of the window.
         :return: int: The real height.
         """
-        return self.real_size[HEIGHT]
+        return self._real_size[HEIGHT]
+
+################
+# Real top, left, bottom, and right, top_left and bottom_right
+    @property
+    def real_top_left(self) -> tuple[int, int]:
+        return self._real_top_left
+
+    @property
+    def real_bottom_right(self):
+        return self._real_top_left[TOP] + self.real_height - 1, self._real_top_left[LEFT] + self.real_width - 1
+
+    @property
+    def real_top(self):
+        return self._real_top_left[TOP]
+
+    @property
+    def real_left(self):
+        return self._real_top_left[LEFT]
+
+    @property
+    def real_bottom(self):
+        return self._real_top_left[TOP] + self.real_height - 1
+
+    @property
+    def real_right(self):
+        return self._real_top_left[LEFT] + self.real_width - 1
+
+################
+# Drawable sizes:
+    @property
+    def size(self) -> tuple[int, int]:
+        """
+        The drawable size of the window.
+        :return:
+        """
+        return self._size
 
     @property
     def width(self) -> int:
@@ -374,13 +421,19 @@ class Window(object):
         """
         return self.size[HEIGHT]
 
+#############
+# Drawable top, Left, bottom right:
+    @property
+    def top_left(self):
+        return 1, 1
+
     @property
     def top(self) -> int:
         """
         The top most drawable row of the window.
         :return: int: The top row.
         """
-        return self.top_left[TOP]
+        return 1
 
     @property
     def left(self) -> int:
@@ -388,7 +441,11 @@ class Window(object):
         The left most drawable column of the window.
         :return: int: The left column.
         """
-        return self.top_left[LEFT]
+        return 1
+
+    @property
+    def bottom_right(self):
+        return self.top + self.height - 1, self.left + self.height - 1
 
     @property
     def bottom(self) -> int:
@@ -396,7 +453,7 @@ class Window(object):
         The bottom most row of the drawable window.
         :return: int: The bottom row.
         """
-        return self.bottom_right[BOTTOM]
+        return self.top + self.height - 1
 
     @property
     def right(self) -> int:
@@ -404,4 +461,63 @@ class Window(object):
         The right most column of the drawable window.
         :return: int: The right column.
         """
-        return self.bottom_right[RIGHT]
+        return self.left + self.height - 1
+
+##############
+# Attributes:
+    @property
+    def border_attrs(self) -> int:
+        """
+        The current border attributes.
+        :return: int: The attributes.
+        """
+        if self.is_focused:
+            return self._border_focus_attrs
+        return self._border_attrs
+
+    @property
+    def title_attrs(self) -> int:
+        """
+        The current title attributes.
+        :return: int: The attributes.
+        """
+        if self.is_focused:
+            return self._title_focus_attrs
+        return self._title_attrs
+
+    @property
+    def border_chars(self) -> dict[str, str]:
+        """
+        The current border chars.
+        :return: dict[str, str]: The border chars.
+        """
+        if self.is_focused:
+            return self._border_focus_chars
+        return self._border_chars
+
+    @property
+    def title_chars(self) -> dict[str, str]:
+        """
+        The current title characters.
+        :return: dict[str, str]: The title chars.
+        """
+        if self.is_focused:
+            return self._title_focus_chars
+        return self._title_chars
+
+#################################################
+# Property hooks:
+#################################################
+    def __is_focused_hook__(self, is_get: bool, value: bool) -> Optional[bool]:
+        """
+        Property get and set hook.
+        :param is_get: bool: True: The getter is being run; False: The setter is being run.
+        :param value: bool: If 'is_get' is True: This is the current value of self._is_focused, and the value that will
+            be returned if the return value is None.
+            If 'is_get' is False: Then this is the value the user is setting the value to and the return value is
+            ignored.
+        :return: Optional[bool]: If 'is_get' is False: this is ignored.
+            If 'is_get' is True: then if the return value is 'None' then the value of self._is_focused is returned,
+            otherwise the getter will return the return value of the hook.
+        """
+        return None

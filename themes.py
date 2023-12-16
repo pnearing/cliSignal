@@ -39,6 +39,30 @@ class ThemeColours(IntEnum):
     """Contacts window title."""
     CONTACTS_WIN_FOCUS_TITLE = auto()
     """Contact window focused title."""
+    CONTACTS_WIN_CONT_BORDER = auto()
+    """Contacts window contacts sub window border."""
+    CONTACTS_WIN_CONT_F_BORDER = auto()
+    """Contact window, contact sub window focused border."""
+    CONTACTS_WIN_CONT_TITLE = auto()
+    """Contacts window contacts sub window title."""
+    CONTACTS_WIN_CONT_F_TITLE = auto()
+    """Contact window contacts sub window focused title."""
+    CONTACTS_WIN_GRPS_BORDER = auto()
+    """Contacts window groups sub window border."""
+    CONTACTS_WIN_GRPS_F_BORDER = auto()
+    """Contact window groups sub window focused border."""
+    CONTACTS_WIN_GRPS_TITLE = auto()
+    """Contacts window groups sub window title."""
+    CONTACTS_WIN_GRPS_F_TITLE = auto()
+    """Contacts window groups sub window focused title."""
+    CONTACTS_WIN_SEL_CONT = auto()
+    """Contacts window, selected contact."""
+    CONTACTS_WIN_UNSEL_CONT = auto()
+    """Contacts window, unselected contact."""
+    CONTACTS_WIN_SEL_GRP = auto()
+    """Contacts window, selected group."""
+    CONTACTS_WIN_UNSEL_GRP = auto()
+    """Contacts window unselected group."""
 
     MESSAGES_WIN = auto()
     """Messages window background."""
@@ -50,23 +74,55 @@ class ThemeColours(IntEnum):
     """Messages window title."""
     MESSAGES_WIN_FOCUS_TITLE = auto()
     """Messages window focused title."""
+    MESSAGES_WIN_SENT_TEXT = auto()
+    """Messages window, self side of the thread."""
+    MESSAGES_WIN_RECV_TEXT = auto()
+    """Messages window, recipient side of the thread."""
+    MESSAGES_WIN_INDICATOR = auto()
+    """Messages window, indicator."""
+    MESSAGES_WIN_SENT_BORDER = auto()
+    """Messages window, sent message border."""
+    MESSAGES_WIN_SENT_SEL_BORDER = auto()
+    """Messages window, sent message selected border."""
+    MESSAGES_WIN_RECV_BORDER = auto()
+    """Messages window, received message border."""
+    MESSAGES_WIN_RECV_SEL_BORDER = auto()
+    """Messages window, received message selected border."""
+    MESSAGES_WIN_SENT_TIME = auto()
+    """Messages window, sent time and date."""
+    MESSAGES_WIN_RECV_TIME = auto()
+    """Messages window, received time and date."""
 
     TYPING_WIN = auto()
+    """Typing window background."""
     TYPING_WIN_BORDER = auto()
+    """Typing window unfocused border"""
     TYPING_WIN_FOCUS_BORDER = auto()
+    """Typing window focused border."""
     TYPING_WIN_TITLE = auto()
+    """Typing window unfocused title."""
     TYPING_WIN_FOCUS_TITLE = auto()
+    """Typing window focused title."""
 
     MENU_BAR_EMPTY = auto()
+    """Menu bar empty spaces"""
     MENU_BAR_UNSEL = auto()
+    """Menu bar unselected item attrs."""
     MENU_BAR_SEL = auto()
+    """Menu bar selected item attrs."""
     MENU_BAR_UNSEL_ACCEL = auto()
+    """Menu bar unselected accelerator attrs."""
     MENU_BAR_SEL_ACCEL = auto()
+    """Menu bar selected accelerator attrs."""
 
     STATUS_BAR_EMPTY = auto()
+    """Status bar empty characters."""
     STATUS_BAR_CHAR = auto()
+    """Status bar character code."""
     STATUS_BAR_MOUSE = auto()
+    """Status bar mouse position."""
     STATUS_RECEIVE = auto()
+    """Status bar receive status indicator."""
 
     MENU_BORDER = auto()
     MENU_SEL = auto()
@@ -75,8 +131,7 @@ class ThemeColours(IntEnum):
     MENU_UNSEL_ACCEL = auto()
     MENU_ACCT_LABEL = auto()
     MENU_ACCT_TEXT = auto()
-    # 'menuBarAccountLabel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': False},
-    # 'menuBarAccountText': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
+
     SETTINGS_WIN = auto()
     SETTINGS_WIN_BORDER = auto()
     SETTINGS_WIN_FOCUS_BORDER = auto()
@@ -150,6 +205,19 @@ class ThemeColours(IntEnum):
     BUTTON_UNSEL = auto()
     BUTTON_UNSEL_ACCEL = auto()
 
+    SCROLL_ENA_BG = auto()
+    """Scroll bar enabled background."""
+    SCROLL_DIS_BG = auto()
+    """Scroll bar disabled background."""
+    SCROLL_ENA_BTN = auto()
+    """Scroll bar enabled button."""
+    SCROLL_DIS_BTN = auto()
+    """Scroll bar disabled button."""
+    SCROLL_ENA_HAND = auto()
+    """Scroll bar enabled handle."""
+    SCROLL_DIS_HAND = auto()
+    """Scroll bar disabled handle."""
+
 
 ###########################
 # Theme definitions: If you're looking to make your own theme, this is where you want to look.
@@ -162,77 +230,162 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
                             'qrcodeWin': ' ', 'quitWin': ' ', 'typingWin': ' ', 'menuBar': ' ', 'statusBar': ' ',
                             'versionWin': ' ',
                             },
+        # MESSAGES WINDOW CHARS:
+        'messages': {
+            'undelivered': '\u2026', 'delivered': '\u2020', 'read': '\u2021', 'expires': '\u23F2', 'noExpire': ' ',
+            'expired': '\U0001F6AB', 'headLead': '\u2524', 'headTail': '\u251C', 'footLead': '\u2524',
+            'footTail': '\u2524', 'seperator': '\u250A'
+        },
+
+        # CONTACTS / GROUPS SUB WINDOWS:
+        # Contacts chars:
+        'contactSubWinChars': {
+            'collapsed': '\u25B6', 'expanded': '\u25BC', 'selected': '\u21D2', 'unselected': ' ',
+            'typing': '\U0001F5AE', 'notTyping': ' ', 'expandLine': '\u2506',
+        },
+        # Groups chars:
+        'groupSubWinChars': {
+            'collapsed': '\u25B6', 'expanded': '\u25BC', 'selected': '\u21D2', 'unselected': ' ',
+            'typing': '\U0001F5AE', 'notTyping': ' ', 'expandLine': '\u2506',
+        },
+        # SCROLL BAR CHARACTERS:
+        'scrollBarChars': {
+            'up': '\u2191', 'pgUp': '\u21C8', 'down': '\u2193', 'pgDown': '\u21CA',
+            'left': '\u2190', 'pgLeft': '\u21C7', 'right': '\u2192', 'pgRight': '\u21C9',
+            'vHandle': '\u21C5', 'hHandle': '\u21C6', 'bg': '\u2592'
+        },
         # BORDER CHARACTERS:
         # Main window border characters:
         'mainBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                             'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'mainFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                             'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Contacts window border characters:
         'contWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'contWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Messages window border characters:
         'msgsWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'msgsWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Typing window border characters:
         'typeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'typeWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Menu border chars:
         'menuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
                             'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
         # Settings window border characters.
         'setWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'setWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         # Quit window border characters.
         'quitWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'quitWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Switch account border characters:
         'switchWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'switchWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Keyboard shortcuts border characters:
         'keysWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'keysWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # About window border characters:
         'aboutWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'aboutWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Version window border characters:
         'verWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'verWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Link account window border characters:
         'linkWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'linkWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # Register account window border characters:
         'regWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'regWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
         # QRCode window border characters:
         'qrcodeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'qrcodeWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        # The Contacts window: 'contacts' sub-window border chars:
+        'contactsBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+        'contactsFBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                 'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+        # The Contacts window: 'groups' sub-window border chars:
+        'groupsBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                              'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+        'groupsFBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                               'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+
+        # The border chars for a single message:
+        'messageBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                               'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
 
         # TITLE CHARACTERS:
         # Main window Title start and end characters:
-        'mainWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'mainWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'mainWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Contacts window title start and end characters:
-        'contWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'contWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'contWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Messages window title start and end characters:
-        'msgsWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'msgsWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'msgsWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Typing window title start and end characters: NOTE: NOT USED.
-        'typeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'typeWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'typeWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Settings window title start and end characters:
-        'setWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'setWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'setWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Quit window title start and end characters:
-        'quitWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'quitWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'quitWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Switch account window title start and end characters:
-        'switchWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'switchWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'switchWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Link account window title start and end characters:
-        'linkWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'linkWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'linkWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Register a new account window title start and end characters:
-        'regWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'regWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'regWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Keyboard shortcuts window title start and end characters:
-        'keysWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'keysWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'keysWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # About window title start and end characters:
-        'aboutWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'aboutWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'aboutWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # Version window title start and end characters:
-        'verWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'verWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'verWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         # QR Code window title start and end characters:
-        'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'qrcodeWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'qrcodeWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        # 'Contacts' sub window title chars:
+        'contactsTitleChars': {'lead': '\u2524', 'tail': '\u251C'},
+        'contactsFTitleChars': {'lead': '\u2524', 'tail': '\u251C'},
+        # 'Groups' sub window title chars:
+        'groupsTitleChars': {'lead': '\u2524', 'tail': '\u251C'},
+        'groupsFTitleChars': {'lead': '\u2524', 'tail': '\u251C'},
+
 
         # BUTTON CHARACTERS:
         # Link window button start and end chars:
@@ -250,6 +403,20 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         # Button selection indicator characters.
         'buttonSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+
+        # SCROLL BAR ATTRIBUTES:
+        # Enabled background attributes:
+        'scrollBarEnaBg': {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Disabled background attributes:
+        'scrollBarDisBg': {'fg': 8, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Enabled button attributes:
+        'scrollBarEnaBtn': {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Disabled button attributes:
+        'scrollBarDisBtn': {'fg': 8, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Enabled Handle attributes:
+        'scrollBarEnaHand': {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
+        # Disabled Handle attributes:
+        'scrollBarDisHand': {'fg': 8, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
 
         # BUTTON COLOUR ATTRIBUTES:
         # Button selected text:
@@ -286,6 +453,27 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'contWinTitle': {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': False},
         # Contacts window focused title:
         'contWinFTitle': {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': True},
+        # Contacts window 'contact' border attributes:
+        'contWinContBorder': {'fg': 15, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
+        # Contacts window 'contacts' focused border attributes:
+        'contWinContFBorder': {'fg': 15, 'bg': 19, 'bold': True, 'underline': False, 'reverse': False},
+        # Contact window 'contacts' sub window title attributes:
+        'contWinContTitle': {'fg': 15, 'bg': 19, 'bold': False, 'underline': True, 'reverse': False},
+        # Contact window 'contacts' sub window focus title attributes:
+        'contWinContFTitle': {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': True},
+        # Contacts window 'groups' border attributes:
+        'contWinGrpsBorder': {'fg': 15, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
+        # Contacts window 'groups' focused border attributes:
+        'contWinGrpsFBorder': {'fg': 15, 'bg': 19, 'bold': True, 'underline': False, 'reverse': False},
+        # Contact window 'groups' sub window title attributes:
+        'contWinGrpsTitle': {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': False},
+        # Contacts window 'groups sub window focused title attributes:
+        'contWinGrpsFTitle': {'fg': 15, 'bg': 19, 'bold': True, 'underline': True, 'reverse': True},
+
+        'contWinSelCont': {'fg': 15, 'bg': 19, 'bold': False, 'underline': False, 'reverse': True},
+        'contWinUnselCont': {'fg': 15, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinSelGrp': {'fg': 15, 'bg': 19, 'bold': False, 'underline': False, 'reverse': True},
+        'contWinUnselGrp': {'fg': 15, 'bg': 19, 'bold': False, 'underline': False, 'reverse': False},
 
         # MESSAGES WINDOW COLOUR ATTRIBUTES:
         # Messages window centre:
@@ -298,7 +486,26 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'msgsWinTitle': {'fg': 15, 'bg': 20, 'bold': True, 'underline': True, 'reverse': False},
         # Messages window focused title:
         'msgsWinFTitle': {'fg': 15, 'bg': 20, 'bold': True, 'underline': True, 'reverse': True},
+        # Messages window, sent message border:
+        'msgsWinSentBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, selected sent message border:
+        'msgsWinSentSelBorder': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, received message border:
+        'msgsWinRecvBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, selected received border:
+        'msgsWinRecvSelBorder': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, indicator:
+        'msgsWinIndicator': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, sent messages: Self-contact.
+        'msgsWinSentText': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, received messages: Thread contact.
+        'msgsWinRecvText': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, sent date time:
+        'msgsWinSentTime': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, received date time:
+        'msgsWinRecvTime': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
 
+        
         # TYPING WINDOW COLOUR ATTRIBUTES:
         # The typing window centre:
         'typeWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
@@ -491,59 +698,153 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
                             'versionWin': ' ',
                             },
 
+        'messages': {
+            'undelivered': '\u2026', 'delivered': '\u2020', 'read': '\u2021', 'expires': '\u23F2', 'noExpire': ' ',
+            'expired': '\U0001F6AB', 'headLead': '\u2524', 'headTail': '\u251C', 'footLead': '\u2524',
+            'footTail': '\u2524', 'seperator': '\u250A'
+        },
+
+        'scrollBarChars': {
+            'up': '\u2191', 'pgUp': '\u21C8', 'down': '\u2193', 'pgDown': '\u21CA',
+            'left': '\u2190', 'pgLeft': '\u21C7', 'right': '\u2192', 'pgRight': '\u21C9',
+            'vHandle': '\u21C5', 'hHandle': '\u21C6', 'bg': '\u2592'
+        },
+
+        'contactSubWinChars': {
+            'collapsed': '\u2B9A', 'expanded': '\u2B9B', 'selected': '\u21D2', 'unselected': ' ',
+            'typing': '\u270D', 'notTyping': ' ', 'expandLine': '\u2506',
+        },
+        'groupSubWinChars': {
+            'collapsed': '\u2B9A', 'expanded': '\u2B9B', 'selected': '\u21D2', 'unselected': ' ',
+            'typing': '\u270D', 'notTyping': ' ', 'expandLine': '\u2506',
+        },
+
         'mainBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                             'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'mainFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                             'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'contWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'contWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'msgsWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'msgsWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'typeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'typeWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'setWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'setWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'quitWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'quitWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'linkWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'linkWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'regWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'regWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'switchWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'switchWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'keysWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'keysWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'aboutWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'aboutWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                 'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'verWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'verWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                               'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'qrcodeWinBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+        'qrcodeWinFBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
+                                  'tl': '\u2554', 'tr': '\u2557', 'bl': '\u255A', 'br': '\u255D'},  # Corners
+
         'menuBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
                             'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
 
-        'mainWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'contWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'msgsWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'typeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'setWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'quitWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'keysWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'aboutWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'verWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'switchWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'linkWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'regWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
-        'qrcodeWinTitleChars': {'start': '\u2561', 'end': '\u255E'},
+        'contactsBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+        'contactsFBorderChars': {'ts': '\u2501', 'bs': '\u2501', 'ls': '\u2503', 'rs': '\u2503',  # Sides
+                                 'tl': '\u250F', 'tr': '\u2513', 'bl': '\u2517', 'br': '\u251B'},  # Corners
+
+        'groupsBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                              'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
+        'groupsFBorderChars': {'ts': '\u2501', 'bs': '\u2501', 'ls': '\u2503', 'rs': '\u2503',  # Sides
+                               'tl': '\u250F', 'tr': '\u2513', 'bl': '\u2517', 'br': '\u251B'},  # Corners
+
+        'messageBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                               'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
+
+        'mainWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'mainWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'contWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'contWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'msgsWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'msgsWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'typeWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'typeWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'setWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'setWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'quitWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'quitWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'keysWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'keysWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'aboutWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'aboutWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'verWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'verWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'switchWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'switchWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'linkWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'linkWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'regWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'regWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'qrcodeWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'qrcodeWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
+        'contactsTitleChars': {'lead': '\u2524', 'tail': '\u251C'},
+        'contactsFTitleChars': {'lead': '\u252B', 'tail': '\u2523'},
+        'groupsTitleChars': {'lead': '\u2524', 'tail': '\u251C'},
+        'groupsFTitleChars': {'lead': '\u252B', 'tail': '\u2523'},
 
         'linkWinBtnBorderChars': {'lead': '\u2561', 'tail': '\u255E'},
 
         'receiveStateChars': {'stopped': '\u23F8', 'started': '\u25B6'},
 
-
-
-
         'menuBarSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'menuSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
         'buttonSelChars': {'leadSel': '\u2192', 'leadUnsel': ' ', 'tailSel': '\u2190', 'tailUnsel': ' '},
+
+        'scrollBarEnaBg': {'fg': 7, 'bg': 245, 'bold': False, 'underline': False, 'reverse': False},
+        'scrollBarDisBg': {'fg': 8, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
+        'scrollBarEnaBtn': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
+        'scrollBarDisBtn': {'fg': 8, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
+        'scrollBarEnaHand': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
+        'scrollBarDisHand': {'fg': 8, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
 
         'buttonSel': {'fg': 7, 'bg': 237, 'bold': True, 'underline': False, 'reverse': False},
         'buttonUnsel': {'fg': 7, 'bg': 237, 'bold': False, 'underline': False, 'reverse': False},
@@ -562,12 +863,33 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'contWinFBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': True},
         'contWinTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': False},
         'contWinFTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': True},
+        'contWinContBorder': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinContFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinContTitle': {'fg': 8, 'bg': 239, 'bold': False, 'underline': True, 'reverse': False},
+        'contWinContFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
+        'contWinGrpsBorder': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinGrpsFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinGrpsTitle': {'fg': 8, 'bg': 239, 'bold': False, 'underline': True, 'reverse': False},
+        'contWinGrpsFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
+        'contWinSelCont': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinUnselCont': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinSelGrp': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinUnselGrp': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
 
         'msgsWin': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
         'msgsWinBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
         'msgsWinFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': True},
         'msgsWinTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
         'msgsWinFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': True},
+        'msgsWinSentBorder': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelBorder': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvBorder': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelBorder': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinIndicator': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentText': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvText': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentTime': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvTime': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
 
         'typeWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'typeWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
@@ -667,34 +989,38 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
 """Light and dark theme definitions."""
 
 # Primary Keys:
-_ATTRIBUTE_PRIMARY_KEYS: list[str] = ['mainWin', 'mainWinBorder', 'mainWinTitle', 'contWin', 'contWinBorder',
-                                      'contWinTitle', 'msgsWin', 'msgsWinBorder', 'msgsWinTitle', 'typeWin',
-                                      'typeWinBorder', 'typeWinTitle', 'mainWinFBorder', 'msgsWinFBorder',
-                                      'contWinFBorder', 'typeWinFBorder', 'mainWinFTitle', 'contWinFTitle',
-                                      'msgsWinFTitle', 'typeWinFTitle', 'menuBarBG', 'statusBG', 'menuBarSel',
-                                      'menuBarSelAccel', 'menuBarUnsel', 'menuBarUnselAccel', 'setWin', 'setWinBorder',
-                                      'setWinFBorder', 'setWinTitle', 'setWinFTitle', 'quitWin', 'quitWinBorder',
-                                      'quitWinFBorder', 'quitWinTitle', 'quitWinFTitle', 'switchWin', 'switchWinBorder',
-                                      'switchWinFBorder', 'switchWinTitle', 'switchWinFTitle', 'linkWin',
-                                      'linkWinBorder', 'linkWinFBorder', 'linkWinTitle', 'linkWinFTitle', 'regWin',
-                                      'regWinBorder', 'regWinFBorder', 'regWinTitle', 'regWinFTitle', 'keysWin',
-                                      'keysWinBorder', 'keysWinFBorder', 'keysWinTitle', 'keysWinTitle', 'aboutWin',
-                                      'aboutWinBorder', 'aboutWinFBorder', 'aboutWinTitle', 'aboutWinFTitle', 'verWin',
-                                      'verWinBorder', 'verWinFBorder', 'verWinTitle', 'verWinFTitle', 'quitWinText',
-                                      'quitWinSelText', 'quitWinSelAccelText', 'quitWinUnselText',
-                                      'quitWinUnselAccelText', 'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder',
-                                      'genMsgWinFBorder', 'genMsgWinTitle', 'genMsgWinFTitle', 'qrcodeWin',
-                                      'qrcodeWinBorder', 'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle',
-                                      'linkWinText', 'qrcodeText', 'statusCC', 'statusMouse', 'statusReceive',
-                                      'menuBarAccountLabel', 'menuBarAccountText'
-                                      ]
+_ATTRIBUTE_PRIMARY_KEYS: list[str] = [
+    'mainWin', 'mainWinBorder', 'mainWinTitle', 'contWin', 'contWinBorder', 'contWinTitle', 'msgsWin', 'msgsWinBorder',
+    'msgsWinTitle', 'typeWin', 'typeWinBorder', 'typeWinTitle', 'mainWinFBorder', 'msgsWinFBorder', 'contWinFBorder',
+    'typeWinFBorder', 'mainWinFTitle', 'contWinFTitle', 'msgsWinFTitle', 'typeWinFTitle', 'menuBarBG', 'statusBG',
+    'menuBarSel', 'menuBarSelAccel', 'menuBarUnsel', 'menuBarUnselAccel', 'setWin', 'setWinBorder', 'setWinFBorder',
+    'setWinTitle', 'setWinFTitle', 'quitWin', 'quitWinBorder', 'quitWinFBorder', 'quitWinTitle', 'quitWinFTitle',
+    'switchWin', 'switchWinBorder', 'switchWinFBorder', 'switchWinTitle', 'switchWinFTitle', 'linkWin', 'linkWinBorder',
+    'linkWinFBorder', 'linkWinTitle', 'linkWinFTitle', 'regWin', 'regWinBorder', 'regWinFBorder', 'regWinTitle',
+    'regWinFTitle', 'keysWin', 'keysWinBorder', 'keysWinFBorder', 'keysWinTitle', 'keysWinTitle', 'aboutWin',
+    'aboutWinBorder', 'aboutWinFBorder', 'aboutWinTitle', 'aboutWinFTitle', 'verWin', 'verWinBorder', 'verWinFBorder',
+    'verWinTitle', 'verWinFTitle', 'quitWinText', 'quitWinSelText', 'quitWinSelAccelText', 'quitWinUnselText',
+    'quitWinUnselAccelText', 'mainWinErrorText', 'genMsgWin', 'genMsgWinBorder', 'genMsgWinFBorder', 'genMsgWinTitle',
+    'genMsgWinFTitle', 'qrcodeWin', 'qrcodeWinBorder', 'qrcodeWinFBorder', 'qrcodeWinTitle', 'qrcodeWinFTitle',
+    'linkWinText', 'qrcodeText', 'statusCC', 'statusMouse', 'statusReceive', 'menuBarAccountLabel',
+    'menuBarAccountText', 'contWinContBorder', 'contWinGrpsBorder', 'contWinContFBorder', 'contWinGrpsFBorder',
+    'scrollBarEnaBg', 'scrollBarDisBg', 'scrollBarEnaBtn', 'scrollBarDisBtn', 'scrollBarEnaHand', 'scrollBarDisHand',
+    'contWinSelCont', 'contWinUnselCont', 'contWinSelGrp', 'contWinUnselGrp', 'msgsWinSentText', 'msgsWinRecvText',
+    'msgsWinIndicator', 'msgsWinSentBorder', 'msgsWinSentSelBorder', 'msgsWinRecvBorder', 'msgsWinRecvSelBorder',
+    'msgsWinIndicator', 'msgsWinSentText', 'msgsWinRecvText', 'msgsWinSentTime', 'msgsWinRecvTime',
+]
 """Primary attribute theme keys."""
 
 _TITLE_CHAR_PRIMARY_KEYS: list[str] = ['mainWinTitleChars', 'contWinTitleChars', 'msgsWinTitleChars',
                                        'typeWinTitleChars', 'setWinTitleChars', 'quitWinTitleChars',
                                        'keysWinTitleChars', 'aboutWinTitleChars', 'verWinTitleChars',
                                        'switchWinTitleChars', 'linkWinTitleChars', 'regWinTitleChars',
-                                       'qrcodeWinTitleChars',
+                                       'qrcodeWinTitleChars', 'contactsTitleChars', 'groupsTitleChars',
+                                       'mainWinFTitleChars', 'contWinFTitleChars', 'msgsWinFTitleChars',
+                                       'typeWinFTitleChars', 'setWinFTitleChars', 'quitWinFTitleChars',
+                                       'keysWinFTitleChars', 'aboutWinFTitleChars', 'verWinFTitleChars',
+                                       'switchWinFTitleChars', 'linkWinFTitleChars', 'regWinFTitleChars',
+                                       'qrcodeWinFTitleChars', 'contactsFTitleChars', 'groupsFTitleChars',
                                        ]
 """Title characters primary keys."""
 
@@ -705,11 +1031,16 @@ _SELECTION_PRIMARY_KEYS: list[str] = ['menuBarSelChars', 'menuSelChars', 'button
                                       ]
 """Menu selection primary keys."""
 
-_BORDER_PRIMARY_KEYS: list[str] = ['mainBorderChars', 'contWinBorderChars', 'msgsWinBorderChars', 'typeWinBorderChars',
-                                   'menuBorderChars', 'setWinBorderChars', 'quitWinBorderChars', 'switchWinBorderChars',
-                                   'keysWinBorderChars', 'verWinBorderChars', 'linkWinBorderChars', 'regWinBorderChars',
-                                   'qrcodeWinBorderChars',
-                                   ]
+_BORDER_PRIMARY_KEYS: list[str] = [
+    'mainBorderChars', 'contWinBorderChars', 'msgsWinBorderChars', 'typeWinBorderChars',
+    'menuBorderChars', 'setWinBorderChars', 'quitWinBorderChars', 'switchWinBorderChars',
+    'keysWinBorderChars', 'verWinBorderChars', 'linkWinBorderChars', 'regWinBorderChars',
+    'qrcodeWinBorderChars', 'contactsBorderChars', 'groupsBorderChars',
+    'mainFBorderChars', 'contWinFBorderChars', 'msgsWinFBorderChars', 'typeWinFBorderChars',
+    'setWinFBorderChars', 'quitWinFBorderChars', 'switchWinFBorderChars',
+    'keysWinFBorderChars', 'verWinFBorderChars', 'linkWinFBorderChars', 'regWinFBorderChars',
+    'qrcodeWinFBorderChars', 'contactsFBorderChars', 'groupsFBorderChars', 'messageBorderChars'
+]
 """Keys with border strings."""
 
 # Sub keys:
@@ -719,10 +1050,10 @@ _ATTR_KEYS: list[str] = ['fg', 'bg', 'bold', 'underline', 'reverse']
 _BORDER_CHAR_KEYS: list[str] = ['ts', 'bs', 'ls', 'rs', 'tl', 'tr', 'bl', 'br']
 """Border character keys."""
 
-_TITLE_CHAR_KEYS: list[str] = ['start', 'end']
+_TITLE_CHAR_KEYS: list[str] = ['lead', 'tail']
 """Title character keys."""
 
-_BUTTON_CHAR_KEYS: list[str] = ['start', 'end']
+_BUTTON_CHAR_KEYS: list[str] = ['lead', 'tail']
 """Button character keys."""
 
 _MENU_SEL_CHAR_KEYS: list[str] = ['leadSel', 'leadUnsel', 'tailSel', 'tailUnsel']
@@ -734,6 +1065,15 @@ _BUTTON_BORDER_CHAR_KEYS: list[str] = ['lead', 'tail']
 _BACKGROUND_CHAR_KEYS: list[str] = ['menuItem', 'mainWin', 'contactsWin', 'linkWin', 'messagesWin', 'qrcodeWin',
                                     'quitWin', 'typingWin', 'menuBar', 'statusBar', 'versionWin',
                                     ]
+
+_SCROLL_BAR_CHAR_KEYS: list[str] = [
+    'up', 'pgUp', 'down', 'pgDown', 'left', 'pgLeft', 'right', 'pgRight', 'vHandle', 'hHandle', 'bg',
+]
+
+_MESSAGE_CHAR_KEYS: list[str] = [
+    'undelivered', 'delivered', 'read', 'expires', 'noExpire', 'expired', 'headLead', 'headTail', 'footLead',
+    'footTail', 'seperator'
+]
 
 
 def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, str]:
@@ -793,12 +1133,32 @@ def verify_theme(theme: dict[str, dict[str, int | bool | str]]) -> tuple[bool, s
     for bg_char_key in _BACKGROUND_CHAR_KEYS:
         if bg_char_key not in theme['backgroundChars'].keys():
             return False, "Key '%s' missing from 'backgroundChars'." % bg_char_key
-
+    # Receive state characters:
     if 'receiveStateChars' not in theme.keys():
         return False, "Primary key 'receiveStateChars' doesn't exist."
     for char_key in theme['receiveStateChars'].keys():
         if char_key not in ('started', 'stopped'):
             return False, "Key '%s' not in 'receiveStateChars'." % char_key
+    # Scroll bar characters:
+    if 'scrollBarChars' not in theme.keys():
+        return False, "Primary key 'scrollBarChars' doesn't exist."
+    for char_key in theme['scrollBarChars'].keys():
+        if char_key not in _SCROLL_BAR_CHAR_KEYS:
+            return False, "Key '%s' not in 'scrollBarChars'." % char_key
+    # Sub window chars:
+    for pri_key in 'contactSubWinChars', 'groupSubWinChars':
+        if pri_key not in theme.keys():
+            return False, "Primary key '%s' doesn't exist." % pri_key
+        for char_key in 'collapsed', 'expanded', 'selected', 'unselected', 'typing', 'expandLine':
+            if char_key not in theme[pri_key].keys():
+                return False, "Key '%s' not in '%s'." % (char_key, pri_key)
+
+    if 'messages' not in theme.keys():
+        return False, "Primary key 'messages' doesn't exist."
+    for char_key in _MESSAGE_CHAR_KEYS:
+        if char_key not in theme['messages'].keys():
+            return False, "Key '%s' not found in 'messages'." % char_key
+
     # Everything is good:
     return True, 'PASS'
 
@@ -853,6 +1213,28 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.CONTACT_WIN_TITLE, theme['contWinTitle']['fg'], theme['contWinTitle']['bg'])
     curses.init_pair(ThemeColours.CONTACTS_WIN_FOCUS_TITLE, theme['contWinFTitle']['fg'],
                      theme['contWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_CONT_BORDER, theme['contWinContBorder']['fg'],
+                     theme['contWinContBorder']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_CONT_F_BORDER, theme['contWinContFBorder']['fg'],
+                     theme['contWinContFBorder']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_GRPS_BORDER, theme['contWinGrpsBorder']['fg'],
+                     theme['contWinGrpsBorder']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_GRPS_F_BORDER, theme['contWinGrpsFBorder']['fg'],
+                     theme['contWinGrpsFBorder']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_CONT_TITLE, theme['contWinContTitle']['fg'],
+                     theme['contWinContTitle']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_CONT_F_TITLE, theme['contWinContFTitle']['fg'],
+                     theme['contWinContFTitle']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_GRPS_TITLE, theme['contWinGrpsTitle']['fg'],
+                     theme['contWinGrpsTitle']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_GRPS_F_TITLE, theme['contWinGrpsFTitle']['fg'],
+                     theme['contWinGrpsFTitle']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_SEL_CONT, theme['contWinSelCont']['fg'], theme['contWinSelCont']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_UNSEL_CONT, theme['contWinUnselCont']['fg'],
+                     theme['contWinUnselCont']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_SEL_GRP, theme['contWinSelGrp']['fg'], theme['contWinSelGrp']['bg'])
+    curses.init_pair(ThemeColours.CONTACTS_WIN_UNSEL_GRP, theme['contWinUnselGrp']['fg'],
+                     theme['contWinUnselGrp']['bg'])
 
     curses.init_pair(ThemeColours.MESSAGES_WIN, theme['msgsWin']['fg'], theme['msgsWin']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_BORDER, theme['msgsWinBorder']['fg'], theme['msgsWinBorder']['bg'])
@@ -861,6 +1243,22 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.MESSAGES_WIN_TITLE, theme['msgsWinTitle']['fg'], theme['msgsWinTitle']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_FOCUS_TITLE, theme['msgsWinFTitle']['fg'],
                      theme['msgsWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_TEXT, theme['msgsWinSentText']['fg'],
+                     theme['msgsWinSentText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_TEXT, theme['msgsWinRecvText']['fg'],
+                     theme['msgsWinRecvText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_INDICATOR, theme['msgsWinIndicator']['fg'],
+                     theme['msgsWinIndicator']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_BORDER, theme['msgsWinSentBorder']['fg'],
+                     theme['msgsWinSentBorder']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_BORDER, theme['msgsWinSentSelBorder']['fg'],
+                     theme['msgsWinSentSelBorder']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_BORDER, theme['msgsWinRecvBorder']['fg'],
+                     theme['msgsWinRecvBorder']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_BORDER, theme['msgsWinRecvSelBorder']['fg'],
+                     theme['msgsWinRecvSelBorder']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_TIME, theme['msgsWinSentTime']['fg'], theme['msgsWinSentTime']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_TIME, theme['msgsWinRecvTime']['fg'], theme['msgsWinRecvTime']['bg'])
 
     curses.init_pair(ThemeColours.TYPING_WIN, theme['typeWin']['fg'], theme['typeWin']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder']['fg'], theme['typeWinBorder']['bg'])
@@ -869,6 +1267,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.TYPING_WIN_TITLE, theme['typeWinTitle']['fg'], theme['typeWinTitle']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_FOCUS_TITLE, theme['typeWinFTitle']['fg'],
                      theme['typeWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_BORDER, theme['msgsWinSentBorder']['fg'],
+                     theme['msgsWinSentBorder']['bg'])
 
     curses.init_pair(ThemeColours.MENU_BAR_EMPTY, theme['menuBarBG']['fg'], theme['menuBarBG']['bg'])
     curses.init_pair(ThemeColours.MENU_BAR_SEL, theme['menuBarSel']['fg'], theme['menuBarSel']['bg'])
@@ -876,7 +1276,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.MENU_BAR_UNSEL, theme['menuBarUnsel']['fg'], theme['menuBarUnsel']['bg'])
     curses.init_pair(ThemeColours.MENU_BAR_UNSEL_ACCEL, theme['menuBarUnselAccel']['fg'],
                      theme['menuBarUnselAccel']['bg'])
-    curses.init_pair(ThemeColours.MENU_ACCT_LABEL, theme['menuBarAccountLabel']['fg'], theme['menuBarAccountLabel']['bg'])
+    curses.init_pair(ThemeColours.MENU_ACCT_LABEL, theme['menuBarAccountLabel']['fg'],
+                     theme['menuBarAccountLabel']['bg'])
     curses.init_pair(ThemeColours.MENU_ACCT_TEXT, theme['menuBarAccountText']['fg'], theme['menuBarAccountText']['bg'])
 
     curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
@@ -972,5 +1373,12 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.BUTTON_UNSEL, theme['buttonUnsel']['fg'], theme['buttonUnsel']['bg'])
     curses.init_pair(ThemeColours.BUTTON_SEL_ACCEL, theme['buttonSelAccel']['fg'], theme['buttonSelAccel']['bg'])
     curses.init_pair(ThemeColours.BUTTON_UNSEL_ACCEL, theme['buttonUnselAccel']['fg'], theme['buttonUnselAccel']['bg'])
+
+    curses.init_pair(ThemeColours.SCROLL_ENA_BG, theme['scrollBarEnaBg']['bg'], theme['scrollBarEnaBg']['bg'])
+    curses.init_pair(ThemeColours.SCROLL_DIS_BG, theme['scrollBarDisBg']['fg'], theme['scrollBarDisBg']['bg'])
+    curses.init_pair(ThemeColours.SCROLL_ENA_BTN, theme['scrollBarEnaBtn']['fg'], theme['scrollBarEnaBtn']['bg'])
+    curses.init_pair(ThemeColours.SCROLL_DIS_BTN, theme['scrollBarDisBtn']['fg'], theme['scrollBarDisBtn']['bg'])
+    curses.init_pair(ThemeColours.SCROLL_ENA_HAND, theme['scrollBarEnaHand']['fg'], theme['scrollBarEnaHand']['bg'])
+    curses.init_pair(ThemeColours.SCROLL_DIS_HAND, theme['scrollBarDisHand']['fg'], theme['scrollBarDisHand']['bg'])
 
     return

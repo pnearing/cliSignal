@@ -47,9 +47,11 @@ class LinkWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.LINK_WIN_BORDER, theme['linkWinBorder'])  # NOTE: Not used.
         border_focus_attrs: int = calc_attributes(ThemeColours.LINK_WIN_FOCUS_BORDER, theme['linkWinFBorder'])
         border_chars: dict[str, str] = theme['linkWinBorderChars']
+        border_focus_chars: dict[str, str] = theme['linkWinFBorderChars']
         title_attrs: int = calc_attributes(ThemeColours.LINK_WIN_TITLE, theme['linkWinTitle'])
         title_focus_attrs: int = calc_attributes(ThemeColours.LINK_WIN_FOCUS_TITLE, theme['linkWinFTitle'])
         title_chars: dict[str, str] = theme['linkWinTitleChars']
+        title_focus_chars: dict[str, str] = theme['linkWinFTitleChars']
 
         self._current_message: LinkMessages = LinkMessages.GENERATE
         """The current message to display."""
@@ -66,7 +68,8 @@ class LinkWindow(Window):
 
         # Super the window:
         Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
-                        border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.LINK)
+                        border_chars, border_focus_chars, title_attrs, title_focus_attrs, title_chars,
+                        title_focus_chars, bg_char, Focus.LINK)
         # Store the std_screen for resize:
         self._std_screen: curses.window = std_screen
         """The std_screen curses.window object."""

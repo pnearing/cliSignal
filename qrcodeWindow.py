@@ -34,9 +34,11 @@ class QRCodeWindow(Window):
         border_attrs: int = calc_attributes(ThemeColours.QRCODE_WIN_BORDER, theme['qrcodeWinBorder'])
         border_focus_attrs: int = calc_attributes(ThemeColours.QRCODE_WIN_FOCUS_BORDER, theme['qrcodeWinFBorder'])
         border_chars: dict[str, str] = theme['qrcodeWinBorderChars']
+        border_focus_chars: dict[str, str] = theme['qrcodeWinFBorderChars']
         title_attrs: int = calc_attributes(ThemeColours.QRCODE_WIN_TITLE, theme['qrcodeWinTitle'])
         title_focus_attrs: int = calc_attributes(ThemeColours.QRCODE_WIN_FOCUS_TITLE, theme['qrcodeWinFTitle'])
         title_chars: dict[str, str] = theme['qrcodeWinTitleChars']
+        title_focus_chars: dict[str, str] = theme['qrcodeWinFTitleChars']
 
         # Setup qr_code:
         self.qrcode: list[str] = []
@@ -50,7 +52,8 @@ class QRCodeWindow(Window):
 
         # Super the window:
         super().__init__(std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
-                         border_chars, title_attrs, title_focus_attrs, title_chars, bg_char, Focus.QR_CODE)
+                         border_chars, border_focus_chars, title_attrs, title_focus_attrs, title_chars,
+                         title_focus_chars, bg_char, Focus.QR_CODE)
 
         # Set text attrs:
         self._text_attrs: int = calc_attributes(ThemeColours.QRCODE_TEXT, theme['qrcodeText'])
