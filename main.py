@@ -177,7 +177,7 @@ def signal_link_cb(state: str,
     """
     Link account signal callback.
     :param state: str: The current state.
-    :param data: Optional[tuple[Optional[str], Optional[str]] | str | SignalAccount]
+    :param data: Optional[tuple[Optional[str], Optional[str]] | str | SignalAccount]:
     :param signal_cli: SignalCli: The signal_cli object.
     :return: bool: If return True, cancel the link process.
     """
@@ -197,6 +197,10 @@ def signal_link_cb(state: str,
         return False
     elif state == LinkAccountCallbackStates.LINK_SUCCESS.value:
         link_window.current_message = LinkMessages.SUCCESS
+        if common.RECEIVE_THREAD is None:
+            common.CURRENT_ACCOUNT = data
+            common.CURRENT_ACCOUNT_CHANGED = True
+            __start_receive_thread__(signal_cli)
     elif state == LinkAccountCallbackStates.LINK_EXISTS_ERROR.value:
         link_window.current_message = LinkMessages.EXISTS
     elif state == LinkAccountCallbackStates.LINK_UNKNOWN_ERROR.value:
