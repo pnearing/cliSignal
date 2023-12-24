@@ -182,7 +182,8 @@ class GroupsSubWindow(Window):
         if common.CURRENT_ACCOUNT is None:
             self._groups = None
             return
-        self._groups = common.CURRENT_ACCOUNT.groups
+        self._groups: SignalGroups = common.CURRENT_ACCOUNT.groups
+        self._groups.__sync__()
 
         for group in self._groups:
             if not group.is_blocked and group.is_member:
