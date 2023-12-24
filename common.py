@@ -512,5 +512,5 @@ def get_subscript_char(num: int) -> str:
         case 7: return '\u2087'
         case 8: return '\u2088'
         case 9: return '\u2089'
-        case _: return '\u208A'
+        case _: return
 

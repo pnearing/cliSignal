@@ -20,7 +20,7 @@ from terminal import Colours
 
 from SignalCliApi.signalReceivedMessage import SignalReceivedMessage
 from SignalCliApi.signalReaction import SignalReaction
-from SignalCliApi.signalCommon import LinkAccountCallbackStates, SyncTypes, RecipientTypes
+from SignalCliApi.signalCommon import LinkAccountCallbackStates, SyncTypes, RecipientTypes, __find_qrencode__
 from SignalCliApi.signalAccount import SignalAccount
 from SignalCliApi.signalCli import SignalCli
 from SignalCliApi.signalExceptions import SignalError, SignalAlreadyRunningError
@@ -829,7 +829,10 @@ if __name__ == '__main__':
         except (OSError, FileNotFoundError, PermissionError):
             out_error("Failed to create '%s' directory." % common.SETTINGS['signalConfigDir'])
             exit(13)
-
+    # Check for qr-encode:
+    if __find_qrencode__() == None:
+        out_error("qrencode not found.")
+        exit(14)
     # Start signal:
     out_info("Starting signal-cli...", force=True)
     try:
@@ -843,16 +846,16 @@ if __name__ == '__main__':
         )
     except FileNotFoundError as _e:
         out_error("Failed to start signal-cli: %s" % _e.args[0])
-        exit(14)
+        exit(15)
     except FileExistsError as _e:
         out_error("Failed to start signal-cli: %s" % _e.args[0])
-        exit(15)
+        exit(16)
     except SignalAlreadyRunningError:
         out_error("Failed to start signal-cli, signal instance already running.")
-        exit(16)
+        exit(17)
     except TimeoutError as _e:
         out_error("Failed to start signal-cli: %s" % _e.args[0])
-        exit(17)
+        exit(18)
 
     # Load the account:
     if common.SETTINGS['defaultAccount'] is not None:
@@ -861,11 +864,11 @@ if __name__ == '__main__':
         except ValueError as _e:
             out_error("Invalid account, number not in right format.")
             _signal_cli.stop_signal()
-            exit(18)
+            exit(19)
         if common.CURRENT_ACCOUNT is None:
             out_error("Account: %s not registered." % common.SETTINGS['defaultAccount'])
             _signal_cli.stop_signal()
-            exit(19)
+            exit(20)
     elif len(_signal_cli.accounts) > 0:
         common.CURRENT_ACCOUNT = _signal_cli.accounts[0]
 
@@ -903,5 +906,5 @@ if __name__ == '__main__':
         if common.DEBUG:
             print(common.EXIT_ERROR.__traceback__)
             raise common.EXIT_ERROR
-        exit(20)
+        exit(21)
     exit(0)
