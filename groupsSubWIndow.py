@@ -6,6 +6,7 @@ File: groupsSubWindow.py
 
 import curses
 import logging
+from datetime import datetime, timedelta
 from typing import Optional, Iterable
 
 import common
@@ -122,7 +123,8 @@ class GroupsSubWindow(Window):
         """If the scrolling of the display is moving down."""
         self._group_list: list[SignalGroup] = []
         """The list of groups we get the group item list for."""
-
+        self._next_sync: datetime = datetime.now()
+        """When we should check for a groups sync."""
         # Run account changed for the first time:
         self.account_changed()
         return
@@ -184,6 +186,7 @@ class GroupsSubWindow(Window):
             return
         self._groups: SignalGroups = common.CURRENT_ACCOUNT.groups
         self._groups.__sync__()
+        self._next_sync = datetime.now() + timedelta(seconds=5)
 
         for group in self._groups:
             if not group.is_blocked and group.is_member:
@@ -306,6 +309,11 @@ class GroupsSubWindow(Window):
         Redraw the 'groups' sub window.
         :return: None.
         """
+        if datetime.now() <= self._next_sync:
+            self._next_sync = datetime.now() + timedelta(seconds=5)
+            if len(self._group_items) == 0 and self._groups is not None:
+                self._groups.__sync__()
+
         super().redraw()
         self.update_pad()
         # Set the scroll bar enabled according to pad size:
