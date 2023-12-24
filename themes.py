@@ -931,7 +931,8 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
             'undelivered': '\u2026', 'delivered': '\u2020', 'read': '\u2021', 'expires': '\u23F2', 'noExpire': ' ',
             'expired': '\U0001F6AB', 'headLead': '\u2524', 'headTail': '\u251C', 'footLead': '\u2524',
             'footTail': '\u251C', 'seperator': '\u250A', 'barLead': '\u251C', 'barMid': '\u254C', 'barTail': '\u2524',
-            'barTitleLead': '\u2524', 'barTitleTail': '\u251C'
+            'barTitleLead': '\u2524', 'barTitleTail': '\u251C', 'msgBarLead': '\u251C', 'msgBarTail': '\u2524',
+            'msgBarMid': '\u2500'
         },
 
         'scrollBarChars': {
