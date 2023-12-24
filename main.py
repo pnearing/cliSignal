@@ -249,6 +249,10 @@ def signal_sync_message_cb(account: SignalAccount, sync_message: SignalSyncMessa
         common.MAIN_WINDOW.messages_window.message_received()
     elif sync_message.sync_type == SyncTypes.READ_MESSAGES:
         common.MAIN_WINDOW.messages_window.message_received()
+    elif sync_message.sync_type == SyncTypes.CONTACTS:
+        common.MAIN_WINDOW.contacts_window.contacts_win.update()
+    elif sync_message.sync_type == SyncTypes.GROUPS:
+        common.MAIN_WINDOW.contacts_window.groups_win.update()
     return
 
 
@@ -830,7 +834,7 @@ if __name__ == '__main__':
             out_error("Failed to create '%s' directory." % common.SETTINGS['signalConfigDir'])
             exit(13)
     # Check for qr-encode:
-    if __find_qrencode__() == None:
+    if __find_qrencode__() is None:
         out_error("qrencode not found.")
         exit(14)
     # Start signal:
