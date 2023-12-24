@@ -3,7 +3,7 @@
 File: common.py
 -> Store common constants variables, Enums, etc.
 """
-import curses
+import playsound
 import datetime
 import logging
 import os
@@ -51,6 +51,7 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     'groupItemLabels': {
         'numMembers': 'Members',
         'lastSeen': 'Last seen',
+        'expires': 'Expires',
         'groupId': 'Group ID',
         'description': 'Description',
         'unknown': 'Unknown',
@@ -60,11 +61,13 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     # Contact Item labels:
     'contactItemLabels': {
         'lastSeen': 'Last seen',
+        'expires': 'Expires',
         'number': 'Number',
         'uuid': 'UUID',
         'emoji': 'Emoji',
         'about': 'About',
         'unknown': 'Unknown',
+        'none': 'None',
         'notSet': 'Not set',
     },
     # Button labels:
@@ -102,6 +105,15 @@ STRINGS: Final[dict[str, dict[str, dict[str, str] | Optional[str]]]] = {
     },
     'menuBar': {
         'accountLabel': 'Account',
+    },
+    'msgsWin': {
+        'endOfHist': 'End of history',
+        'stickerLabel': 'Sticker',
+        'attachLabel': 'Attachment',
+        'thumbLabel': 'Thumbnail',
+        'previewLabel': 'URL Preview',
+        'quoteLabel': 'Quote',
+        'replyText': 'said',
     },
     # Other:
     'other': {
@@ -487,3 +499,18 @@ def get_unread_char(num_unread: int) -> str:
         case 34: return '\u325E'
         case 35: return '\u325F'
         case _: return '\u267E'
+
+
+def get_subscript_char(num: int) -> str:
+    match num:
+        case 1: return '\u2081'
+        case 2: return '\u2082'
+        case 3: return '\u2083'
+        case 4: return '\u2084'
+        case 5: return '\u2085'
+        case 6: return '\u2086'
+        case 7: return '\u2087'
+        case 8: return '\u2088'
+        case 9: return '\u2089'
+        case _: return '\u208A'
+

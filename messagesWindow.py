@@ -8,10 +8,11 @@ import curses
 
 import common
 from SignalCliApi import SignalReceivedMessage, SignalSentMessage
+from SignalCliApi.signalCommon import RecipientTypes
 from SignalCliApi.signalMessage import SignalMessage
 from SignalCliApi.signalMessages import SignalMessages
 from common import ROW, COL, TOP, LEFT, BOTTOM, RIGHT, STRINGS, Focus
-from cursesFunctions import calc_attributes, add_title_to_win, add_ch
+from cursesFunctions import calc_attributes, add_title_to_win, add_ch, center_string, terminal_bell
 from messageItem import MessageItem
 from themes import ThemeColours
 from typeError import __type_error__
@@ -82,7 +83,11 @@ class MessagesWindow(Window):
         # Create the message items for the messages in the conversation:
         self._message_item_list: list[MessageItem] = []
         """The message item list for the conversation."""
+        self._selection: Optional[int] = None
         self.__update_message_items__()
+        if len(self._message_item_list) > 0:
+            self._message_item_list[-1].is_selected = True
+            self._selection = len(self._message_item_list) - 1
 
         # Create the pad:
         self._pad: Optional[curses.window] = None
@@ -107,6 +112,7 @@ class MessagesWindow(Window):
         return
 
     def __update_message_items__(self) -> None:
+        self.selection = None
         self._message_item_list = []
         for message in self._conversation:
             message_item = MessageItem(message=message,
@@ -114,6 +120,10 @@ class MessagesWindow(Window):
                                        theme=self._theme
                                        )
             self._message_item_list.append(message_item)
+        if len(self._message_item_list) > 0:
+            self._message_item_list[-1].is_selected = True
+            self.selection = len(self._message_item_list) - 1
+        return
 
     def __clear_pad__(self) -> None:
         for row in range(0, self.pad_height):
@@ -124,13 +134,28 @@ class MessagesWindow(Window):
     def __create_pad__(self):
         self._pad = curses.newpad(self.pad_height, self.pad_width)
         self.__clear_pad__()
-        item_top = 0
+        item_top = 1  # One extra line for end of history.
         for message_item in self._message_item_list:
             message_item.pad = self._pad
             message_item.top = item_top
-            message_item.redraw()
             item_top += message_item.height
         self.pad_out_bottom = self.pad_bottom
+        return
+
+    def __inc_selection__(self, step: int = 1) -> None:
+        new_selection = self.selection + step
+        if new_selection >= len(self._message_item_list):
+            new_selection = len(self._message_item_list) - 1
+            terminal_bell()
+        self.selection = new_selection
+        return
+
+    def __dec_selection__(self, step: int = 1) -> None:
+        new_selection = self.selection - step
+        if new_selection < 0:
+            new_selection = 0
+            terminal_bell()
+        self.selection = new_selection
         return
 
     #############################################
@@ -143,10 +168,10 @@ class MessagesWindow(Window):
         return
 
     def message_received(self) -> None:
-        self.__update_conversation__()
-        self.__update_message_items__()
-        self.__create_pad__()
-        return
+        return self.recipient_changed()
+
+    def update(self) -> None:
+        return self.recipient_changed()
 
     #############################################
     # External overrides:
@@ -168,7 +193,10 @@ class MessagesWindow(Window):
         if common.CURRENT_RECIPIENT is None:
             recipient_text = 'None'
         else:
-            recipient_text = common.CURRENT_RECIPIENT.get_display_name()
+            if common.CURRENT_RECIPIENT.recipient_type == RecipientTypes.CONTACT:
+                recipient_text = common.CURRENT_RECIPIENT.get_display_name(proper_self=False)
+            else:
+                recipient_text = common.CURRENT_RECIPIENT.get_display_name()
         recipient_text = "Thread: " + recipient_text
         add_title_to_win(self._window, recipient_text, self.border_attrs, self.title_attrs, self.title_chars['lead'],
                          self.title_chars['tail'], 'right')
@@ -180,8 +208,13 @@ class MessagesWindow(Window):
 
         # Redraw the pad:
         self.__clear_pad__()
+        if common.CURRENT_RECIPIENT is not None:
+            center_string(self._pad, 0, STRINGS['msgsWin']['endOfHist'], self._bg_attrs)
         for message_item in self._message_item_list:
             message_item.redraw()
+
+        if self.selected_message is not None:
+            self.pad_out_bottom = self.selected_message.bottom
 
         self._window.noutrefresh()
         self._pad.noutrefresh(self.pad_out_top, self.pad_out_left,
@@ -189,9 +222,48 @@ class MessagesWindow(Window):
                               self.display_bottom, self.display_right)
         return
 
+    def process_key(self, char_code: int) -> Optional[bool]:
+        if self.is_focused:
+            if char_code == curses.KEY_UP:
+                self.__dec_selection__()
+                return True
+            elif char_code == curses.KEY_DOWN:
+                self.__inc_selection__()
+                return True
+            elif char_code == curses.KEY_PPAGE:
+                self.__dec_selection__(5)
+                return True
+            elif char_code == curses.KEY_NPAGE:
+                self.__inc_selection__(5)
+                return True
+        return None
+
 ##################################
 # Properties:
 ##################################
+    ##################
+    # Selections:
+    @property
+    def selection(self) -> int:
+        return self._selection
+
+    @selection.setter
+    def selection(self, value: Optional[int]):
+        if value is not None and not isinstance(value, int):
+            __type_error__('value', 'Optional[int]', value)
+        last_selection = self._selection
+        self._selection = value
+        if last_selection is not None:
+            self._message_item_list[last_selection].is_selected = False
+        if value is not None:
+            self._message_item_list[value].is_selected = True
+        return
+
+    @property
+    def selected_message(self) -> Optional[MessageItem]:
+        if self._selection is not None:
+            return self._message_item_list[self._selection]
+        return None
 
     #############
     # Display output:
@@ -247,7 +319,7 @@ class MessagesWindow(Window):
 
     @property
     def pad_height(self):
-        pad_height = 0
+        pad_height = 1  # One extra line for end of history.
         for message_item in self._message_item_list:
             pad_height += message_item.height
         if pad_height < self.display_height:
@@ -361,12 +433,15 @@ class MessagesWindow(Window):
 #############################################
     def __is_focused_hook__(self, is_get: bool, value: bool) -> Optional[bool]:
         if not is_get and value:
+            should_save: bool = False
             for message in self._conversation:
-                if not message.is_read:
-                    try:
-                        message.mark_read()
-                    except TypeError as e:
-                        common.out_error("mark read failed for message type:")
-                        common.out_debug(str(type(message)))
-                        raise TypeError(str(type(message)))
+                self_contact = common.CURRENT_ACCOUNT.contacts.get_self()
+                if message.sender != self_contact:
+                    message.mark_read()
+                    should_save = True
+                elif message.sender == self_contact and message.recipient == self_contact:
+                    message.mark_read()
+                    should_save = True
+            if should_save:
+                common.CURRENT_ACCOUNT.messages.__save__()
         return None

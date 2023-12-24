@@ -74,12 +74,20 @@ class ThemeColours(IntEnum):
     """Messages window title."""
     MESSAGES_WIN_FOCUS_TITLE = auto()
     """Messages window focused title."""
+
+    MESSAGES_WIN_SENT_MSG_BG = auto()
+    MESSAGES_WIN_SENT_SEL_MSG_BG = auto()
+    MESSAGES_WIN_RECV_MSG_BG = auto()
+    MESSAGES_WIN_RECV_SEL_MGS_BG = auto()
+
     MESSAGES_WIN_SENT_TEXT = auto()
-    """Messages window, self side of the thread."""
+    """Messages window, sent message text"""
+    MESSAGES_WIN_SENT_SEL_TEXT = auto()
+    """Messages window sent message selected text"""
     MESSAGES_WIN_RECV_TEXT = auto()
-    """Messages window, recipient side of the thread."""
-    MESSAGES_WIN_INDICATOR = auto()
-    """Messages window, indicator."""
+    """Messages window, received message unselected text."""
+    MESSAGES_WIN_RECV_SEL_TEXT = auto()
+    """Messages window, received message selected text."""
     MESSAGES_WIN_SENT_BORDER = auto()
     """Messages window, sent message border."""
     MESSAGES_WIN_SENT_SEL_BORDER = auto()
@@ -90,8 +98,100 @@ class ThemeColours(IntEnum):
     """Messages window, received message selected border."""
     MESSAGES_WIN_SENT_TIME = auto()
     """Messages window, sent time and date."""
+    MESSAGES_WIN_SENT_SEL_TIME = auto()
+    """Messages window, sent selected time and date."""
     MESSAGES_WIN_RECV_TIME = auto()
     """Messages window, received time and date."""
+    MESSAGES_WIN_RECV_SEL_TIME = auto()
+    """Messages window, received selected time and date."""
+    MESSAGES_WIN_SENT_INDICATOR = auto()
+    """Messages window, sent unselected indicator."""
+    MESSAGES_WIN_SENT_SEL_INDICATOR = auto()
+    """Messages window, sent selected indicator."""
+    MESSAGES_WIN_RECV_INDICATOR = auto()
+    """Messages window, received unselected indicator."""
+    MESSAGES_WIN_RECV_SEL_INDICATOR = auto()
+    """Messages window, received selected indicator."""
+
+    MESSAGES_WIN_SENT_STICKER_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_STICKER_LABEL = auto()
+    MESSAGES_WIN_RECV_STICKER_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_STICKER_LABEL = auto()
+
+    MESSAGES_WIN_SENT_STICKER_VALUE = auto()
+    MESSAGES_WIN_SENT_SEL_STICKER_VALUE = auto()
+    MESSAGES_WIN_RECV_STICKER_VALUE = auto()
+    MESSAGES_WIN_RECV_SEL_STICKER_VALUE = auto()
+
+    MESSAGES_WIN_SENT_ATTACH_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_ATTACH_LABEL = auto()
+    MESSAGES_WIN_RECV_ATTACH_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_ATTACH_LABEL = auto()
+
+    MESSAGES_WIN_SENT_ATTACH_VALUE = auto()
+    MESSAGES_WIN_SENT_SEL_ATTACH_VALUE = auto()
+    MESSAGES_WIN_RECV_ATTACH_VALUE = auto()
+    MESSAGES_WIN_RECV_SEL_ATTACH_VALUE = auto()
+
+    MESSAGES_WIN_SENT_PREVIEW_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_PREVIEW_LABEL = auto()
+    MESSAGES_WIN_RECV_PREVIEW_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_PREVIEW_LABEL = auto()
+
+    MESSAGES_WIN_SENT_PREVIEW_TITLE = auto()
+    MESSAGES_WIN_SENT_SEL_PREVIEW_TITLE = auto()
+    MESSAGES_WIN_RECV_PREVIEW_TITLE = auto()
+    MESSAGES_WIN_RECV_SEL_PREVIEW_TITLE = auto()
+
+    MESSAGES_WIN_SENT_PREVIEW_DESC = auto()
+    MESSAGES_WIN_SENT_SEL_PREVIEW_DESC = auto()
+    MESSAGES_WIN_RECV_PREVIEW_DESC = auto()
+    MESSAGES_WIN_RECV_SEL_PREVIEW_DESC = auto()
+
+    MESSAGES_WIN_SENT_THUMB_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_THUMB_LABEL = auto()
+    MESSAGES_WIN_RECV_THUMB_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_THUMB_LABEL = auto()
+
+    MESSAGES_WIN_SENT_THUMB_VALUE = auto()
+    MESSAGES_WIN_SENT_SEL_THUMB_VALUE = auto()
+    MESSAGES_WIN_RECV_THUMB_VALUE = auto()
+    MESSAGES_WIN_RECV_SEL_THUMB_VALUE = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_LABEL = auto()
+    MESSAGES_WIN_RECV_QUOTE_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_LABEL = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_THUMB_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_THUMB_LABEL = auto()
+    MESSAGES_WIN_RECV_QUOTE_THUMB_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_THUMB_LABEL = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_THUMB_VALUE = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_THUMB_VALUE = auto()
+    MESSAGES_WIN_RECV_QUOTE_THUMB_VALUE = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_THUMB_VALUE = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_ATTACH_LABEL = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_ATTACH_LABEL = auto()
+    MESSAGES_WIN_RECV_QUOTE_ATTACH_LABEL = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_ATTACH_LABEL = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_ATTACH_VALUE = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_ATTACH_VALUE = auto()
+    MESSAGES_WIN_RECV_QUOTE_ATTACH_VALUE = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_ATTACH_VALUE = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_TEXT = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_TEXT = auto()
+    MESSAGES_WIN_RECV_QUOTE_TEXT = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_TEXT = auto()
+
+    MESSAGES_WIN_SENT_QUOTE_AUTHOR = auto()
+    MESSAGES_WIN_SENT_SEL_QUOTE_AUTHOR = auto()
+    MESSAGES_WIN_RECV_QUOTE_AUTHOR = auto()
+    MESSAGES_WIN_RECV_SEL_QUOTE_AUTHOR = auto()
 
     TYPING_WIN = auto()
     """Typing window background."""
@@ -125,12 +225,19 @@ class ThemeColours(IntEnum):
     """Status bar receive status indicator."""
 
     MENU_BORDER = auto()
+    """Menu border."""
     MENU_SEL = auto()
+    """Menu selected item text."""
     MENU_SEL_ACCEL = auto()
+    """Menu selected item accelerator text."""
     MENU_UNSEL = auto()
+    """Menu unselected text."""
     MENU_UNSEL_ACCEL = auto()
+    """Menu unselected accelerator text."""
     MENU_ACCT_LABEL = auto()
+    """Menu bar account indicator label text."""
     MENU_ACCT_TEXT = auto()
+    """Menu bar account indicator value text."""
 
     SETTINGS_WIN = auto()
     SETTINGS_WIN_BORDER = auto()
@@ -139,15 +246,25 @@ class ThemeColours(IntEnum):
     SETTINGS_WIN_FOCUS_TITLE = auto()
 
     QUIT_WIN = auto()
+    """Quit window background."""
     QUIT_WIN_BORDER = auto()
+    """Quit window unfocused border."""
     QUIT_WIN_FOCUS_BORDER = auto()
+    """Quit window focused border."""
     QUIT_WIN_TITLE = auto()
+    """Quit window unfocused title."""
     QUIT_WIN_FOCUS_TITLE = auto()
+    """Quit window focused title."""
     QUIT_WIN_TEXT = auto()
+    """Quit window message text."""
     QUIT_WIN_SEL_TEXT = auto()
+    """Quit window selected button text."""
     QUIT_WIN_SEL_ACCEL_TEXT = auto()
+    """Quit window selected button accelerator text."""
     QUIT_WIN_UNSEL_TEXT = auto()
+    """Quit window unselected button text."""
     QUIT_WIN_UNSEL_ACCEL_TEXT = auto()
+    """Quit window unselected accelerator text."""
 
     SWITCH_WIN = auto()
     SWITCH_WIN_BORDER = auto()
@@ -156,11 +273,17 @@ class ThemeColours(IntEnum):
     SWITCH_WIN_FOCUS_TITLE = auto()
 
     LINK_WIN = auto()
+    """Link window background."""
     LINK_WIN_BORDER = auto()
+    """Link window unfocused border."""
     LINK_WIN_FOCUS_BORDER = auto()
+    """Link window focused border."""
     LINK_WIN_TITLE = auto()
+    """Link window unfocused title."""
     LINK_WIN_FOCUS_TITLE = auto()
+    """Link window focused title."""
     LINK_WIN_TEXT = auto()
+    """Link window message text."""
 
     REGISTER_WIN = auto()
     REGISTER_WIN_BORDER = auto()
@@ -181,11 +304,17 @@ class ThemeColours(IntEnum):
     ABOUT_WIN_FOCUS_TITLE = auto()
 
     VERSION_WIN = auto()
+    """Version window background."""
     VERSION_WIN_BORDER = auto()
+    """Version window unfocused border."""
     VERSION_WIN_FOCUS_BORDER = auto()
+    """Version window focused border."""
     VERSION_WIN_TITLE = auto()
+    """Version window unfocused title."""
     VERSION_WIN_FOCUS_TITLE = auto()
+    """Version window focused title."""
     VERSION_TEXT = auto()
+    """Version window message text."""
 
     GEN_MESSAGE_WIN = auto()
     GEN_MESSAGE_WIN_BORDER = auto()
@@ -194,16 +323,26 @@ class ThemeColours(IntEnum):
     GEN_MESSAGE_WIN_FOCUS_TITLE = auto()
 
     QRCODE_WIN = auto()
+    """Qr-code window background."""
     QRCODE_WIN_BORDER = auto()
+    """Qr-code window unfocused border."""
     QRCODE_WIN_FOCUS_BORDER = auto()
+    """Qr-code window focused border."""
     QRCODE_WIN_TITLE = auto()
+    """Qr-code window unfocused title."""
     QRCODE_WIN_FOCUS_TITLE = auto()
+    """Qr-code window focused title."""
     QRCODE_TEXT = auto()
+    """Qr-code window qr-code text."""
 
     BUTTON_SEL = auto()
+    """General button selected text."""
     BUTTON_SEL_ACCEL = auto()
+    """General button selected accelerator text."""
     BUTTON_UNSEL = auto()
+    """General button unselected text."""
     BUTTON_UNSEL_ACCEL = auto()
+    """General button unselected accelerator text."""
 
     SCROLL_ENA_BG = auto()
     """Scroll bar enabled background."""
@@ -234,19 +373,21 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'messages': {
             'undelivered': '\u2026', 'delivered': '\u2020', 'read': '\u2021', 'expires': '\u23F2', 'noExpire': ' ',
             'expired': '\U0001F6AB', 'headLead': '\u2524', 'headTail': '\u251C', 'footLead': '\u2524',
-            'footTail': '\u2524', 'seperator': '\u250A'
+            'footTail': '\u251C', 'seperator': '\u250A', 'barLead': '\u251C', 'barMid': '\u254C', 'barTail': '\u2524',
+            'barTitleLead': '\u2524', 'barTitleTail': '\u251C', 'msgBarLead': '\u251C', 'msgBarTail': '\u2524',
+            'msgBarMid': '\u2500'
         },
 
         # CONTACTS / GROUPS SUB WINDOWS:
         # Contacts chars:
         'contactSubWinChars': {
-            'collapsed': '\u25B6', 'expanded': '\u25BC', 'selected': '\u21D2', 'unselected': ' ',
-            'typing': '\U0001F5AE', 'notTyping': ' ', 'expandLine': '\u2506',
+            'collapsed': '\u25B6', 'expanded': '\u25BC', 'selected': '\U0001F846 ', 'unselected': '  ',
+            'typing': ' \U0001F5AE ', 'notTyping': '   ', 'expandLine': '\u2506',
         },
         # Groups chars:
         'groupSubWinChars': {
-            'collapsed': '\u25B6', 'expanded': '\u25BC', 'selected': '\u21D2', 'unselected': ' ',
-            'typing': '\U0001F5AE', 'notTyping': ' ', 'expandLine': '\u2506',
+            'collapsed': '\u25B6', 'expanded': '\u25BC', 'selected': '\U0001F846 ', 'unselected': '  ',
+            'typing': ' \U0001F5AE ', 'notTyping': '   ', 'expandLine': '\u2506',
         },
         # SCROLL BAR CHARACTERS:
         'scrollBarChars': {
@@ -336,8 +477,10 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
                                'tl': '\u250C', 'tr': '\u2510', 'bl': '\u2514', 'br': '\u2518'},  # Corners
 
         # The border chars for a single message:
-        'messageBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                               'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
+        'messageBorderUnselChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                    'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
+        'messageBorderSelChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                  'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
 
         # TITLE CHARACTERS:
         # Main window Title start and end characters:
@@ -477,35 +620,121 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
 
         # MESSAGES WINDOW COLOUR ATTRIBUTES:
         # Messages window centre:
-        'msgsWin': {'fg': 7, 'bg': 20, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWin': {'fg': 7, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
         # Messages window border:
-        'msgsWinBorder': {'fg': 15, 'bg': 20, 'bold': True, 'underline': False, 'reverse': False},
+        'msgsWinBorder': {'fg': 15, 'bg': 17, 'bold': True, 'underline': False, 'reverse': False},
         # Messages window focused border:
-        'msgsWinFBorder': {'fg': 15, 'bg': 20, 'bold': True, 'underline': False, 'reverse': True},
+        'msgsWinFBorder': {'fg': 15, 'bg': 17, 'bold': True, 'underline': False, 'reverse': True},
         # Messages window Title:
-        'msgsWinTitle': {'fg': 15, 'bg': 20, 'bold': True, 'underline': True, 'reverse': False},
+        'msgsWinTitle': {'fg': 15, 'bg': 17, 'bold': True, 'underline': True, 'reverse': False},
         # Messages window focused title:
-        'msgsWinFTitle': {'fg': 15, 'bg': 20, 'bold': True, 'underline': True, 'reverse': True},
-        # Messages window, sent message border:
-        'msgsWinSentBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, selected sent message border:
-        'msgsWinSentSelBorder': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, received message border:
-        'msgsWinRecvBorder': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, selected received border:
-        'msgsWinRecvSelBorder': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinFTitle': {'fg': 15, 'bg': 17, 'bold': True, 'underline': True, 'reverse': True},
+        # Messages window, message background:
+        'msgsWinSentMsgBG': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelMsgBG': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvMsgBG': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelMsgBG': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, message border:
+        'msgsWinSentBorder': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelBorder': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvBorder': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelBorder': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
         # Messages window, indicator:
-        'msgsWinIndicator': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, sent messages: Self-contact.
-        'msgsWinSentText': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, received messages: Thread contact.
-        'msgsWinRecvText': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, sent date time:
-        'msgsWinSentTime': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
-        # Messages window, received date time:
-        'msgsWinRecvTime': {'fg': 15, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentIndicator': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelIndicator': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvIndicator': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelIndicator': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, message text:
+        'msgsWinSentText': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelText': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvText': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelText': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, date time:
+        'msgsWinSentTime': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelTime': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvTime': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelTime': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window, sticker label:
+        'msgsWinSentStickerLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinSentSelStickerLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvStickerLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvSelStickerLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        # Messages window sticker value:
+        'msgsWinSentStickerValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinSentSelStickerValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvStickerValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvSelStickerValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window attachment label:
+        'msgsWinSentAttachLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelAttachLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvAttachLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelAttachLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window attachment value:
+        'msgsWinSentAttachValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelAttachValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvAttachValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelAttachValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window preview label:
+        'msgsWinSentPreviewLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelPreviewLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvPreviewLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelPreviewLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window preview title:
+        'msgsWinSentPreviewTitle': {'fg': 8, 'bg': 17, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinSentSelPreviewTitle': {'fg': 15, 'bg': 17, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinRecvPreviewTitle': {'fg': 8, 'bg': 17, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinRecvSelPreviewTitle': {'fg': 15, 'bg': 17, 'bold': False, 'underline': True, 'reverse': False},
+        # Messages window preview description:
+        'msgsWinSentPreviewDesc': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelPreviewDesc': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvPreviewDesc': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelPreviewDesc': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window thumbnail label:
+        'msgsWinSentThumbLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelThumbLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvThumbLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelThumbLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window thumbnail value:
+        'msgsWinSentThumbValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelThumbValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvThumbValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelThumbValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote label:
+        'msgsWinSentQuoteLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote thumbnail label:
+        'msgsWinSentQuoteThumbLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteThumbLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteThumbLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteThumbLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote thumbnail value:
+        'msgsWinSentQuoteThumbValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteThumbValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteThumbValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteThumbValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote attachment label:
+        'msgsWinSentQuoteAttachLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteAttachLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteAttachLabel': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteAttachLabel': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote attachment value:
+        'msgsWinSentQuoteAttachValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteAttachValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteAttachValue': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteAttachValue': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote text:
+        'msgsWinSentQuoteText': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteText': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteText': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteText': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        # Messages window quote sender name:
+        'msgsWinSentQuoteAuthor': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteAuthor': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteAuthor': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteAuthor': {'fg': 15, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
 
-        
         # TYPING WINDOW COLOUR ATTRIBUTES:
         # The typing window centre:
         'typeWin': {'fg': 7, 'bg': 21, 'bold': False, 'underline': False, 'reverse': False},
@@ -665,9 +894,9 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         # Menu bar item accelerator indicator when unselected.
         'menuBarUnselAccel': {'fg': 15, 'bg': 18, 'bold': False, 'underline': True, 'reverse': False},
         # Menu bar account label:
-        'menuBarAccountLabel': {'fg': 7, 'bg': 16, 'bold': True, 'underline': True, 'reverse': False},
+        'menuBarAccountLabel': {'fg': 15, 'bg': 18, 'bold': True, 'underline': False, 'reverse': False},
         # Menu bar account text:
-        'menuBarAccountText': {'fg': 7, 'bg': 16, 'bold': False, 'underline': False, 'reverse': False},
+        'menuBarAccountText': {'fg': 7, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
         # STATUS BAR COLOUR ATTRIBUTES:
         # Status bar background spaces:
         'statusBG': {'fg': 15, 'bg': 18, 'bold': False, 'underline': False, 'reverse': False},
@@ -701,7 +930,8 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'messages': {
             'undelivered': '\u2026', 'delivered': '\u2020', 'read': '\u2021', 'expires': '\u23F2', 'noExpire': ' ',
             'expired': '\U0001F6AB', 'headLead': '\u2524', 'headTail': '\u251C', 'footLead': '\u2524',
-            'footTail': '\u2524', 'seperator': '\u250A'
+            'footTail': '\u251C', 'seperator': '\u250A', 'barLead': '\u251C', 'barMid': '\u254C', 'barTail': '\u2524',
+            'barTitleLead': '\u2524', 'barTitleTail': '\u251C'
         },
 
         'scrollBarChars': {
@@ -711,12 +941,12 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         },
 
         'contactSubWinChars': {
-            'collapsed': '\u2B9A', 'expanded': '\u2B9B', 'selected': '\u21D2', 'unselected': ' ',
-            'typing': '\u270D', 'notTyping': ' ', 'expandLine': '\u2506',
+            'collapsed': '\u2B9A', 'expanded': '\u2B9B', 'selected': '\U0001F846 ', 'unselected': '  ',
+            'typing': ' \u270D ', 'notTyping': '   ', 'expandLine': '\u2506',
         },
         'groupSubWinChars': {
-            'collapsed': '\u2B9A', 'expanded': '\u2B9B', 'selected': '\u21D2', 'unselected': ' ',
-            'typing': '\u270D', 'notTyping': ' ', 'expandLine': '\u2506',
+            'collapsed': '\u2B9A', 'expanded': '\u2B9B', 'selected': '\U0001F846 ', 'unselected': '  ',
+            'typing': ' \u270D ', 'notTyping': '   ', 'expandLine': '\u2506',
         },
 
         'mainBorderChars': {'ts': '\u2550', 'bs': '\u2550', 'ls': '\u2551', 'rs': '\u2551',  # Sides
@@ -797,8 +1027,10 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'groupsFBorderChars': {'ts': '\u2501', 'bs': '\u2501', 'ls': '\u2503', 'rs': '\u2503',  # Sides
                                'tl': '\u250F', 'tr': '\u2513', 'bl': '\u2517', 'br': '\u251B'},  # Corners
 
-        'messageBorderChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
-                               'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
+        'messageBorderUnselChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                    'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
+        'messageBorderSelChars': {'ts': '\u2500', 'bs': '\u2500', 'ls': '\u2502', 'rs': '\u2502',  # Sides
+                                  'tl': '\u256D', 'tr': '\u256E', 'bl': '\u2570', 'br': '\u256F'},  # Corners
 
         'mainWinTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
         'mainWinFTitleChars': {'lead': '\u2561', 'tail': '\u255E'},
@@ -863,33 +1095,108 @@ _THEMES: dict[str, dict[str, dict[str, int | bool | str]]] = {
         'contWinFBorder': {'fg': 7, 'bg': 238, 'bold': True, 'underline': False, 'reverse': True},
         'contWinTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': False},
         'contWinFTitle': {'fg': 7, 'bg': 238, 'bold': True, 'underline': True, 'reverse': True},
-        'contWinContBorder': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'contWinContFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
-        'contWinContTitle': {'fg': 8, 'bg': 239, 'bold': False, 'underline': True, 'reverse': False},
-        'contWinContFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
-        'contWinGrpsBorder': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'contWinGrpsFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
-        'contWinGrpsTitle': {'fg': 8, 'bg': 239, 'bold': False, 'underline': True, 'reverse': False},
-        'contWinGrpsFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
-        'contWinSelCont': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
-        'contWinUnselCont': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'contWinSelGrp': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
-        'contWinUnselGrp': {'fg': 8, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinContBorder': {'fg': 8, 'bg': 235, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinContFBorder': {'fg': 7, 'bg': 235, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinContTitle': {'fg': 8, 'bg': 235, 'bold': False, 'underline': True, 'reverse': False},
+        'contWinContFTitle': {'fg': 7, 'bg': 235, 'bold': True, 'underline': True, 'reverse': False},
+        'contWinGrpsBorder': {'fg': 8, 'bg': 235, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinGrpsFBorder': {'fg': 7, 'bg': 235, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinGrpsTitle': {'fg': 8, 'bg': 235, 'bold': False, 'underline': True, 'reverse': False},
+        'contWinGrpsFTitle': {'fg': 7, 'bg': 235, 'bold': True, 'underline': True, 'reverse': False},
+        'contWinSelCont': {'fg': 7, 'bg': 235, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinUnselCont': {'fg': 8, 'bg': 235, 'bold': False, 'underline': False, 'reverse': False},
+        'contWinSelGrp': {'fg': 7, 'bg': 235, 'bold': True, 'underline': False, 'reverse': False},
+        'contWinUnselGrp': {'fg': 8, 'bg': 235, 'bold': False, 'underline': False, 'reverse': False},
 
-        'msgsWin': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': False},
-        'msgsWinFBorder': {'fg': 7, 'bg': 239, 'bold': True, 'underline': False, 'reverse': True},
-        'msgsWinTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': False},
-        'msgsWinFTitle': {'fg': 7, 'bg': 239, 'bold': True, 'underline': True, 'reverse': True},
-        'msgsWinSentBorder': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinSentSelBorder': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinRecvBorder': {'fg': 7, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinRecvSelBorder': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinIndicator': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinSentText': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinRecvText': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinSentTime': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
-        'msgsWinRecvTime': {'fg': 15, 'bg': 239, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWin': {'fg': 7, 'bg': 235, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinBorder': {'fg': 7, 'bg': 235, 'bold': True, 'underline': False, 'reverse': False},
+        'msgsWinFBorder': {'fg': 7, 'bg': 235, 'bold': True, 'underline': False, 'reverse': True},
+        'msgsWinTitle': {'fg': 7, 'bg': 235, 'bold': True, 'underline': True, 'reverse': False},
+        'msgsWinFTitle': {'fg': 7, 'bg': 235, 'bold': True, 'underline': True, 'reverse': True},
+        'msgsWinSentMsgBG': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelMsgBG': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvMsgBG': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelMsgBG': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentBorder': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelBorder': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvBorder': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelBorder': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentIndicator': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelIndicator': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvIndicator': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelIndicator': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentText': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelText': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvText': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelText': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentTime': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelTime': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvTime': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelTime': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentStickerLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinSentSelStickerLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvStickerLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvSelStickerLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinSentStickerValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinSentSelStickerValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvStickerValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': True},
+        'msgsWinRecvSelStickerValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentAttachLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelAttachLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvAttachLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelAttachLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentAttachValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelAttachValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvAttachValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelAttachValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentPreviewLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelPreviewLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvPreviewLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelPreviewLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentPreviewTitle': {'fg': 8, 'bg': 234, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinSentSelPreviewTitle': {'fg': 15, 'bg': 234, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinRecvPreviewTitle': {'fg': 8, 'bg': 234, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinRecvSelPreviewTitle': {'fg': 15, 'bg': 234, 'bold': False, 'underline': True, 'reverse': False},
+        'msgsWinSentPreviewDesc': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelPreviewDesc': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvPreviewDesc': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelPreviewDesc': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentThumbLabel': {'fg': 8, 'bg': 225, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelThumbLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvThumbLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelThumbLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentThumbValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelThumbValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvThumbValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelThumbValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteThumbLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteThumbLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteThumbLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteThumbLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteThumbValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteThumbValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteThumbValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteThumbValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteAttachLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteAttachLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteAttachLabel': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteAttachLabel': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteAttachValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteAttachValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteAttachValue': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteAttachValue': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteText': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteText': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteText': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteText': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentQuoteAuthor': {'fg': 8, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinSentSelQuoteAuthor': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvQuoteAuthor': {'fg': 8, 'bg': 17, 'bold': False, 'underline': False, 'reverse': False},
+        'msgsWinRecvSelQuoteAuthor': {'fg': 15, 'bg': 234, 'bold': False, 'underline': False, 'reverse': False},
 
         'typeWin': {'fg': 7, 'bg': 240, 'bold': False, 'underline': False, 'reverse': False},
         'typeWinBorder': {'fg': 7, 'bg': 240, 'bold': True, 'underline': False, 'reverse': False},
@@ -1005,9 +1312,27 @@ _ATTRIBUTE_PRIMARY_KEYS: list[str] = [
     'linkWinText', 'qrcodeText', 'statusCC', 'statusMouse', 'statusReceive', 'menuBarAccountLabel',
     'menuBarAccountText', 'contWinContBorder', 'contWinGrpsBorder', 'contWinContFBorder', 'contWinGrpsFBorder',
     'scrollBarEnaBg', 'scrollBarDisBg', 'scrollBarEnaBtn', 'scrollBarDisBtn', 'scrollBarEnaHand', 'scrollBarDisHand',
-    'contWinSelCont', 'contWinUnselCont', 'contWinSelGrp', 'contWinUnselGrp', 'msgsWinSentText', 'msgsWinRecvText',
-    'msgsWinIndicator', 'msgsWinSentBorder', 'msgsWinSentSelBorder', 'msgsWinRecvBorder', 'msgsWinRecvSelBorder',
-    'msgsWinIndicator', 'msgsWinSentText', 'msgsWinRecvText', 'msgsWinSentTime', 'msgsWinRecvTime',
+    'contWinSelCont', 'contWinUnselCont', 'contWinSelGrp', 'contWinUnselGrp', 'msgsWinSentSelText',
+    'msgsWinRecvSelText', 'msgsWinSentSelTime', 'msgsWinRecvSelTime', 'msgsWinSentStickerLabel',
+    'msgsWinSentSelStickerLabel', 'msgsWinRecvStickerLabel', 'msgsWinRecvSelStickerLabel', 'msgsWinSentStickerValue',
+    'msgsWinSentSelStickerValue', 'msgsWinRecvStickerValue', 'msgsWinRecvSelStickerValue', 'msgsWinSentAttachLabel',
+    'msgsWinSentSelAttachLabel', 'msgsWinRecvAttachLabel', 'msgsWinRecvSelAttachLabel', 'msgsWinSentAttachValue',
+    'msgsWinSentSelAttachValue', 'msgsWinRecvAttachValue', 'msgsWinRecvSelAttachValue', 'msgsWinSentPreviewLabel',
+    'msgsWinSentSelPreviewLabel', 'msgsWinRecvPreviewLabel', 'msgsWinRecvSelPreviewLabel', 'msgsWinSentPreviewTitle',
+    'msgsWinSentSelPreviewTitle', 'msgsWinRecvPreviewTitle', 'msgsWinRecvSelPreviewTitle', 'msgsWinSentPreviewDesc',
+    'msgsWinSentSelPreviewDesc', 'msgsWinRecvPreviewDesc', 'msgsWinRecvSelPreviewDesc', 'msgsWinSentThumbLabel',
+    'msgsWinSentSelThumbLabel', 'msgsWinRecvThumbLabel', 'msgsWinRecvSelThumbLabel', 'msgsWinSentThumbValue',
+    'msgsWinSentSelThumbValue', 'msgsWinRecvThumbValue', 'msgsWinRecvSelThumbValue', 'msgsWinSentMsgBG',
+    'msgsWinSentSelMsgBG', 'msgsWinRecvMsgBG', 'msgsWinRecvSelMsgBG', 'msgsWinSentQuoteLabel',
+    'msgsWinSentSelQuoteLabel', 'msgsWinRecvQuoteLabel', 'msgsWinRecvSelQuoteLabel', 'msgsWinSentQuoteThumbLabel',
+    'msgsWinSentSelQuoteThumbLabel', 'msgsWinRecvQuoteThumbLabel', 'msgsWinRecvSelQuoteThumbLabel',
+    'msgsWinSentQuoteThumbValue', 'msgsWinSentSelQuoteThumbValue', 'msgsWinRecvQuoteThumbValue',
+    'msgsWinRecvSelQuoteThumbValue', 'msgsWinSentQuoteAttachLabel', 'msgsWinSentSelQuoteAttachLabel',
+    'msgsWinRecvQuoteAttachLabel', 'msgsWinRecvSelQuoteAttachLabel', 'msgsWinSentQuoteAttachValue',
+    'msgsWinSentSelQuoteAttachValue', 'msgsWinRecvQuoteAttachValue', 'msgsWinRecvSelQuoteAttachValue',
+    'msgsWinSentQuoteText', 'msgsWinSentSelQuoteText', 'msgsWinRecvQuoteText', 'msgsWinRecvSelQuoteText',
+    'msgsWinSentQuoteAuthor', 'msgsWinSentSelQuoteAuthor', 'msgsWinRecvQuoteAuthor', 'msgsWinRecvSelQuoteAuthor',
+
 ]
 """Primary attribute theme keys."""
 
@@ -1039,7 +1364,8 @@ _BORDER_PRIMARY_KEYS: list[str] = [
     'mainFBorderChars', 'contWinFBorderChars', 'msgsWinFBorderChars', 'typeWinFBorderChars',
     'setWinFBorderChars', 'quitWinFBorderChars', 'switchWinFBorderChars',
     'keysWinFBorderChars', 'verWinFBorderChars', 'linkWinFBorderChars', 'regWinFBorderChars',
-    'qrcodeWinFBorderChars', 'contactsFBorderChars', 'groupsFBorderChars', 'messageBorderChars'
+    'qrcodeWinFBorderChars', 'contactsFBorderChars', 'groupsFBorderChars', 'messageBorderUnselChars',
+    'messageBorderSelChars',
 ]
 """Keys with border strings."""
 
@@ -1072,7 +1398,7 @@ _SCROLL_BAR_CHAR_KEYS: list[str] = [
 
 _MESSAGE_CHAR_KEYS: list[str] = [
     'undelivered', 'delivered', 'read', 'expires', 'noExpire', 'expired', 'headLead', 'headTail', 'footLead',
-    'footTail', 'seperator'
+    'footTail', 'seperator', 'barLead', 'barMid', 'barTail', 'barTitleLead', 'barTitleTail'
 ]
 
 
@@ -1197,6 +1523,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     :param theme: The colour theme dict.
     :return: None
     """
+    ################
+    # Main window:
     curses.init_pair(ThemeColours.MAIN_WIN, theme['mainWin']['fg'], theme['mainWin']['bg'])
     curses.init_pair(ThemeColours.MAIN_WIN_BORDER, theme['mainWinBorder']['fg'], theme['mainWinBorder']['bg'])
     curses.init_pair(ThemeColours.MAIN_WIN_FOCUS_BORDER, theme['mainWinFBorder']['fg'],
@@ -1206,6 +1534,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
                      theme['mainWinFTitle']['bg'])
     curses.init_pair(ThemeColours.MAIN_WIN_ERROR_TEXT, theme['mainWinErrorText']['fg'], theme['mainWinErrorText']['bg'])
 
+    ##############
+    # Contacts window:
     curses.init_pair(ThemeColours.CONTACTS_WIN, theme['contWin']['fg'], theme['contWin']['bg'])
     curses.init_pair(ThemeColours.CONTACT_WIN_BORDER, theme['contWinBorder']['fg'], theme['contWinBorder']['bg'])
     curses.init_pair(ThemeColours.CONTACTS_WIN_FOCUS_BORDER, theme['contWinFBorder']['fg'],
@@ -1236,6 +1566,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.CONTACTS_WIN_UNSEL_GRP, theme['contWinUnselGrp']['fg'],
                      theme['contWinUnselGrp']['bg'])
 
+    ###############
+    # Messages window:
     curses.init_pair(ThemeColours.MESSAGES_WIN, theme['msgsWin']['fg'], theme['msgsWin']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_BORDER, theme['msgsWinBorder']['fg'], theme['msgsWinBorder']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_FOCUS_BORDER, theme['msgsWinFBorder']['fg'],
@@ -1243,12 +1575,18 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.MESSAGES_WIN_TITLE, theme['msgsWinTitle']['fg'], theme['msgsWinTitle']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_FOCUS_TITLE, theme['msgsWinFTitle']['fg'],
                      theme['msgsWinFTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_MSG_BG, theme['msgsWinSentMsgBG']['fg'],
+                     theme['msgsWinSentMsgBG']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_MSG_BG, theme['msgsWinSentSelMsgBG']['fg'],
+                     theme['msgsWinSentSelMsgBG']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_MSG_BG, theme['msgsWinRecvMsgBG']['fg'],
+                     theme['msgsWinRecvMsgBG']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_MGS_BG, theme['msgsWinRecvSelMsgBG']['fg'],
+                     theme['msgsWinRecvSelMsgBG']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_TEXT, theme['msgsWinSentText']['fg'],
                      theme['msgsWinSentText']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_TEXT, theme['msgsWinRecvText']['fg'],
                      theme['msgsWinRecvText']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN_INDICATOR, theme['msgsWinIndicator']['fg'],
-                     theme['msgsWinIndicator']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_BORDER, theme['msgsWinSentBorder']['fg'],
                      theme['msgsWinSentBorder']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_BORDER, theme['msgsWinSentSelBorder']['fg'],
@@ -1257,9 +1595,149 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
                      theme['msgsWinRecvBorder']['bg'])
     curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_BORDER, theme['msgsWinRecvSelBorder']['fg'],
                      theme['msgsWinRecvSelBorder']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_TIME, theme['msgsWinSentTime']['fg'], theme['msgsWinSentTime']['bg'])
-    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_TIME, theme['msgsWinRecvTime']['fg'], theme['msgsWinRecvTime']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_TIME, theme['msgsWinSentTime']['fg'],
+                     theme['msgsWinSentTime']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_TIME, theme['msgsWinRecvTime']['fg'],
+                     theme['msgsWinRecvTime']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_INDICATOR, theme['msgsWinSentIndicator']['fg'],
+                     theme['msgsWinSentIndicator']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_INDICATOR, theme['msgsWinSentSelIndicator']['fg'],
+                     theme['msgsWinSentSelIndicator']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_INDICATOR, theme['msgsWinRecvIndicator']['fg'],
+                     theme['msgsWinRecvIndicator']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_INDICATOR, theme['msgsWinRecvSelIndicator']['fg'],
+                     theme['msgsWinRecvSelIndicator']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_TEXT, theme['msgsWinSentSelText']['fg'],
+                     theme['msgsWinSentSelText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_TEXT, theme['msgsWinRecvSelText']['fg'],
+                     theme['msgsWinRecvSelText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_TIME, theme['msgsWinSentSelTime']['fg'],
+                     theme['msgsWinSentSelTime']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_TIME, theme['msgsWinRecvSelTime']['fg'],
+                     theme['msgsWinRecvSelTime']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_STICKER_LABEL, theme['msgsWinSentStickerLabel']['fg'],
+                     theme['msgsWinSentStickerLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_STICKER_LABEL, theme['msgsWinSentStickerLabel']['fg'],
+                     theme['msgsWinSentStickerLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_STICKER_LABEL, theme['msgsWinRecvStickerLabel']['fg'],
+                     theme['msgsWinRecvStickerLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_STICKER_LABEL, theme['msgsWinRecvSelStickerLabel']['fg'],
+                     theme['msgsWinRecvSelStickerLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_STICKER_VALUE, theme['msgsWinSentStickerValue']['fg'],
+                     theme['msgsWinSentStickerValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_STICKER_VALUE, theme['msgsWinSentSelStickerValue']['fg'],
+                     theme['msgsWinSentSelStickerValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_STICKER_VALUE, theme['msgsWinRecvStickerValue']['fg'],
+                     theme['msgsWinRecvStickerValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_STICKER_VALUE, theme['msgsWinRecvSelStickerValue']['fg'],
+                     theme['msgsWinRecvSelStickerValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_ATTACH_LABEL, theme['msgsWinSentAttachLabel']['fg'],
+                     theme['msgsWinSentAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_ATTACH_LABEL, theme['msgsWinSentSelAttachLabel']['fg'],
+                     theme['msgsWinSentSelAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_ATTACH_LABEL, theme['msgsWinRecvAttachLabel']['fg'],
+                     theme['msgsWinRecvAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_ATTACH_LABEL, theme['msgsWinRecvSelAttachLabel']['fg'],
+                     theme['msgsWinRecvSelAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_ATTACH_VALUE, theme['msgsWinSentAttachValue']['fg'],
+                     theme['msgsWinSentAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_ATTACH_VALUE, theme['msgsWinSentSelAttachValue']['fg'],
+                     theme['msgsWinSentSelAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_ATTACH_VALUE, theme['msgsWinRecvAttachValue']['fg'],
+                     theme['msgsWinRecvAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_ATTACH_VALUE, theme['msgsWinRecvSelAttachValue']['fg'],
+                     theme['msgsWinRecvSelAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_PREVIEW_LABEL, theme['msgsWinSentPreviewLabel']['fg'],
+                     theme['msgsWinSentPreviewLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_PREVIEW_LABEL, theme['msgsWinSentSelPreviewLabel']['fg'],
+                     theme['msgsWinSentSelPreviewLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_PREVIEW_LABEL, theme['msgsWinRecvPreviewLabel']['fg'],
+                     theme['msgsWinRecvPreviewLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_PREVIEW_LABEL, theme['msgsWinRecvSelPreviewLabel']['fg'],
+                     theme['msgsWinRecvSelPreviewLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_PREVIEW_TITLE, theme['msgsWinSentPreviewTitle']['fg'],
+                     theme['msgsWinSentPreviewTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_PREVIEW_TITLE, theme['msgsWinSentSelPreviewTitle']['fg'],
+                     theme['msgsWinSentSelPreviewTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_PREVIEW_TITLE, theme['msgsWinRecvPreviewTitle']['fg'],
+                     theme['msgsWinRecvPreviewTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_PREVIEW_TITLE, theme['msgsWinRecvSelPreviewTitle']['fg'],
+                     theme['msgsWinRecvSelPreviewTitle']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_PREVIEW_DESC, theme['msgsWinSentPreviewDesc']['fg'],
+                     theme['msgsWinSentPreviewDesc']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_PREVIEW_DESC, theme['msgsWinSentSelPreviewDesc']['fg'],
+                     theme['msgsWinSentSelPreviewDesc']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_PREVIEW_DESC, theme['msgsWinRecvPreviewDesc']['fg'],
+                     theme['msgsWinRecvPreviewDesc']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_PREVIEW_DESC, theme['msgsWinRecvSelPreviewDesc']['fg'],
+                     theme['msgsWinRecvSelPreviewDesc']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_THUMB_LABEL, theme['msgsWinSentThumbLabel']['fg'],
+                     theme['msgsWinSentThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_THUMB_LABEL, theme['msgsWinSentSelThumbLabel']['fg'],
+                     theme['msgsWinSentSelThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_THUMB_LABEL, theme['msgsWinRecvThumbLabel']['fg'],
+                     theme['msgsWinRecvThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_THUMB_LABEL, theme['msgsWinRecvSelThumbLabel']['fg'],
+                     theme['msgsWinRecvSelThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_THUMB_VALUE, theme['msgsWinSentThumbValue']['fg'],
+                     theme['msgsWinSentThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_THUMB_VALUE, theme['msgsWinSentSelThumbValue']['fg'],
+                     theme['msgsWinSentSelThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_THUMB_VALUE, theme['msgsWinRecvThumbValue']['fg'],
+                     theme['msgsWinRecvThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_THUMB_VALUE, theme['msgsWinRecvSelThumbValue']['fg'],
+                     theme['msgsWinRecvSelThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_QUOTE_LABEL, theme['msgsWinSentQuoteLabel']['fg'],
+                     theme['msgsWinSentQuoteLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_QUOTE_LABEL, theme['msgsWinSentSelQuoteLabel']['fg'],
+                     theme['msgsWinSentSelQuoteLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_QUOTE_LABEL, theme['msgsWinRecvQuoteLabel']['fg'],
+                     theme['msgsWinRecvQuoteLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_QUOTE_LABEL, theme['msgsWinRecvSelQuoteLabel']['fg'],
+                     theme['msgsWinRecvSelQuoteLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_QUOTE_THUMB_LABEL, theme['msgsWinSentQuoteThumbLabel']['fg'],
+                     theme['msgsWinSentQuoteThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_QUOTE_THUMB_LABEL, theme['msgsWinSentSelQuoteThumbLabel']['fg'],
+                     theme['msgsWinSentSelQuoteThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_QUOTE_THUMB_LABEL, theme['msgsWinRecvQuoteThumbLabel']['fg'],
+                     theme['msgsWinRecvQuoteThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_QUOTE_THUMB_LABEL, theme['msgsWinRecvSelQuoteThumbLabel']['fg'],
+                     theme['msgsWinRecvSelQuoteThumbLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_QUOTE_THUMB_VALUE, theme['msgsWinSentQuoteThumbValue']['fg'],
+                     theme['msgsWinSentQuoteThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_QUOTE_THUMB_VALUE, theme['msgsWinSentSelQuoteThumbValue']['fg'],
+                     theme['msgsWinSentSelQuoteThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_QUOTE_THUMB_VALUE, theme['msgsWinRecvQuoteThumbValue']['fg'],
+                     theme['msgsWinRecvQuoteThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_QUOTE_THUMB_VALUE, theme['msgsWinRecvSelQuoteThumbValue']['fg'],
+                     theme['msgsWinRecvSelQuoteThumbValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_QUOTE_ATTACH_LABEL,
+                     theme['msgsWinSentQuoteAttachLabel']['fg'], theme['msgsWinSentQuoteAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_QUOTE_ATTACH_LABEL,
+                     theme['msgsWinSentSelQuoteAttachLabel']['fg'], theme['msgsWinSentSelQuoteAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_QUOTE_ATTACH_LABEL, theme['msgsWinRecvQuoteAttachLabel']['fg'],
+                     theme['msgsWinRecvQuoteAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_QUOTE_ATTACH_LABEL, theme['msgsWinRecvSelQuoteAttachLabel']['fg'],
+                     theme['msgsWinRecvSelQuoteAttachLabel']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_QUOTE_ATTACH_VALUE, theme['msgsWinSentQuoteAttachValue']['fg'],
+                     theme['msgsWinSentQuoteAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_QUOTE_ATTACH_VALUE, theme['msgsWinSentSelQuoteAttachValue']['fg'],
+                     theme['msgsWinSentSelQuoteAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_QUOTE_ATTACH_VALUE, theme['msgsWinRecvQuoteAttachValue']['fg'],
+                     theme['msgsWinRecvQuoteAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_QUOTE_ATTACH_VALUE, theme['msgsWinRecvSelQuoteAttachValue']['fg'],
+                     theme['msgsWinRecvSelQuoteAttachValue']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_QUOTE_TEXT, theme['msgsWinSentQuoteText']['fg'],
+                     theme['msgsWinSentQuoteText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_SENT_SEL_QUOTE_TEXT, theme['msgsWinSentSelQuoteText']['fg'],
+                     theme['msgsWinSentSelQuoteText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_QUOTE_TEXT, theme['msgsWinRecvQuoteText']['fg'],
+                     theme['msgsWinRecvQuoteText']['bg'])
+    curses.init_pair(ThemeColours.MESSAGES_WIN_RECV_SEL_QUOTE_TEXT, theme['msgsWinRecvSelQuoteText']['fg'],
+                     theme['msgsWinRecvSelQuoteText']['bg'])
 
+    ##########
+    # Typing window:
     curses.init_pair(ThemeColours.TYPING_WIN, theme['typeWin']['fg'], theme['typeWin']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_BORDER, theme['typeWinBorder']['fg'], theme['typeWinBorder']['bg'])
     curses.init_pair(ThemeColours.TYPING_WIN_FOCUS_BORDER, theme['typeWinFBorder']['fg'],
@@ -1280,23 +1758,31 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
                      theme['menuBarAccountLabel']['bg'])
     curses.init_pair(ThemeColours.MENU_ACCT_TEXT, theme['menuBarAccountText']['fg'], theme['menuBarAccountText']['bg'])
 
+    #############
+    # Status bar:
     curses.init_pair(ThemeColours.STATUS_BAR_EMPTY, theme['statusBG']['fg'], theme['statusBG']['bg'])
     curses.init_pair(ThemeColours.STATUS_BAR_CHAR, theme['statusCC']['fg'], theme['statusCC']['bg'])
     curses.init_pair(ThemeColours.STATUS_BAR_MOUSE, theme['statusMouse']['fg'], theme['statusMouse']['bg'])
     curses.init_pair(ThemeColours.STATUS_RECEIVE, theme['statusReceive']['fg'], theme['statusReceive']['bg'])
 
+    ##############
+    # Menu's:
     curses.init_pair(ThemeColours.MENU_BORDER, theme['menuBorder']['fg'], theme['menuBorder']['bg'])
     curses.init_pair(ThemeColours.MENU_SEL, theme['menuSel']['fg'], theme['menuSel']['bg'])
     curses.init_pair(ThemeColours.MENU_UNSEL, theme['menuUnsel']['fg'], theme['menuUnsel']['bg'])
     curses.init_pair(ThemeColours.MENU_SEL_ACCEL, theme['menuSelAccel']['fg'], theme['menuSelAccel']['bg'])
     curses.init_pair(ThemeColours.MENU_UNSEL_ACCEL, theme['menuUnselAccel']['fg'], theme['menuUnselAccel']['bg'])
 
+    ##############
+    # Settings window:
     curses.init_pair(ThemeColours.SETTINGS_WIN, theme['setWin']['fg'], theme['setWin']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_BORDER, theme['setWinBorder']['fg'], theme['setWinBorder']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_FOCUS_BORDER, theme['setWinFBorder']['fg'], theme['setWinFBorder']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_TITLE, theme['setWinTitle']['fg'], theme['setWinTitle']['bg'])
     curses.init_pair(ThemeColours.SETTINGS_WIN_FOCUS_TITLE, theme['setWinFTitle']['fg'], theme['setWinFTitle']['bg'])
 
+    ##############
+    # Quit window:
     curses.init_pair(ThemeColours.QUIT_WIN, theme['quitWin']['fg'], theme['quitWin']['bg'])
     curses.init_pair(ThemeColours.QUIT_WIN_BORDER, theme['quitWinBorder']['fg'], theme['quitWinBorder']['bg'])
     curses.init_pair(ThemeColours.QUIT_WIN_FOCUS_BORDER, theme['quitWinFBorder']['fg'], theme['quitWinFBorder']['bg'])
@@ -1310,6 +1796,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.QUIT_WIN_UNSEL_ACCEL_TEXT, theme['quitWinUnselAccelText']['fg'],
                      theme['quitWinUnselAccelText']['bg'])
 
+    ############
+    # Switch account window:
     curses.init_pair(ThemeColours.SWITCH_WIN, theme['switchWin']['fg'], theme['switchWin']['bg'])
     curses.init_pair(ThemeColours.SWITCH_WIN_BORDER, theme['switchWinBorder']['fg'], theme['switchWinBorder']['bg'])
     curses.init_pair(ThemeColours.SWITCH_WIN_FOCUS_BORDER, theme['switchWinFBorder']['fg'],
@@ -1318,6 +1806,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.SWITCH_WIN_FOCUS_TITLE, theme['switchWinFTitle']['fg'],
                      theme['switchWinFTitle']['bg'])
 
+    ###############
+    # Link account window:
     curses.init_pair(ThemeColours.LINK_WIN, theme['linkWin']['fg'], theme['linkWin']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_BORDER, theme['linkWinBorder']['fg'], theme['linkWin']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_FOCUS_BORDER, theme['linkWinFBorder']['fg'], theme['linkWinFBorder']['bg'])
@@ -1325,18 +1815,24 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.LINK_WIN_FOCUS_TITLE, theme['linkWinFTitle']['fg'], theme['linkWinFTitle']['bg'])
     curses.init_pair(ThemeColours.LINK_WIN_TEXT, theme['linkWinText']['fg'], theme['linkWinText']['bg'])
 
+    ##############
+    # Register new account window:
     curses.init_pair(ThemeColours.REGISTER_WIN, theme['regWin']['fg'], theme['regWin']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_BORDER, theme['regWinBorder']['fg'], theme['regWinBorder']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_FOCUS_BORDER, theme['regWinFBorder']['fg'], theme['regWinFBorder']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_TITLE, theme['regWinTitle']['fg'], theme['regWinTitle']['bg'])
     curses.init_pair(ThemeColours.REGISTER_WIN_FOCUS_TITLE, theme['regWinFTitle']['fg'], theme['regWinFTitle']['bg'])
 
+    ###########
+    # Shortcut keys help window:
     curses.init_pair(ThemeColours.KEYS_WIN, theme['keysWin']['fg'], theme['keysWin']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_BORDER, theme['keysWinBorder']['fg'], theme['keysWinBorder']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_FOCUS_BORDER, theme['keysWinFBorder']['fg'], theme['keysWinFBorder']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_TITLE, theme['keysWinTitle']['fg'], theme['keysWinTitle']['bg'])
     curses.init_pair(ThemeColours.KEYS_WIN_FOCUS_TITLE, theme['keysWinFTitle']['fg'], theme['keysWinFTitle']['bg'])
 
+    ############
+    # About help window:
     curses.init_pair(ThemeColours.ABOUT_WIN, theme['aboutWin']['fg'], theme['aboutWin']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_BORDER, theme['aboutWinBorder']['fg'], theme['aboutWinBorder']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_FOCUS_BORDER, theme['aboutWinFBorder']['fg'],
@@ -1344,6 +1840,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.ABOUT_WIN_TITLE, theme['aboutWinTitle']['fg'], theme['aboutWinTitle']['bg'])
     curses.init_pair(ThemeColours.ABOUT_WIN_FOCUS_TITLE, theme['aboutWinFTitle']['fg'], theme['aboutWinFTitle']['bg'])
 
+    ##############
+    # Versions help window:
     curses.init_pair(ThemeColours.VERSION_WIN, theme['verWin']['fg'], theme['verWin']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_BORDER, theme['verWinBorder']['fg'], theme['verWinBorder']['bg'])
     curses.init_pair(ThemeColours.VERSION_WIN_FOCUS_BORDER, theme['verWinFBorder']['fg'], theme['verWinFBorder']['bg'])
@@ -1351,6 +1849,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.VERSION_WIN_FOCUS_TITLE, theme['verWinFTitle']['fg'], theme['verWinFTitle']['bg'])
     curses.init_pair(ThemeColours.VERSION_TEXT, theme['verWinText']['fg'], theme['verWinText']['bg'])
 
+    ##########
+    # General message window: (NOT USED RN)
     curses.init_pair(ThemeColours.GEN_MESSAGE_WIN, theme['genMsgWin']['fg'], theme['genMsgWin']['bg'])
     curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_BORDER, theme['genMsgWinBorder']['fg'],
                      theme['genMsgWinBorder']['bg'])
@@ -1360,6 +1860,8 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
     curses.init_pair(ThemeColours.GEN_MESSAGE_WIN_FOCUS_TITLE, theme['genMsgWinFTitle']['fg'],
                      theme['genMsgWinFTitle']['bg'])
 
+    #############
+    # QR-Code display window:
     curses.init_pair(ThemeColours.QRCODE_WIN, theme['qrcodeWin']['fg'], theme['qrcodeWin']['bg'])
     curses.init_pair(ThemeColours.QRCODE_WIN_BORDER, theme['qrcodeWinBorder']['fg'], theme['qrcodeWinBorder']['bg'])
     curses.init_pair(ThemeColours.QRCODE_WIN_FOCUS_BORDER, theme['qrcodeWinFBorder']['fg'],
@@ -1369,11 +1871,15 @@ def init_colours(theme: dict[str, dict[str, int | bool | Optional[str]]]) -> Non
                      theme['qrcodeWinFTitle']['bg'])
     curses.init_pair(ThemeColours.QRCODE_TEXT, theme['qrcodeText']['fg'], theme['qrcodeText']['bg'])
 
+    ###############
+    # General button properties:
     curses.init_pair(ThemeColours.BUTTON_SEL, theme['buttonSel']['fg'], theme['buttonSel']['bg'])
     curses.init_pair(ThemeColours.BUTTON_UNSEL, theme['buttonUnsel']['fg'], theme['buttonUnsel']['bg'])
     curses.init_pair(ThemeColours.BUTTON_SEL_ACCEL, theme['buttonSelAccel']['fg'], theme['buttonSelAccel']['bg'])
     curses.init_pair(ThemeColours.BUTTON_UNSEL_ACCEL, theme['buttonUnselAccel']['fg'], theme['buttonUnselAccel']['bg'])
 
+    ################
+    # General scrollbar properties:
     curses.init_pair(ThemeColours.SCROLL_ENA_BG, theme['scrollBarEnaBg']['bg'], theme['scrollBarEnaBg']['bg'])
     curses.init_pair(ThemeColours.SCROLL_DIS_BG, theme['scrollBarDisBg']['fg'], theme['scrollBarDisBg']['bg'])
     curses.init_pair(ThemeColours.SCROLL_ENA_BTN, theme['scrollBarEnaBtn']['fg'], theme['scrollBarEnaBtn']['bg'])

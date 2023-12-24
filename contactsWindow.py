@@ -78,6 +78,7 @@ class ContactsWindow(Window):
         # Create the 'Groups' sub window:
         self._groups_win = GroupsSubWindow(std_screen, groups_win_size, groups_win_top_left, theme, (ord('G'),))
         """The groups sub window."""
+        self._groups_win.selection = self._groups_win.min_selection
         # Store the windows as a tuple indexed by ContactsFocus:
         self.focus_windows: tuple[ContactsSubWindow, GroupsSubWindow] = (self._contacts_win, self._groups_win)
         """The list of windows that can get focus."""
@@ -110,6 +111,7 @@ class ContactsWindow(Window):
         :return: None
         """
         self._contacts_win.account_changed()
+        self._groups_win.account_changed()
         return
 
 #################################################
@@ -169,6 +171,18 @@ class ContactsWindow(Window):
                 return char_handled
         return None
 
+    def process_mouse(self, mouse_pos: tuple[int, int], button_state: int) -> Optional[bool]:
+        return_value: Optional[bool]
+        if self._groups_win.is_mouse_over(mouse_pos):
+            return_value = self._groups_win.process_mouse(mouse_pos, button_state)
+            if return_value is not None:
+                return return_value
+        elif self._contacts_win.is_mouse_over(mouse_pos):
+            return_value = self._contacts_win.process_mouse(mouse_pos, button_state)
+            if return_value is not None:
+                return return_value
+        return None
+
 #########################################
 # Properties:
 #########################################
@@ -219,6 +233,14 @@ class ContactsWindow(Window):
         """
         return self._last_focus
 
+    @property
+    def contacts_win(self):
+        return self._contacts_win
+
+    @property
+    def groups_win(self):
+        return self._groups_win
+
 #########################################
 # Property hooks:
 #########################################
@@ -241,3 +263,4 @@ class ContactsWindow(Window):
             else:
                 self.current_focus = None
         return None
+

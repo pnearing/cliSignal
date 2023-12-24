@@ -150,8 +150,7 @@ class MenuBar(Bar):
         total_len = len(self._acct_label) + len(current_account)
         acct_col = (num_cols - 1) - total_len - 1
         self._window.move(0, acct_col)
-        add_str(self._window, self._acct_label, self._acct_label_attrs)
-        add_str(self._window, ': ', self._acct_text_attrs)
+        add_str(self._window, self._acct_label + ':', self._acct_label_attrs)
         add_str(self._window, current_account, self._acct_text_attrs)
 
         # Refresh the window:

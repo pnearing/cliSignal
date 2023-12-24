@@ -3,10 +3,15 @@
 File: typingWindow.py
 Message typing area window.
 """
+import logging
 from typing import Optional
 import curses
-from common import ROW, COL, STRINGS, Focus
-from cursesFunctions import calc_attributes
+from curses.textpad import Textbox
+
+import common
+from SignalCliApi.signalMessages import SignalMessages
+from common import ROW, COL, STRINGS, Focus, HEIGHT, WIDTH, TOP, LEFT
+from cursesFunctions import calc_attributes, add_ch
 from themes import ThemeColours
 from window import Window
 
@@ -49,7 +54,59 @@ class TypingWindow(Window):
         Window.__init__(self, std_screen, window, title, top_left, window_attrs, border_attrs, border_focus_attrs,
                         border_chars, border_focus_chars, title_attrs, title_focus_attrs, title_chars,
                         title_focus_chars, bg_char, Focus.TYPING)
-        # Set this window as always visible:
+        # Set this window as always visible, and static size:
         self.always_visible = True
         self.is_static_size = False
+
+        self._text_box_top_left = (self.real_top + 1, self.real_left + 1)
+        self._text_box_size = (self.height, self.width - 11)
+        self._text_box_window = curses.newwin(self._text_box_size[HEIGHT], self._text_box_size[WIDTH],
+                                              self._text_box_top_left[TOP], self._text_box_top_left[LEFT])
+        self._text_box = Textbox(self._text_box_window)
+        return
+
+################################
+# External method overrides:
+################################
+    def resize(self,
+               size: Optional[tuple[int, int]],
+               real_top_left: Optional[tuple[int, int]],
+               do_resize: bool = True,
+               do_move: bool = True,
+               ) -> None:
+        super().resize(size, real_top_left, do_resize, do_move)
+        self._text_box_top_left = (self.real_top + 1, self.real_left + 1)
+        self._text_box_size = (self.height, self.width - 11)
+        self._text_box_window = curses.newwin(self._text_box_size[HEIGHT], self._text_box_size[WIDTH],
+                                              self._text_box_top_left[TOP], self._text_box_top_left[LEFT])
+        self._text_box = Textbox(self._text_box_window)
+        return
+
+    def redraw(self) -> None:
+        super().redraw()
+        add_ch(self._window, '\u2566', self.border_attrs, 0, self.right - 10)
+        for row in range(1, self.bottom + 1):
+            add_ch(self._window, '\u2551', self.border_attrs, row, self.right - 10)
+        add_ch(self._window, '\u2569', self.border_attrs, self.bottom + 1, self.right - 10)
+        self._window.noutrefresh()
+        self._text_box_window.noutrefresh()
+        return
+
+    def process_key(self, char_code: int) -> Optional[bool]:
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.process_key.__name__)
+        if self.is_focused:
+            if common.CURRENT_RECIPIENT is not None and char_code in common.KEYS_ENTER:
+                self._text_box_window.clear()
+                self._text_box.edit()
+                message = self._text_box.gather().strip()
+                if message == '':
+                    return False
+                messages: SignalMessages = common.CURRENT_ACCOUNT.messages
+                response = messages.send_message(
+                    recipients=common.CURRENT_RECIPIENT,
+                    body=message
+                )
+                logger.debug("Sent message: %s" % message)
+                # TODO: Check response.
+                return True
         return

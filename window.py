@@ -461,7 +461,7 @@ class Window(object):
         The right most column of the drawable window.
         :return: int: The right column.
         """
-        return self.left + self.height - 1
+        return self.left + self.width - 1
 
 ##############
 # Attributes:

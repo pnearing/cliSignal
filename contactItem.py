@@ -8,6 +8,7 @@ import logging
 from typing import Optional
 
 import common
+from SignalCliApi import SignalReceivedMessage
 from SignalCliApi.signalContact import SignalContact
 from SignalCliApi.signalMessages import SignalMessages
 from SignalCliApi.signalCommon import MessageFilter
@@ -120,7 +121,11 @@ class ContactItem(object):
         # Get the messages between this contact and the self-contact:
         message_filter: int = MessageFilter.NOT_READ
         conversation = messages.get_conversation(self._contact, message_filter)
-        return len(conversation)
+        count = 0
+        for message in conversation:
+            if isinstance(message, SignalReceivedMessage):
+                count += 1
+        return count
 
     def __gen_first_line__(self) -> str:
         first_line = self.selected_char + self.expanded_char
@@ -133,7 +138,7 @@ class ContactItem(object):
         else:
             first_line += self._not_typing_char
         # Add the contact name:
-        first_line += self._contact.get_display_name()
+        first_line += self._contact.get_display_name(proper_self=False)
         return first_line
 
     def __gen_second_line__(self) -> str:
@@ -143,6 +148,8 @@ class ContactItem(object):
             second_line += common.STRINGS['contactItemLabels']['unknown']
         else:
             second_line += self._contact.last_seen.get_display_time()
+        second_line += self._bg_char + common.STRINGS['contactItemLabels']['expires'] + ':' + self._bg_char
+        second_line += str(self._contact.expiration)
         return second_line
 
     def __gen_third_line__(self) -> str:

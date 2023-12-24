@@ -8,6 +8,7 @@ from typing import Optional
 
 import common
 import terminal
+from SignalCliApi import SignalReceivedMessage
 from SignalCliApi.signalCommon import MessageFilter
 from SignalCliApi.signalGroup import SignalGroup
 from SignalCliApi.signalMessages import SignalMessages
@@ -109,7 +110,11 @@ class GroupItem(object):
         # Get the unread messages for this group:
         message_filer: int = MessageFilter.NOT_READ
         conversation = messages.get_conversation(self._group, message_filer)
-        return len(conversation)
+        count = 0
+        for message in conversation:
+            if isinstance(message, SignalReceivedMessage):
+                count += 1
+        return count
 
     def __gen_first_line__(self) -> str:
         first_line = self.selected_char + self.expanded_char
@@ -129,6 +134,8 @@ class GroupItem(object):
             second_line += common.STRINGS['groupItemLabels']['unknown']
         else:
             second_line += self._group.last_seen.get_display_time()
+        second_line += self._bg_char + common.STRINGS['groupItemLabels']['expires'] + ':' + self._bg_char
+        second_line += str(self._group.expiration)
         return second_line
 
     def __get_third_line__(self) -> str:

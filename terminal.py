@@ -103,6 +103,7 @@ class Terminal(object):
         print('\a', end='', flush=True)
         return
 
+
 class Cursor(object):
     """Class to control the cursor."""
 

@@ -177,10 +177,13 @@ class GroupsSubWindow(Window):
                 return item.last_seen.timestamp
             return 0
 
+        self._group_list = []
+
         if common.CURRENT_ACCOUNT is None:
             self._groups = None
             return
         self._groups = common.CURRENT_ACCOUNT.groups
+
         for group in self._groups:
             if not group.is_blocked and group.is_member:
                 self._group_list.append(group)
@@ -255,6 +258,10 @@ class GroupsSubWindow(Window):
         self.__update_groups__()
         self.__update_group_items__()
         self.__create_pad__()
+        return
+
+    def update(self) -> None:
+        self.account_changed()
         return
 
     def update_pad(self) -> None:
@@ -385,12 +392,16 @@ class GroupsSubWindow(Window):
     #############
     # Selection:
     @property
-    def max_selection(self) -> int:
-        return len(self._group_items) - 1
+    def max_selection(self) -> Optional[int]:
+        if len(self._group_items) > 0:
+            return len(self._group_items) - 1
+        return None
 
     @property
-    def min_selection(self) -> int:
-        return 0
+    def min_selection(self) -> Optional[int]:
+        if len(self._group_items) > 0:
+            return 0
+        return None
 
     @property
     def selection(self) -> Optional[int]:
@@ -400,7 +411,7 @@ class GroupsSubWindow(Window):
     def selection(self, value: Optional[int]) -> None:
         if value is not None and not isinstance(value, int):
             __type_error__('value', 'Optional[int]', value)
-        if value < self.min_selection or value > self.max_selection:
+        if value is not None and (value < self.min_selection or value > self.max_selection):
             raise ValueError("Selection out of range.")
         self._last_selection = self._selection
         self._selection = value

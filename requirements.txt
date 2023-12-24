@@ -1,4 +1,5 @@
-SignalCliApi==0.2.3
+SignalCliApi==0.4.0
 tzlocal>=5.2
 pytz>=2022.1
 linkpreview>=0.8.1
+playsound

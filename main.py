@@ -9,21 +9,22 @@ import curses
 import logging
 
 import prettyPrint
-from SignalCliApi import SignalSyncMessage
+from SignalCliApi import SignalSyncMessage, SignalContacts, SignalTypingMessage
 from configFile import ConfigFile, ConfigFileError
-from cursesFunctions import get_mouse, get_left_click, terminal_bell
+from contactsSubWindow import ContactsSubWindow
+from cursesFunctions import get_mouse, terminal_bell
+from groupsSubWIndow import GroupsSubWindow
+from messagesWindow import MessagesWindow
 from prettyPrint import print_coloured
 from terminal import Colours
 
-from SignalCliApi.signalLinkThread import SignalLinkThread
 from SignalCliApi.signalReceivedMessage import SignalReceivedMessage
 from SignalCliApi.signalReaction import SignalReaction
-from SignalCliApi.signalReactions import SignalReactions
-from SignalCliApi.signalCommon import LinkAccountCallbackStates
+from SignalCliApi.signalCommon import LinkAccountCallbackStates, SyncTypes, RecipientTypes
 from SignalCliApi.signalAccount import SignalAccount
 from SignalCliApi.signalCli import SignalCli
 from SignalCliApi.signalExceptions import SignalError, SignalAlreadyRunningError
-
+from SignalCliApi.signalReceipt import SignalReceipt
 import common
 from common import Focus, out_error, out_info, out_debug, out_warning
 import arguments
@@ -31,11 +32,8 @@ from cliExceptions import Quit
 from themes import load_theme, init_colours
 from mainWindow import MainWindow
 from linkWindow import LinkWindow, LinkMessages
-from menuBar import MenuBar
 from window import Window
-from quitWindow import QuitWindow
 from qrcodeWindow import QRCodeWindow
-from versionWindow import VersionWindow
 import runCallback
 import typeError
 from typeError import __type_error__
@@ -218,29 +216,44 @@ def signal_link_cb(state: str,
 
 def signal_received_message_cb(account: SignalAccount, message: SignalReceivedMessage):
     out_debug("Receive message callback...")
+    messages_window: MessagesWindow = common.MAIN_WINDOW.messages_window
+    contacts_sub_window: ContactsSubWindow = common.MAIN_WINDOW.contacts_window.contacts_win
+    groups_sub_window: GroupsSubWindow = common.MAIN_WINDOW.contacts_window.groups_win
+    main_window: MainWindow = common.MAIN_WINDOW
     if common.TIME_STARTED < message.timestamp.datetime_obj:
+        out_debug("Ringing bell.")
         terminal_bell()
     if common.CURRENT_RECIPIENT is not None:
         if message.sender == common.CURRENT_RECIPIENT or message.recipient == common.CURRENT_RECIPIENT:
-            common.MAIN_WINDOW.messages_window.message_received()
+            messages_window.message_received()
             if common.CURRENT_FOCUS == Focus.MESSAGES:
                 message.mark_read()
+    if message.recipient.recipient_type == RecipientTypes.GROUP:
+        groups_sub_window.update()
+    elif message.recipient.recipient_type == RecipientTypes.CONTACT:
+        contacts_sub_window.update()
     return
 
 
-def signal_receipt_message_cb(*args):
+def signal_receipt_message_cb(account: SignalAccount, receipt: SignalReceipt):
     out_debug("Receipt message callback...")
+    messages_window: MessagesWindow = common.MAIN_WINDOW.messages_window
+    if receipt.sender == common.CURRENT_RECIPIENT:
+        messages_window.update()
     return
 
 
-def signal_sync_message_cb(account: SignalAccount, message: SignalSyncMessage):
+def signal_sync_message_cb(account: SignalAccount, sync_message: SignalSyncMessage):
     out_debug("Sync message callback...")
+    if sync_message.sync_type == SyncTypes.SENT_MESSAGES:
+        common.MAIN_WINDOW.messages_window.message_received()
+    elif sync_message.sync_type == SyncTypes.READ_MESSAGES:
+        common.MAIN_WINDOW.messages_window.message_received()
     return
 
 
-def signal_typing_message_cb(*args):
+def signal_typing_message_cb(account, typing_message: SignalTypingMessage):
     out_debug("Typing message callback...")
-
     return
 
 
@@ -549,6 +562,11 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
                     # Draw the main window:
                     main_window.redraw()
 
+                    # If the account has changed, change the account in the contacts window.
+                    if common.CURRENT_ACCOUNT_CHANGED:
+                        main_window.contacts_window.account_changed()
+                        common.CURRENT_ACCOUNT_CHANGED = False
+
                     # If the recipient has changed, change the recipient in the messages window.
                     if common.CURRENT_RECIPIENT_CHANGED:
                         main_window.messages_window.recipient_changed()
@@ -593,6 +611,18 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
                         if char_handled is not None:
                             if char_handled is True:
                                 set_current_focus(Focus.CONTACTS)
+                                if char_code in main_window.contacts_window.contacts_win.focus_chars:
+                                    main_window.contacts_window.current_focus = common.ContactsFocus.CONTACTS
+                                elif char_code in main_window.contacts_window.groups_win.focus_chars:
+                                    main_window.contacts_window.current_focus = common.ContactsFocus.GROUPS
+                            continue
+                    # Pass the char to the typing window, and if it returns True, a message was sent.
+                    if common.CURRENT_FOCUS == Focus.TYPING:
+                        char_handled = main_window.typing_window.process_key(char_code)
+                        if char_handled is True:
+                            main_window.messages_window.message_received()
+                            continue
+                        elif char_handled is False:
                             continue
 
                     # Finally, send the key to the focused primary window:
@@ -626,7 +656,7 @@ def main(std_screen: curses.window, signal_cli: SignalCli) -> None:
 
 
 #########################################
-# Start:
+# Start up functions:
 #########################################
 def __start_receive_thread__(signal_cli: SignalCli) -> None:
     """
@@ -658,6 +688,16 @@ def __stop_receive_thread__(signal_cli: SignalCli) -> None:
     out_info("Stopping receive thread.")
     signal_cli.stop_receive(common.CURRENT_ACCOUNT)
     out_info("Receive thread stopped.")
+    return
+
+
+def __setup_contacts_user_obj__(account: SignalAccount):
+    contacts: SignalContacts = account.contacts
+    for contact in contacts:
+        if not isinstance(contact.user_obj, dict):
+            contact.user_obj = {
+                'sound': '<DEFAULT>',
+            }
     return
 
 
@@ -801,24 +841,24 @@ if __name__ == '__main__':
             start_signal=common.SETTINGS['startSignal'],
             callback=(signal_start_up_cb, None),
         )
-    except FileNotFoundError as e:
-        out_error("Failed to start signal-cli: %s" % e.args[0])
+    except FileNotFoundError as _e:
+        out_error("Failed to start signal-cli: %s" % _e.args[0])
         exit(14)
-    except FileExistsError as e:
-        out_error("Failed to start signal-cli: %s" % e.args[0])
+    except FileExistsError as _e:
+        out_error("Failed to start signal-cli: %s" % _e.args[0])
         exit(15)
     except SignalAlreadyRunningError:
         out_error("Failed to start signal-cli, signal instance already running.")
         exit(16)
-    except TimeoutError as e:
-        out_error("Failed to start signal-cli: %s" % e.args[0])
+    except TimeoutError as _e:
+        out_error("Failed to start signal-cli: %s" % _e.args[0])
         exit(17)
 
     # Load the account:
     if common.SETTINGS['defaultAccount'] is not None:
         try:
             common.CURRENT_ACCOUNT = _signal_cli.accounts.get_by_number(common.SETTINGS['defaultAccount'])
-        except ValueError as e:
+        except ValueError as _e:
             out_error("Invalid account, number not in right format.")
             _signal_cli.stop_signal()
             exit(18)
@@ -830,6 +870,7 @@ if __name__ == '__main__':
         common.CURRENT_ACCOUNT = _signal_cli.accounts[0]
 
     if common.CURRENT_ACCOUNT is not None:
+        __setup_contacts_user_obj__(common.CURRENT_ACCOUNT)
         __start_receive_thread__(_signal_cli)
 
     # Run main:

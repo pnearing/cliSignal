@@ -5,6 +5,7 @@ File: contactsSubWindow.py
 """
 
 import curses
+import logging
 from typing import Optional, Iterable
 
 import common
@@ -12,7 +13,7 @@ from SignalCliApi import SignalContacts, SignalContact
 from SignalCliApi.signalCommon import UNKNOWN_CONTACT_NAME
 from common import HEIGHT, TOP, LEFT, WIDTH, STRINGS, ContactsFocus, RIGHT, BOTTOM
 from contactItem import ContactItem
-from cursesFunctions import calc_attributes, terminal_bell, add_str, add_ch
+from cursesFunctions import calc_attributes, terminal_bell, add_str, add_ch, get_rel_mouse_pos
 from horizontalScrollBar import HorizontalScrollBar
 from themes import ThemeColours
 from typeError import __type_error__
@@ -148,6 +149,8 @@ class ContactsSubWindow(Window):
         :param pad: curses._CursesWindow: the pad to draw on.
         :return: None
         """
+        logger: logging.Logger = logging.getLogger(__name__ + '.' + self.__clear_pad__.__name__)
+        logger.debug("BG CHAR: '%s'" % self._bg_char)
         num_rows, num_cols = pad.getmaxyx()
         for row in range(0, num_rows):
             for col in range(0, num_cols):
@@ -307,6 +310,10 @@ class ContactsSubWindow(Window):
         self.__create_pad__()
         return
 
+    def update(self) -> None:
+        self.account_changed()
+        return
+
     def update_pad(self) -> None:
         """
         Update the pad.
@@ -434,6 +441,8 @@ class ContactsSubWindow(Window):
         :param button_state: int: The current button state.
         :return: Optional[bool]: TODO: Fill this out.
         """
+        if self.is_mouse_over(mouse_pos):
+            rel_pos = get_rel_mouse_pos(mouse_pos, self.real_top_left)
 
 
         return None
@@ -456,17 +465,21 @@ class ContactsSubWindow(Window):
 # Selection properties:
 ###############################################
     @property
-    def max_selection(self) -> int:
+    def max_selection(self) -> Optional[int]:
         """
         Return the max selection.
         :return: int: The max selection.
         """
-        return len(self._contact_items) - 1
-    
+        if len(self._contact_items) > 0:
+            return len(self._contact_items) - 1
+        return None
+
     @property
-    def min_selection(self) -> int:
+    def min_selection(self) -> Optional[int]:
         """Return the min selection."""
-        return 0
+        if len(self._contact_items) > 0:
+            return 0
+        return None
     
     @property
     def selection(self) -> Optional[int]:
@@ -487,7 +500,7 @@ class ContactsSubWindow(Window):
         """
         if value is not None and not isinstance(value, int):
             __type_error__('value', 'Optional[int]', value)
-        if value < self.min_selection or value > self.max_selection:
+        if value is not None and (value < self.min_selection or value > self.max_selection):
             raise ValueError("Selection out of range.")
         self._last_selection = self._selection
         self._selection = value

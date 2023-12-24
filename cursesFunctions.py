@@ -116,6 +116,8 @@ def add_ch(window,  # Type: curses.window | _CursesWindow.
         raise RuntimeError(param_error_message)
     elif row is not None and col is None:
         raise RuntimeError(param_error_message)
+    # # DEBUG:
+    # char = '\033[09m' + char
     # Add the string without doing the move:
     if row is None and col is None:
         try:
@@ -129,6 +131,98 @@ def add_ch(window,  # Type: curses.window | _CursesWindow.
         except curses.error as e:
             if e.args[0] != 'add_wch() returned ERR':
                 raise e
+    return
+
+
+def add_ch_with_attrs(window: curses.window,
+                      char: str,
+                      attrs: int,
+                      row: Optional[int] = None,
+                      col: Optional[int] = None,
+                      bold: bool = False,
+                      italics: bool = False,
+                      strike_through: bool = False,
+                      mono_space: bool = False,
+                      spoiler: bool = False,
+                      show_spoiler: bool = False,
+                      ) -> None:
+    """
+    Add a character with signal attributes:
+    :param window: _CursesWindow | curses.window: The window to draw on.
+    :param char: str: The character to add.
+    :param attrs: int: The colour attributes to use.
+    :param row: Optional[int] = None: The row to add at, note: If row is not None, then col must not be None as well.
+    :param col: Optional[int] = None: The column to add at, note: If col is not None, them row must not be None as well.
+    :param bold: bool = False: Add bold attribute.
+    :param italics: bool = False: Add Italics attribute.
+    :param strike_through: bool = False: Add strike through attribute.
+    :param mono_space: bool = False: Use monospace font.
+    :param spoiler: bool: = False: Use the spoiler char.
+    :param show_spoiler: = False: Should we show the spoiler char?
+    :return: None.
+    """
+    attrs &= ~curses.A_BOLD
+    attrs &= ~curses.A_REVERSE
+    attrs &= ~curses.A_UNDERLINE
+
+    new_char: int = -1
+    if ord('A') <= ord(char) <= ord('Z'):
+        if bold and italics:
+            new_char = ord(char) + 0x1D5FB
+        elif bold and mono_space:
+            if ord(char) == ord('C'):
+                new_char = 0x2102
+            elif ord(char) == ord('H'):
+                new_char = 0x210D
+            elif ord(char) == ord('N'):
+                new_char = 0x2115
+            elif ord(char) == ord('P'):
+                new_char = 0x2119
+            elif ord(char) == ord('Q'):
+                new_char = 0x211A
+            elif ord(char) == ord('R'):
+                new_char = 0x211D
+            elif ord(char) == ord('Z'):
+                new_char = 0x2124
+            else:
+                new_char = ord(char) + 0x1D4F7
+        elif bold:
+            new_char = ord(char) + 0x1D593
+        elif italics:
+            new_char = ord(char) + 0x1D5C7
+        elif mono_space:
+            new_char = ord(char) + 0x1D71F
+        else:
+            new_char = ord(char) + 0x1D55F
+    elif ord('a') <= ord(char) <= ord('z'):
+        if bold and italics:
+            new_char = ord(char) + 0x1D5F5
+        elif bold and mono_space:
+            new_char = ord(char) + 0x1D4F1
+        elif bold:
+            new_char = ord(char) + 0x1D58D
+        elif italics:
+            new_char = ord(char) + 0x1D5C1
+        elif mono_space:
+            new_char = ord(char) + 0x1D629
+        else:
+            new_char = ord(char) + 0x1D559
+    elif ord('0') <= ord(char) <= ord('9'):
+        if mono_space and bold:
+            new_char = ord(char) + 0x1D7A8
+        elif bold:
+            new_char = ord(char) + 0x1D7BC
+        elif mono_space:
+            new_char = ord(char) + 0x1D7C6
+        else:
+            new_char = ord(char) + 0x1D7B2
+
+    real_char: str = char
+    if new_char != -1:
+        real_char = chr(new_char)
+    if strike_through:
+        real_char = '\033[09m' + real_char
+    add_ch(window, real_char, attrs, row, col)
     return
 
 
